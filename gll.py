@@ -16,10 +16,8 @@ count = numpy.zeros((xpixels, ypixels), numpy.int)
 magpat = ll.MagPattern(lenses, region, xpixels, ypixels, 0, 0,
                        count.ctypes.data_as(ctypes.POINTER(ctypes.c_int)))
 
-rect = ll.Rect(.9, -.25, 1.4, .25)
-ll.rayshoot_rect(magpat, rect, 5000, 5000)
-rect = ll.Rect(-1., -.25, -.5, .25)
-ll.rayshoot_rect(magpat, rect, 5000, 5000)
+rect = ll.Rect(-1., -.25, 1.5, .25)
+ll.rayshoot(magpat, rect, 250, 50, 2)
 buf = numpy.zeros((xpixels, ypixels), numpy.uint8)
 ll.image_from_magpat(buf, magpat)
 

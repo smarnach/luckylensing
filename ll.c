@@ -1,5 +1,6 @@
-#include <string.h>
+#include <values.h>
 #include <math.h>
+#include <stdbool.h>
 
 struct ll_lens_type
 {
@@ -26,8 +27,8 @@ struct ll_magpattern_type
     int *count;
 };
 
-void ll_shoot_single_ray(struct ll_magpattern_type *magpat,
-                         const double x, const double y)
+bool ll_shoot_single_ray(struct ll_magpattern_type *magpat,
+                         double x, double y, int *mag_x, int *mag_y)
 {
     struct ll_lens_type *lens = magpat->lenses.lens;
     double x_deflect = 0.0, y_deflect = 0.0;
@@ -37,22 +38,21 @@ void ll_shoot_single_ray(struct ll_magpattern_type *magpat,
         double dy = y - lens[i].y;
         double theta_squared = dx*dx + dy*dy;
         if (theta_squared == 0.0)
-            return;
+            return false;
         double deflection = lens[i].theta_E*lens[i].theta_E / theta_squared;
         x_deflect -= dx * deflection;
         y_deflect -= dy * deflection;
     }
-    int mag_x = floor((x + x_deflect - magpat->region.x0)
-                      * magpat->pixels_per_width + 0.5);
-    int mag_y = floor((y + y_deflect - magpat->region.y0)
-                      * magpat->pixels_per_height + 0.5);
-    if (0 <= mag_x && mag_x < magpat->xpixels &&
-        0 <= mag_y && mag_y < magpat->ypixels)
-        ++magpat->count[mag_y*magpat->xpixels + mag_x];
+    *mag_x = floor((x + x_deflect - magpat->region.x0)
+                   * magpat->pixels_per_width + 0.5);
+    *mag_y = floor((y + y_deflect - magpat->region.y0)
+                   * magpat->pixels_per_height + 0.5);
+    return (0 <= *mag_x && *mag_x < magpat->xpixels &&
+            0 <= *mag_y && *mag_y < magpat->ypixels);
 }
 
 extern void ll_rayshoot_rect(struct ll_magpattern_type *magpat,
-                             struct ll_rect_type *rect,
+                             const struct ll_rect_type *rect,
                              unsigned xrays, unsigned yrays)
 {
     double width_per_xrays = (rect->x1 - rect->x0) / xrays;
@@ -61,11 +61,50 @@ extern void ll_rayshoot_rect(struct ll_magpattern_type *magpat,
         / (magpat->region.x1 - magpat->region.x0);
     magpat->pixels_per_height = magpat->ypixels
         / (magpat->region.y1 - magpat->region.y0);
-    for (unsigned j = 0; j <= yrays; ++j)
-        for (unsigned i = 0; i <= xrays; ++i)
-            ll_shoot_single_ray(magpat,
-                                rect->x0 + i*width_per_xrays,
-                                rect->y0 + j*height_per_yrays);
+    int mag_x, mag_y;
+    for (unsigned j = 0; j < yrays; ++j)
+        for (unsigned i = 0; i < xrays; ++i)
+            if (ll_shoot_single_ray(magpat,
+                                    rect->x0 + i*width_per_xrays,
+                                    rect->y0 + j*height_per_yrays,
+                                    &mag_x, &mag_y))
+                ++magpat->count[mag_y*magpat->xpixels + mag_x];
+}
+
+extern void ll_rayshoot(struct ll_magpattern_type *magpat,
+                        struct ll_rect_type *rect,
+                        unsigned xrays, unsigned yrays,
+                        unsigned levels)
+{
+    double width_per_xrays = (rect->x1 - rect->x0) / xrays;
+    double height_per_yrays = (rect->y1 - rect->y0) / yrays;
+    magpat->pixels_per_width = magpat->xpixels
+        / (magpat->region.x1 - magpat->region.x0);
+    magpat->pixels_per_height = magpat->ypixels
+        / (magpat->region.y1 - magpat->region.y0);
+    if (levels)
+    {
+        bool hit[(xrays+1)*(yrays+1)];
+        int mag_x, mag_y;
+        for (unsigned j = 0, m = 0; j <= yrays; ++j)
+            for (unsigned i = 0; i <= xrays; ++i, ++m)
+                hit[m] = ll_shoot_single_ray(magpat,
+                                             rect->x0 + i*width_per_xrays,
+                                             rect->y0 + j*height_per_yrays,
+                                             &mag_x, &mag_y);
+        for (unsigned j = 0, m = 0; j < yrays; ++j, ++m)
+            for (unsigned i = 0; i < xrays; ++i, ++m)
+                if (hit[m] || hit[m+1] || hit[m+xrays+1] || hit[m+xrays+2])
+                {
+                    double x = rect->x0 + i*width_per_xrays;
+                    double y = rect->y0 + j*height_per_yrays;
+                    struct ll_rect_type subrect
+                        = {x, y, x+width_per_xrays, y+height_per_yrays};
+                    ll_rayshoot(magpat, &subrect, 10, 10, levels-1);
+                }
+    }
+    else
+        ll_rayshoot_rect(magpat, rect, 10, 10);
 }
 
 extern void ll_image_from_magpat(char buf[], struct ll_magpattern_type *magpat)
