@@ -25,6 +25,11 @@ class MagPattern(ctypes.Structure):
                 ("pixels_per_height", ctypes.c_double),
                 ("count", ctypes.POINTER(ctypes.c_int))]
 
+def new_MagPattern(*args):
+    m = MagPattern(*args[:-1])
+    m.count = args[-1].ctypes.data_as(ctypes.POINTER(ctypes.c_int))
+    return m
+
 libll = numpy.ctypeslib.load_library('libll', '.')
 
 rayshoot_rect = libll.ll_rayshoot_rect

@@ -2,7 +2,6 @@
 import gtk
 import numpy
 import luckylens as ll
-import ctypes
 
 xpixels = 512
 ypixels = 256
@@ -13,8 +12,7 @@ lens = (ll.Lens*3)((0.0, 0.0,  1.),
 lenses = ll.Lenses(3, lens)
 region = ll.Rect(.26, -.05, .46, .05)
 count = numpy.zeros((xpixels, ypixels), numpy.int)
-magpat = ll.MagPattern(lenses, region, xpixels, ypixels, 0, 0,
-                       count.ctypes.data_as(ctypes.POINTER(ctypes.c_int)))
+magpat = ll.new_MagPattern(lenses, region, xpixels, ypixels, 0, 0, count)
 
 rect = ll.Rect(-1., -.25, 1.5, .25)
 ll.rayshoot(magpat, rect, 250, 50, 2)
