@@ -71,10 +71,19 @@ extern void ll_rayshoot_rect(struct ll_magpattern_type *magpat,
 extern void ll_image_from_magpat(char buf[], struct ll_magpattern_type *magpat)
 {
     int max_count = 0;
+    int min_count = MAXINT;
     for(unsigned i = 0; i < magpat->xpixels*magpat->ypixels; ++i)
+    {
         if (magpat->count[i] > max_count)
             max_count = magpat->count[i];
-    double inv_logmax = 255/log(max_count+1);
+        if (magpat->count[i] < min_count)
+            min_count = magpat->count[i];
+    }
+    if (max_count == min_count)
+        return;
+    double logmax = log(max_count+1);
+    double logmin = log(min_count+1);
+    double factor = 255/(logmax-logmin);
     for(unsigned i = 0; i < magpat->xpixels*magpat->ypixels; ++i)
-        buf[i] = log(magpat->count[i]+1)*inv_logmax;
+        buf[i] = (log(magpat->count[i]+1)-logmin)*factor;
 }
