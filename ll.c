@@ -106,6 +106,20 @@ ll_rayshoot(struct ll_magpattern_type *magpat,
                                              rect->x0 + i*width_per_xrays,
                                              rect->y0 + j*height_per_yrays,
                                              &mag_x, &mag_y);
+        for (unsigned j = 0, m = 0; j <= yrays; ++j)
+            for (unsigned i = 0; i <= xrays; ++i, ++m)
+            {
+                if (hit[m])
+                {
+                    if (i)
+                        hit[m-1] = true;
+                    if (j)
+                        hit[m-xrays-1] = true;
+                }
+                if ((i < xrays) && hit[m+1] ||
+                    (j < yrays) && hit[m+xrays+1])
+                    hit[m] = true;
+            }
         for (unsigned j = 0, m = 0; j < yrays; ++j, ++m)
             for (unsigned i = 0; i < xrays; ++i, ++m)
                 if (hit[m] || hit[m+1] || hit[m+xrays+1] || hit[m+xrays+2])
