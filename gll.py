@@ -2,58 +2,55 @@
 import gtk
 import numpy
 import luckylens as ll
+from time import clock
 
-xpixels = 512
-ypixels = 256
+xpixels = 1024
+ypixels = 512
 
-lens = (ll.Lens*3)((0.0, 0.0,  1.),
-                   (1.2, 0.0,  2e-2),
-                   (1.2, 0.025, 4e-3))
-lenses = ll.Lenses(3, lens)
-region = ll.Rect(.26, -.05, .46, .05)
-count = numpy.zeros((xpixels, ypixels), numpy.int)
-magpat = ll.new_MagPattern(lenses, region, xpixels, ypixels, 0, 0, count)
+class GllApp(object):
+    def __init__(self):
+        self.builder = gtk.Builder()
+        self.builder.add_from_file("gll.glade")
+        self.builder.connect_signals(self)
+        self.imgbuf = None
+        self.m = 0
 
-rect = ll.Rect(-1., -.25, 1.5, .25)
-ll.rayshoot(magpat, rect, 250, 50, 2)
-buf = numpy.zeros((xpixels, ypixels), numpy.uint8)
-ll.image_from_magpat(buf, magpat)
+    def generate_pattern(self, *args):
+        lens = (ll.Lens*3)((0.0, 0.0,  1.),
+                           (1.2, 0.0,  2e-2),
+                           (1.2, 0.025, 4e-3))
+        lenses = ll.Lenses(3, lens)
+        region = ll.Rect(.26, -.05, .46, .05)
+        count = numpy.zeros((xpixels, ypixels), numpy.int)
+        magpat = ll.new_MagPattern(lenses, region, xpixels, ypixels, 0, 0, count)
+        rect = ll.Rect(-1., -.25, 1.5, .25)
+        ll.rayshoot(magpat, rect, 1000, 200, 2)
+        buf = numpy.zeros((xpixels, ypixels), numpy.uint8)
+        ll.image_from_magpat(buf, magpat)
+        box = self.builder.get_object("magpat_box")
+        imgmap = gtk.gdk.Pixmap(box.window, xpixels, ypixels)
+        imgmap.draw_gray_image(box.get_style().fg_gc[gtk.STATE_NORMAL],
+                               0, 0, xpixels, ypixels, gtk.gdk.RGB_DITHER_NONE, buf)
+        self.imgbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, xpixels, ypixels)
+        self.imgbuf.get_from_drawable(imgmap, imgmap.get_colormap(), 0, 0, 0, 0, xpixels, ypixels)
+        box.queue_resize()
 
-def scale(widget, event):
-    global imgscaled
-    x, y, width, height = widget.get_allocation()
-    m = min(width * ypixels, height * xpixels)
-    imgscaled = imgbuf.scale_simple(m//ypixels, m//xpixels, gtk.gdk.INTERP_BILINEAR)
-    img.set_from_pixbuf(imgscaled)
+    def show_pattern(self, widget, *args):
+        if self.imgbuf is None:
+            return
+        x, y, width, height = widget.get_allocation()
+        if width >= xpixels and height >= ypixels:
+            m = xpixels*ypixels
+        else:
+            m = min(width * ypixels, height * xpixels)
+        if m == self.m:
+            return
+        self.m = m
+        imgscaled = self.imgbuf.scale_simple(m//ypixels, m//xpixels, gtk.gdk.INTERP_BILINEAR)
+        self.builder.get_object("magpat").set_from_pixbuf(imgscaled)
 
-w = gtk.Window()
-w.connect('destroy', lambda *args: gtk.main_quit())
-w.show()
+    def app_quit(self, *args):
+        gtk.main_quit()
 
-accelgroup = gtk.AccelGroup()
-w.add_accel_group(accelgroup)
-action = gtk.Action('Quit', None, None, gtk.STOCK_QUIT)
-action.connect('activate', lambda *args: gtk.main_quit())
-actiongroup = gtk.ActionGroup('SimpleAction')
-actiongroup.add_action_with_accel(action, None)
-action.set_accel_group(accelgroup)
-action.connect_accelerator()
-
-imgmap = gtk.gdk.Pixmap(w.window, xpixels, ypixels)
-imgmap.draw_gray_image(w.get_style().fg_gc[gtk.STATE_NORMAL],
-                       0, 0, xpixels, ypixels, gtk.gdk.RGB_DITHER_NONE, buf)
-imgbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, xpixels, ypixels)
-imgbuf.get_from_drawable(imgmap, imgmap.get_colormap(), 0, 0, 0, 0, xpixels, ypixels)
-imgscaled = imgbuf.scale_simple(xpixels//2, ypixels//2, gtk.gdk.INTERP_BILINEAR)
-
-img = gtk.Image()
-img.set_alignment(0.5, 0.5)
-img.set_size_request(50, 50)
-img.set_from_pixbuf(imgscaled)
-img.show()
-
-w.add(img)
-
-w.connect("configure_event", scale)
-
+app = GllApp()
 gtk.main()
