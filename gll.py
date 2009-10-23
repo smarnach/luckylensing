@@ -3,6 +3,8 @@ import gtk
 import numpy
 import luckylens as ll
 from time import clock
+import pyconsole
+import pango
 
 xpixels = 1024
 ypixels = 512
@@ -48,6 +50,18 @@ class GllApp(object):
         self.m = m
         imgscaled = self.imgbuf.scale_simple(m//ypixels, m//xpixels, gtk.gdk.INTERP_BILINEAR)
         self.builder.get_object("magpat").set_from_pixbuf(imgscaled)
+
+    def show_console(self, *args):
+        window = gtk.Window()
+        window.set_title("Gll Python Console")
+        swin = gtk.ScrolledWindow()
+        swin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+        window.add(swin)
+        console = pyconsole.Console(locals=globals())
+        console.modify_font(pango.FontDescription("Monospace"))
+        swin.add(console)
+        window.set_default_size(500, 400)
+        window.show_all()
 
     def app_quit(self, *args):
         gtk.main_quit()
