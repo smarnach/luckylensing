@@ -57,8 +57,8 @@ ll_shoot_single_ray(struct ll_magpattern_type *magpat,
     double mag_x_d, mag_y_d;
     if (!ll_shoot_single_ray_double(magpat, x, y, &mag_x_d, &mag_y_d))
         return false;
-    *mag_x = floor(mag_x_d + 0.5);
-    *mag_y = floor(mag_y_d + 0.5);
+    *mag_x = mag_x_d;
+    *mag_y = mag_y_d;
     return (0 <= *mag_x && *mag_x < magpat->xpixels &&
             0 <= *mag_y && *mag_y < magpat->ypixels);
 }
@@ -116,8 +116,8 @@ ll_rayshoot(struct ll_magpattern_type *magpat,
                     if (j)
                         hit[m-xrays-1] = true;
                 }
-                if ((i < xrays) && hit[m+1] ||
-                    (j < yrays) && hit[m+xrays+1])
+                if (((i < xrays) && hit[m+1]) ||
+                    ((j < yrays) && hit[m+xrays+1]))
                     hit[m] = true;
             }
         for (unsigned j = 0, m = 0; j < yrays; ++j, ++m)
@@ -143,14 +143,14 @@ ll_rayshoot(struct ll_magpattern_type *magpat,
         bool lr =  ll_shoot_single_ray_double(magpat, rect->x1, rect->y1,
                                               &lr_x, &lr_y);
         if (ul && ur && ll && lr &&
-            -0.5 <= ul_x && ul_x < magpat->xpixels + 0.5 &&
-            -0.5 <= ul_y && ul_y < magpat->ypixels + 0.5 &&
-            -0.5 <= ur_x && ur_x < magpat->xpixels + 0.5 &&
-            -0.5 <= ur_y && ur_y < magpat->ypixels + 0.5 &&
-            -0.5 <= ll_x && ll_x < magpat->xpixels + 0.5 &&
-            -0.5 <= ll_y && ll_y < magpat->ypixels + 0.5 &&
-            -0.5 <= lr_x && lr_x < magpat->xpixels + 0.5 &&
-            -0.5 <= lr_y && lr_y < magpat->ypixels + 0.5)
+            0.0 <= ul_x && ul_x < magpat->xpixels &&
+            0.0 <= ul_y && ul_y < magpat->ypixels &&
+            0.0 <= ur_x && ur_x < magpat->xpixels &&
+            0.0 <= ur_y && ur_y < magpat->ypixels &&
+            0.0 <= ll_x && ll_x < magpat->xpixels &&
+            0.0 <= ll_y && ll_y < magpat->ypixels &&
+            0.0 <= lr_x && lr_x < magpat->xpixels &&
+            0.0 <= lr_y && lr_y < magpat->ypixels)
         {
             double ldown_x = (ll_x - ul_x) * 0.05;
             double ldown_y = (ll_y - ul_y) * 0.05;
@@ -168,9 +168,7 @@ ll_rayshoot(struct ll_magpattern_type *magpat,
                 double y = sy;
                 for (unsigned i = 0; i < 20; ++i)
                 {
-                    int mag_x = floor(x + 0.5);
-                    int mag_y = floor(y + 0.5);
-                    ++magpat->count[mag_y*magpat->xpixels + mag_x];
+                    ++magpat->count[(int)y*magpat->xpixels + (int)x];
                     x += right_x;
                     y += right_y;
                 }
