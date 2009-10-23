@@ -29,7 +29,7 @@ struct ll_magpattern_type
 };
 
 inline bool __attribute__ ((hot))
-ll_shoot_single_ray_double(struct ll_magpattern_type *magpat,
+ll_shoot_single_ray(struct ll_magpattern_type *magpat,
                            double x, double y, double *mag_x, double *mag_y)
 {
     struct ll_lens_type *lens = magpat->lenses.lens;
@@ -47,18 +47,6 @@ ll_shoot_single_ray_double(struct ll_magpattern_type *magpat,
     }
     *mag_x = (x + x_deflect - magpat->region.x0) * magpat->pixels_per_width;
     *mag_y = (y + y_deflect - magpat->region.y0) * magpat->pixels_per_height;
-    return true;
-}
-
-inline bool __attribute__ ((hot))
-ll_shoot_single_ray(struct ll_magpattern_type *magpat,
-                    double x, double y, int *mag_x, int *mag_y)
-{
-    double mag_x_d, mag_y_d;
-    if (!ll_shoot_single_ray_double(magpat, x, y, &mag_x_d, &mag_y_d))
-        return false;
-    *mag_x = mag_x_d;
-    *mag_y = mag_y_d;
     return (0 <= *mag_x && *mag_x < magpat->xpixels &&
             0 <= *mag_y && *mag_y < magpat->ypixels);
 }
@@ -74,14 +62,14 @@ ll_rayshoot_rect(struct ll_magpattern_type *magpat,
         / (magpat->region.x1 - magpat->region.x0);
     magpat->pixels_per_height = magpat->ypixels
         / (magpat->region.y1 - magpat->region.y0);
-    int mag_x, mag_y;
+    double mag_x, mag_y;
     for (unsigned j = 0; j < yrays; ++j)
         for (unsigned i = 0; i < xrays; ++i)
             if (ll_shoot_single_ray(magpat,
                                     rect->x0 + i*width_per_xrays,
                                     rect->y0 + j*height_per_yrays,
                                     &mag_x, &mag_y))
-                ++magpat->count[mag_y*magpat->xpixels + mag_x];
+                ++magpat->count[(int)mag_y*magpat->xpixels + (int)mag_x];
 }
 
 extern void __attribute__ ((hot))
@@ -99,7 +87,7 @@ ll_rayshoot(struct ll_magpattern_type *magpat,
         magpat->pixels_per_height = magpat->ypixels
             / (magpat->region.y1 - magpat->region.y0);
         bool hit[(xrays+1)*(yrays+1)];
-        int mag_x, mag_y;
+        double mag_x, mag_y;
         for (unsigned j = 0, m = 0; j <= yrays; ++j)
             for (unsigned i = 0; i <= xrays; ++i, ++m)
                 hit[m] = ll_shoot_single_ray(magpat,
@@ -134,23 +122,11 @@ ll_rayshoot(struct ll_magpattern_type *magpat,
     else
     {
         double ul_x, ul_y, ur_x, ur_y, ll_x, ll_y, lr_x, lr_y;
-        bool ul = ll_shoot_single_ray_double(magpat, rect->x0, rect->y0,
-                                             &ul_x, &ul_y);
-        bool ur = ll_shoot_single_ray_double(magpat, rect->x1, rect->y0,
-                                             &ur_x, &ur_y);
-        bool ll =  ll_shoot_single_ray_double(magpat, rect->x0, rect->y1,
-                                              &ll_x, &ll_y);
-        bool lr =  ll_shoot_single_ray_double(magpat, rect->x1, rect->y1,
-                                              &lr_x, &lr_y);
-        if (ul && ur && ll && lr &&
-            0.0 <= ul_x && ul_x < magpat->xpixels &&
-            0.0 <= ul_y && ul_y < magpat->ypixels &&
-            0.0 <= ur_x && ur_x < magpat->xpixels &&
-            0.0 <= ur_y && ur_y < magpat->ypixels &&
-            0.0 <= ll_x && ll_x < magpat->xpixels &&
-            0.0 <= ll_y && ll_y < magpat->ypixels &&
-            0.0 <= lr_x && lr_x < magpat->xpixels &&
-            0.0 <= lr_y && lr_y < magpat->ypixels)
+        bool ul = ll_shoot_single_ray(magpat, rect->x0, rect->y0, &ul_x, &ul_y);
+        bool ur = ll_shoot_single_ray(magpat, rect->x1, rect->y0, &ur_x, &ur_y);
+        bool ll = ll_shoot_single_ray(magpat, rect->x0, rect->y1, &ll_x, &ll_y);
+        bool lr = ll_shoot_single_ray(magpat, rect->x1, rect->y1, &lr_x, &lr_y);
+        if (ul && ur && ll && lr)
         {
             double ldown_x = (ll_x - ul_x) * 0.05;
             double ldown_y = (ll_y - ul_y) * 0.05;
