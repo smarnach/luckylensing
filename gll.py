@@ -2,12 +2,53 @@
 import gtk
 import numpy
 import luckylens as ll
-from time import clock
 import pyconsole
-import pango
+import threading
+import gobject
 
 xpixels = 1024
 ypixels = 512
+
+class RayshootThread(threading.Thread):
+    def __init__(self, magpat, app):
+        super(RayshootThread, self).__init__()
+        self.magpat = magpat
+        self.app = app
+
+    def update_img(self, buf):
+        self.box.remove(self.progress_box)
+        self.box.add(self.img)
+        imgmap = gtk.gdk.Pixmap(self.box.window, xpixels, ypixels)
+        imgmap.draw_gray_image(self.box.get_style().fg_gc[gtk.STATE_NORMAL],
+                               0, 0, xpixels, ypixels, gtk.gdk.RGB_DITHER_NONE, buf)
+        self.app.imgbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, xpixels, ypixels)
+        self.app.imgbuf.get_from_drawable(imgmap, imgmap.get_colormap(), 0, 0, 0, 0, xpixels, ypixels)
+        self.box.queue_resize()
+        self.app.m = 0
+
+    def update_progressbar(self, fraction):
+        self.bar.set_fraction(fraction)
+
+    def init_progressbar(self):
+        self.bar = self.app.builder.get_object("progressbar")
+        self.box = self.app.builder.get_object("magpat_box")
+        self.img = self.app.builder.get_object("magpat")
+        self.progress_box = self.app.builder.get_object("progress_box")
+        self.box.remove(self.img)
+        self.box.add(self.progress_box)
+
+    def run(self):
+        gobject.idle_add(self.init_progressbar)
+        fraction = 0.0
+        for y in range(5):
+            for x in range(25):
+                rect = ll.Rect(-1. + x*.1, -.25+y*.1, -.9 + x*.1, -.15+y*.1)
+                ll.rayshoot(self.magpat, rect, 20, 20, 2)
+                fraction += 0.008
+                gobject.idle_add(self.update_progressbar, min(fraction, 1.0))
+        buf = numpy.zeros((xpixels, ypixels), numpy.uint8)
+        ll.image_from_magpat(buf, self.magpat)
+        gobject.idle_add(self.update_img, buf)
 
 class GllApp(object):
     def __init__(self):
@@ -16,26 +57,15 @@ class GllApp(object):
         self.builder.connect_signals(self)
         self.imgbuf = None
         self.m = 0
+        self.lens_list = self.builder.get_object("lens_list")
 
     def generate_pattern(self, *args):
-        lens = (ll.Lens*3)((0.0, 0.0,  1.),
-                           (1.2, 0.0,  2e-2),
-                           (1.2, 0.025, 4e-3))
+        lens = (ll.Lens*3)(*map(tuple, self.lens_list))
         lenses = ll.Lenses(3, lens)
         region = ll.Rect(.26, -.05, .46, .05)
-        count = numpy.zeros((xpixels, ypixels), numpy.int)
-        magpat = ll.new_MagPattern(lenses, region, xpixels, ypixels, 0, 0, count)
-        rect = ll.Rect(-1., -.25, 1.5, .25)
-        ll.rayshoot(magpat, rect, 1000, 200, 2)
-        buf = numpy.zeros((xpixels, ypixels), numpy.uint8)
-        ll.image_from_magpat(buf, magpat)
-        box = self.builder.get_object("magpat_box")
-        imgmap = gtk.gdk.Pixmap(box.window, xpixels, ypixels)
-        imgmap.draw_gray_image(box.get_style().fg_gc[gtk.STATE_NORMAL],
-                               0, 0, xpixels, ypixels, gtk.gdk.RGB_DITHER_NONE, buf)
-        self.imgbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, xpixels, ypixels)
-        self.imgbuf.get_from_drawable(imgmap, imgmap.get_colormap(), 0, 0, 0, 0, xpixels, ypixels)
-        box.queue_resize()
+        self.count = numpy.zeros((xpixels, ypixels), numpy.int)
+        magpat = ll.new_MagPattern(lenses, region, xpixels, ypixels, 0, 0, self.count)
+        RayshootThread(magpat, self).start()
 
     def show_pattern(self, widget, *args):
         if self.imgbuf is None:
@@ -58,13 +88,23 @@ class GllApp(object):
         swin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
         window.add(swin)
         console = pyconsole.Console(locals=globals())
-        console.modify_font(pango.FontDescription("Monospace"))
         swin.add(console)
         window.set_default_size(500, 400)
         window.show_all()
 
-    def app_quit(self, *args):
+    def edit_lens_cell0(self, cell, path, new_text):
+        self.lens_list[path][0] = float(new_text)
+        return
+    def edit_lens_cell1(self, cell, path, new_text):
+        self.lens_list[path][1] = float(new_text)
+        return
+    def edit_lens_cell2(self, cell, path, new_text):
+        self.lens_list[path][2] = float(new_text)
+        return
+
+    def quit_app(self, *args):
         gtk.main_quit()
 
+gobject.threads_init()
 app = GllApp()
 gtk.main()
