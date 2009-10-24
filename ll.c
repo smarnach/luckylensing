@@ -54,7 +54,7 @@ ll_shoot_single_ray(struct ll_magpattern_type *magpat,
 extern void __attribute__ ((hot))
 ll_rayshoot_rect(struct ll_magpattern_type *magpat,
                  const struct ll_rect_type *rect,
-                 unsigned xrays, unsigned yrays)
+                 int xrays, int yrays)
 {
     double width_per_xrays = (rect->x1 - rect->x0) / xrays;
     double height_per_yrays = (rect->y1 - rect->y0) / yrays;
@@ -63,8 +63,8 @@ ll_rayshoot_rect(struct ll_magpattern_type *magpat,
     magpat->pixels_per_height = magpat->ypixels
         / (magpat->region.y1 - magpat->region.y0);
     double mag_x, mag_y;
-    for (unsigned j = 0; j < yrays; ++j)
-        for (unsigned i = 0; i < xrays; ++i)
+    for (int j = 0; j < yrays; ++j)
+        for (int i = 0; i < xrays; ++i)
             if (ll_shoot_single_ray(magpat,
                                     rect->x0 + i*width_per_xrays,
                                     rect->y0 + j*height_per_yrays,
@@ -75,7 +75,7 @@ ll_rayshoot_rect(struct ll_magpattern_type *magpat,
 extern void __attribute__ ((hot))
 ll_rayshoot(struct ll_magpattern_type *magpat,
             struct ll_rect_type *rect,
-            unsigned xrays, unsigned yrays,
+            int xrays, int yrays,
             unsigned levels)
 {
     if (levels)
@@ -86,31 +86,24 @@ ll_rayshoot(struct ll_magpattern_type *magpat,
             / (magpat->region.x1 - magpat->region.x0);
         magpat->pixels_per_height = magpat->ypixels
             / (magpat->region.y1 - magpat->region.y0);
-        bool hit[(xrays+1)*(yrays+1)];
+        bool hit[(xrays+3)*(yrays+3)];
         double mag_x, mag_y;
-        for (unsigned j = 0, m = 0; j <= yrays; ++j)
-            for (unsigned i = 0; i <= xrays; ++i, ++m)
+        for (int j = -1, m = 0; j <= yrays+1; ++j)
+            for (int i = -1; i <= xrays+1; ++i, ++m)
                 hit[m] = ll_shoot_single_ray(magpat,
                                              rect->x0 + i*width_per_xrays,
                                              rect->y0 + j*height_per_yrays,
                                              &mag_x, &mag_y);
-        for (unsigned j = 0, m = 0; j <= yrays; ++j)
-            for (unsigned i = 0; i <= xrays; ++i, ++m)
-            {
-                if (hit[m])
-                {
-                    if (i)
-                        hit[m-1] = true;
-                    if (j)
-                        hit[m-xrays-1] = true;
-                }
-                if (((i < xrays) && hit[m+1]) ||
-                    ((j < yrays) && hit[m+xrays+1]))
-                    hit[m] = true;
-            }
-        for (unsigned j = 0, m = 0; j < yrays; ++j, ++m)
-            for (unsigned i = 0; i < xrays; ++i, ++m)
-                if (hit[m] || hit[m+1] || hit[m+xrays+1] || hit[m+xrays+2])
+        bool hit_dilated[(xrays+1)*(yrays+1)];
+        for (int j = 0, m = xrays+4, n = 0; j <= yrays; ++j, m += 2)
+            for (int i = 0; i <= xrays; ++i, ++m, ++n)
+                hit_dilated[n] = (hit[m] ||
+                                  hit[m-1] || hit[m-xrays-3] ||
+                                  hit[m+1] || hit[m+xrays+3]);
+        for (int j = 0, n = 0; j < yrays; ++j, ++n)
+            for (int i = 0; i < xrays; ++i, ++n)
+                if (hit_dilated[n] || hit_dilated[n+1] ||
+                    hit_dilated[n+xrays+1] || hit_dilated[n+xrays+2])
                 {
                     double x = rect->x0 + i*width_per_xrays;
                     double y = rect->y0 + j*height_per_yrays;
@@ -138,11 +131,11 @@ ll_rayshoot(struct ll_magpattern_type *magpat,
             double update_y = (rdown_y - ldown_y) * 0.05;
             double sx = ul_x;
             double sy = ul_y;
-            for (unsigned j = 0; j < 20; ++j)
+            for (int j = 0; j < 20; ++j)
             {
                 double x = sx;
                 double y = sy;
-                for (unsigned i = 0; i < 20; ++i)
+                for (int i = 0; i < 20; ++i)
                 {
                     ++magpat->count[(int)y*magpat->xpixels + (int)x];
                     x += right_x;

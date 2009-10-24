@@ -35,14 +35,14 @@ libll = numpy.ctypeslib.load_library('libll', '.')
 rayshoot_rect = libll.ll_rayshoot_rect
 rayshoot_rect.argtypes = [ctypes.POINTER(MagPattern),
                           ctypes.POINTER(Rect),
-                          ctypes.c_uint,
-                          ctypes.c_uint]
+                          ctypes.c_int,
+                          ctypes.c_int]
 
 rayshoot = libll.ll_rayshoot
 rayshoot.argtypes = [ctypes.POINTER(MagPattern),
                           ctypes.POINTER(Rect),
-                          ctypes.c_uint,
-                          ctypes.c_uint,
+                          ctypes.c_int,
+                          ctypes.c_int,
                           ctypes.c_uint]
 
 _image_from_magpat = libll.ll_image_from_magpat
