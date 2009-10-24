@@ -28,7 +28,7 @@ struct ll_magpattern_type
     int *count;
 };
 
-inline bool __attribute__ ((hot))
+extern inline bool __attribute__ ((hot))
 ll_shoot_single_ray(struct ll_magpattern_type *magpat,
                            double x, double y, double *mag_x, double *mag_y)
 {
