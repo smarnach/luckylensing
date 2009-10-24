@@ -76,7 +76,7 @@ extern void __attribute__ ((hot))
 ll_rayshoot(struct ll_magpattern_type *magpat,
             struct ll_rect_type *rect,
             int xrays, int yrays,
-            unsigned levels)
+            unsigned levels, double* progress)
 {
     if (levels)
     {
@@ -100,8 +100,10 @@ ll_rayshoot(struct ll_magpattern_type *magpat,
                 hit_dilated[n] = (hit[m] ||
                                   hit[m-1] || hit[m-xrays-3] ||
                                   hit[m+1] || hit[m+xrays+3]);
+        *progress = 0.0;
+        double progress_inc = 1.0 / (xrays*yrays);
         for (int j = 0, n = 0; j < yrays; ++j, ++n)
-            for (int i = 0; i < xrays; ++i, ++n)
+            for (int i = 0; i < xrays; ++i, ++n, *progress += progress_inc)
                 if (hit_dilated[n] || hit_dilated[n+1] ||
                     hit_dilated[n+xrays+1] || hit_dilated[n+xrays+2])
                 {
@@ -109,7 +111,8 @@ ll_rayshoot(struct ll_magpattern_type *magpat,
                     double y = rect->y0 + j*height_per_yrays;
                     struct ll_rect_type subrect
                         = {x, y, x+width_per_xrays, y+height_per_yrays};
-                    ll_rayshoot(magpat, &subrect, 10, 10, levels-1);
+                    double dummy;
+                    ll_rayshoot(magpat, &subrect, 10, 10, levels-1, &dummy);
                 }
     }
     else

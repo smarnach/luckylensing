@@ -5,6 +5,7 @@ import luckylens as ll
 import pyconsole
 import threading
 import gobject
+from time import sleep
 
 xpixels = 1024
 ypixels = 512
@@ -26,8 +27,8 @@ class RayshootThread(threading.Thread):
         self.box.queue_resize()
         self.app.m = 0
 
-    def update_progressbar(self, fraction):
-        self.bar.set_fraction(fraction)
+    def update_progressbar(self):
+        self.bar.set_fraction(min((self.progress1.value + self.progress1.value)*0.5, 1.0))
 
     def init_progressbar(self):
         self.bar = self.app.builder.get_object("progressbar")
@@ -39,13 +40,17 @@ class RayshootThread(threading.Thread):
 
     def run(self):
         gobject.idle_add(self.init_progressbar)
-        fraction = 0.0
-        for y in range(5):
-            for x in range(25):
-                rect = ll.Rect(-1. + x*.1, -.25+y*.1, -.9 + x*.1, -.15+y*.1)
-                ll.rayshoot(self.magpat, rect, 20, 20, 2)
-                fraction += 0.008
-                gobject.idle_add(self.update_progressbar, min(fraction, 1.0))
+        rect = ll.Rect(-1., -.25, 1.5, 0.)
+        self.progress1 = ll.Progress();
+        t1 = threading.Thread(target=ll.rayshoot, args=(self.magpat, rect, 100, 10, 3, self.progress1))
+        t1.start()
+        rect = ll.Rect(-1., 0., 1.5, .25)
+        self.progress2 = ll.Progress();
+        t2 = threading.Thread(target=ll.rayshoot, args=(self.magpat, rect, 100, 10, 3, self.progress2))
+        t2.start()
+        while t1.isAlive() or t2.isAlive():
+            sleep(.05)
+            gobject.idle_add(self.update_progressbar)
         buf = numpy.zeros((xpixels, ypixels), numpy.uint8)
         ll.image_from_magpat(buf, self.magpat)
         gobject.idle_add(self.update_img, buf)

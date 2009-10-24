@@ -40,10 +40,13 @@ rayshoot_rect.argtypes = [ctypes.POINTER(MagPattern),
 
 rayshoot = libll.ll_rayshoot
 rayshoot.argtypes = [ctypes.POINTER(MagPattern),
-                          ctypes.POINTER(Rect),
-                          ctypes.c_int,
-                          ctypes.c_int,
-                          ctypes.c_uint]
+                     ctypes.POINTER(Rect),
+                     ctypes.c_int,
+                     ctypes.c_int,
+                     ctypes.c_uint,
+                     ctypes.POINTER(ctypes.c_double)]
+
+Progress = ctypes.c_double
 
 _image_from_magpat = libll.ll_image_from_magpat
 _image_from_magpat.argtypes = [ctypes.POINTER(ctypes.c_char),
