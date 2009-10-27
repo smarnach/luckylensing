@@ -10,8 +10,9 @@ xpixels = 1024
 ypixels = 512
 
 class RayshootThread(threading.Thread):
-    def __init__(self, magpat, callback):
+    def __init__(self, params, magpat, callback):
         super(RayshootThread, self).__init__()
+        self.params = params
         self.magpat = magpat
         self.progress1 = ll.Progress();
         self.progress2 = ll.Progress();
@@ -23,11 +24,11 @@ class RayshootThread(threading.Thread):
     def run(self):
         rect = ll.Rect(-1., -.25, 1.5, 0.)
         t1 = threading.Thread(target=ll.rayshoot,
-                              args=(self.magpat, rect, 50, 5, 3, self.progress1))
+                              args=(self.params, self.magpat, rect, 50, 5, 3, self.progress1))
         t1.start()
         rect = ll.Rect(-1., 0., 1.5, .25)
         t2 = threading.Thread(target=ll.rayshoot,
-                              args=(self.magpat, rect, 50, 5, 3, self.progress2))
+                              args=(self.params, self.magpat, rect, 50, 5, 3, self.progress2))
         t2.start()
         t1.join()
         t2.join()
@@ -36,10 +37,9 @@ class RayshootThread(threading.Thread):
         gobject.idle_add(self.callback, buf)
 
 class ConvolveThread(threading.Thread):
-    def __init__(self, magpat, count, callback):
+    def __init__(self, magpat, callback):
         super(ConvolveThread, self).__init__()
         self.magpat = magpat
-        self.count = count
         self.callback = callback
 
     def run(self):
@@ -48,8 +48,8 @@ class ConvolveThread(threading.Thread):
         kernel = numpy.concatenate((kernel, numpy.flipud(kernel)), 0)
         kernel = numpy.concatenate((kernel, numpy.fliplr(kernel)), 1)
         kernel /= numpy.sum(kernel)
-        self.count[:] = numpy.fft.irfft2(
-            numpy.fft.rfft2(self.count) *numpy.fft.rfft2(kernel))
+        self.magpat[:] = numpy.fft.irfft2(
+            numpy.fft.rfft2(self.magpat) * numpy.fft.rfft2(kernel))
         buf = numpy.empty((ypixels, xpixels), numpy.uint8)
         ll.image_from_magpat(buf, self.magpat)
         gobject.idle_add(self.callback, buf)
@@ -60,6 +60,7 @@ class GllApp(object):
         self.builder.add_from_file("gll.glade")
         self.builder.connect_signals(self)
         self.imgbuf = None
+        self.magpat = numpy.empty((ypixels, xpixels), numpy.int)
         self.m = 0
         self.progressbar_active = False
         self.lens_list = self.builder.get_object("lens_list")
@@ -69,18 +70,16 @@ class GllApp(object):
         self.progress_box = self.builder.get_object("progress_box")
 
     def generate_pattern(self, *args):
-        lens = (ll.Lens*3)(*map(tuple, self.lens_list))
-        lenses = ll.Lenses(3, lens)
-        region = ll.Rect(.26, -.05, .46, .05)
-        self.count = numpy.zeros((ypixels, xpixels), numpy.int)
-        self.magpat = ll.new_MagPattern(lenses, region, xpixels, ypixels, 0, 0, self.count)
-        t = RayshootThread(self.magpat, self.update_img)
+        self.params = ll.MagPatternParams(self.lens_list, (.26, -.05, .46, .05),
+                                          xpixels, ypixels)
+        self.magpat[:] = 0;
+        t = RayshootThread(self.params, self.magpat, self.update_img)
         self.init_progressbar()
         gobject.timeout_add(100, self.update_progressbar, t.progress)
         t.start()
 
     def convolve_pattern(self, *args):
-        ConvolveThread(self.magpat, self.count, self.update_img).start()
+        ConvolveThread(self.magpat, self.update_img).start()
 
     def show_pattern(self, widget, *args):
         if self.imgbuf is None:
