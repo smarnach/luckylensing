@@ -27,9 +27,27 @@ struct ll_magpattern_param_type
     double pixels_per_width, pixels_per_height;
 };
 
+extern void
+ll_init_magpattern_params(struct ll_magpattern_param_type *params,
+                          struct ll_lenses_type *lenses,
+                          struct ll_rect_type *region,
+                          unsigned xpixels, unsigned ypixels)
+{
+    params->lenses.num_lenses = lenses->num_lenses;
+    params->lenses.lens = lenses->lens;
+    params->region.x0 = region->x0;
+    params->region.x1 = region->x1;
+    params->region.y0 = region->y0;
+    params->region.y1 = region->y1;
+    params->xpixels = xpixels;
+    params->ypixels = ypixels;
+    params->pixels_per_width = xpixels / (region->x1 - region->x0);
+    params->pixels_per_height = ypixels / (region->y1 - region->y0);
+}
+
 extern inline bool __attribute__ ((hot))
 ll_shoot_single_ray(struct ll_magpattern_param_type *params,
-                           double x, double y, double *mag_x, double *mag_y)
+                    double x, double y, double *mag_x, double *mag_y)
 {
     struct ll_lens_type *lens = params->lenses.lens;
     double x_deflect = 0.0, y_deflect = 0.0;
@@ -60,10 +78,6 @@ ll_rayshoot_rect(struct ll_magpattern_param_type *params, int *magpat,
 {
     double width_per_xrays = (rect->x1 - rect->x0) / xrays;
     double height_per_yrays = (rect->y1 - rect->y0) / yrays;
-    params->pixels_per_width = params->xpixels
-        / (params->region.x1 - params->region.x0);
-    params->pixels_per_height = params->ypixels
-        / (params->region.y1 - params->region.y0);
     double mag_x, mag_y;
     for (int j = 0; j < yrays; ++j)
         for (int i = 0; i < xrays; ++i)
@@ -83,10 +97,6 @@ ll_rayshoot(struct ll_magpattern_param_type *params, int *magpat,
     {
         double width_per_xrays = (rect->x1 - rect->x0) / xrays;
         double height_per_yrays = (rect->y1 - rect->y0) / yrays;
-        params->pixels_per_width = params->xpixels
-            / (params->region.x1 - params->region.x0);
-        params->pixels_per_height = params->ypixels
-            / (params->region.y1 - params->region.y0);
         bool hit[(xrays+3)*(yrays+3)];
         double mag_x, mag_y;
         for (int j = -1, m = 0; j <= yrays+1; ++j)

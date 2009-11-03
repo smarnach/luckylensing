@@ -28,7 +28,9 @@ class MagPatternParams(ctypes.Structure):
                 ("pixels_per_height", ctypes.c_double)]
     def __init__(self, lenses, region, xpixels, ypixels):
         super(MagPatternParams, self).__init__(Lenses(lenses), region,
-                                               xpixels, ypixels, 0., 0.)
+                                               xpixels, ypixels)
+        self.pixels_per_width = xpixels / (self.region.x1 - self.region.x0)
+        self.pixels_per_height = ypixels / (self.region.y1 - self.region.y0)
 
 _libll = numpy.ctypeslib.load_library('libll', '.')
 
