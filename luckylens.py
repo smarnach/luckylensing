@@ -69,3 +69,18 @@ def image_from_magpat(buf, magpat):
     _image_from_magpat(buf.ctypes.data_as(ctypes.POINTER(ctypes.c_char)),
                        magpat.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
                        numpy.prod(magpat.shape))
+
+_light_curve = _libll.ll_light_curve
+_light_curve.argtypes = [ctypes.POINTER(MagPatternParams),
+                         ctypes.POINTER(ctypes.c_int),
+                         ctypes.POINTER(ctypes.c_double),
+                         ctypes.c_uint,
+                         ctypes.c_double,
+                         ctypes.c_double,
+                         ctypes.c_double,
+                         ctypes.c_double]
+
+def light_curve(params, magpat, curve, num_points, x0, y0, x1, y1):
+    _light_curve(params, magpat.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
+                 curve.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                 num_points, x0, y0, x1, y1)

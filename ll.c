@@ -187,3 +187,28 @@ ll_image_from_magpat(char *buf, int *magpat, unsigned size)
     for(unsigned i = 0; i < size; ++i)
         buf[i] = (log(magpat[i]+1)-logmin)*factor;
 }
+
+extern void
+ll_light_curve(struct ll_magpattern_param_type *params, int *magpat,
+               double *curve, unsigned num_points,
+               double x0, double y0, double x1, double y1)
+{
+    double mag_x = (x0 - params->region.x0) * params->pixels_per_width;
+    double mag_y = (y0 - params->region.y0) * params->pixels_per_height;
+    double dx = (x1 - x0) * params->pixels_per_width / (num_points - 1);
+    double dy = (y1 - y0) * params->pixels_per_height / (num_points - 1);
+    for (unsigned i = 0; i < num_points; ++i)
+    {
+        int ix = mag_x;
+        int iy = mag_y;
+        int index = iy*params->xpixels + ix;
+        double frac_x = mag_x - ix;
+        double frac_y = mag_y - iy;
+        curve[i] = (1.0 - frac_x) * (1.0 - frac_y) * magpat[index]
+            + frac_x * (1.0 - frac_y) * magpat[index+1]
+            + (1.0 - frac_x) * frac_y * magpat[index+params->xpixels]
+            + frac_x * frac_y * magpat[index+params->xpixels+1];
+        mag_x += dx;
+        mag_y += dy;
+    }
+}
