@@ -185,7 +185,7 @@ ll_image_from_magpat(char *buf, int *magpat, unsigned size)
     double logmin = log(min_count+1);
     double factor = 255/(logmax-logmin);
     for(unsigned i = 0; i < size; ++i)
-        buf[i] = (log(magpat[i]+1)-logmin)*factor;
+        buf[i] = 255 - (log(magpat[i]+1)-logmin)*factor;
 }
 
 extern void
