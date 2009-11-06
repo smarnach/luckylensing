@@ -1,4 +1,8 @@
-CFLAGS = -std=c99 -O2 -Wall
+CFLAGS = -std=c99 -pedantic -O3 -Wall -Wextra -Winline \
+         -funroll-loops -fexpensive-optimizations
+# Note: -fexpensive-optimizations should be implied by -O3, but it
+# yields consistently slightly faster results on my system when also
+# -funroll-loops is given
 LDFLAGS =
 LIBS = -lm
 
