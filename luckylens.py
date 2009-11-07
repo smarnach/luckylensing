@@ -86,8 +86,8 @@ def light_curve(params, magpat, curve, num_points, x0, y0, x1, y1):
                  num_points, x0, y0, x1, y1)
 
 def set_refine(refine):
-    ctypes.c_int.in_dll(_libll, "refine").value = refine
+    ctypes.c_int.in_dll(_libll, "ll_refine").value = refine
 
 def set_refine_final(refine_final):
-    ctypes.c_int.in_dll(_libll, "refine_final").value = refine_final
-    ctypes.c_double.in_dll(_libll, "inv_refine_final").value = 1.0/refine_final
+    ctypes.c_int.in_dll(_libll, "ll_refine_final").value = refine_final
+    ctypes.c_double.in_dll(_libll, "ll_inv_refine_final").value = 1.0/refine_final

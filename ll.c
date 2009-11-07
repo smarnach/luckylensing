@@ -88,9 +88,9 @@ ll_rayshoot_rect(struct ll_magpattern_param_type *params, int *magpat,
                 ++magpat[(int)mag_y*params->xpixels + (int)mag_x];
 }
 
-int refine = 15;
-int refine_final = 25;
-double inv_refine_final = 0.04;
+int ll_refine = 15;
+int ll_refine_final = 25;
+double ll_inv_refine_final = 0.04;
 
 extern void __attribute__ ((hot))
 ll_rayshoot(struct ll_magpattern_param_type *params, int *magpat,
@@ -127,7 +127,7 @@ ll_rayshoot(struct ll_magpattern_param_type *params, int *magpat,
                     struct ll_rect_type subrect
                         = {x, y, x+width_per_xrays, y+height_per_yrays};
                     double dummy;
-                    ll_rayshoot(params, magpat, &subrect, refine, refine,
+                    ll_rayshoot(params, magpat, &subrect, ll_refine, ll_refine,
                                 levels-1, &dummy);
                 }
     }
@@ -140,21 +140,21 @@ ll_rayshoot(struct ll_magpattern_param_type *params, int *magpat,
         bool lr = ll_shoot_single_ray(params, rect->x1, rect->y1, &lr_x, &lr_y);
         if (ul && ur && ll && lr)
         {
-            double ldown_x = (ll_x - ul_x) * inv_refine_final;
-            double ldown_y = (ll_y - ul_y) * inv_refine_final;
-            double rdown_x = (lr_x - ur_x) * inv_refine_final;
-            double rdown_y = (lr_y - ur_y) * inv_refine_final;
-            double right_x = (ur_x - ul_x) * inv_refine_final;
-            double right_y = (ur_y - ul_y) * inv_refine_final;
-            double update_x = (rdown_x - ldown_x) * inv_refine_final;
-            double update_y = (rdown_y - ldown_y) * inv_refine_final;
+            double ldown_x = (ll_x - ul_x) * ll_inv_refine_final;
+            double ldown_y = (ll_y - ul_y) * ll_inv_refine_final;
+            double rdown_x = (lr_x - ur_x) * ll_inv_refine_final;
+            double rdown_y = (lr_y - ur_y) * ll_inv_refine_final;
+            double right_x = (ur_x - ul_x) * ll_inv_refine_final;
+            double right_y = (ur_y - ul_y) * ll_inv_refine_final;
+            double update_x = (rdown_x - ldown_x) * ll_inv_refine_final;
+            double update_y = (rdown_y - ldown_y) * ll_inv_refine_final;
             double sx = ul_x;
             double sy = ul_y;
-            for (int j = 0; j < refine_final; ++j)
+            for (int j = 0; j < ll_refine_final; ++j)
             {
                 double x = sx;
                 double y = sy;
-                for (int i = 0; i < refine_final; ++i)
+                for (int i = 0; i < ll_refine_final; ++i)
                 {
                     ++magpat[(int)y*params->xpixels + (int)x];
                     x += right_x;
@@ -167,7 +167,8 @@ ll_rayshoot(struct ll_magpattern_param_type *params, int *magpat,
             }
         }
         else
-            ll_rayshoot_rect(params, magpat, rect, refine_final, refine_final);
+            ll_rayshoot_rect(params, magpat, rect,
+                             ll_refine_final, ll_refine_final);
     }
 }
 
