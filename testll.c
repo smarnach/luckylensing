@@ -1,7 +1,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "ll.c"
+#include "ll.h"
 
 #define XPIXELS 1024
 #define YPIXELS 512

@@ -1,31 +1,7 @@
+#include "ll.h"
 #include <values.h>
 #include <math.h>
-#include <stdbool.h>
 #include <stdio.h>
-
-struct ll_lens_t
-{
-    double x, y, theta_E;
-};
-
-struct ll_lenses_t
-{
-    unsigned num_lenses;
-    struct ll_lens_t *lens;
-};
-
-struct ll_rect_t
-{
-    double x0, y0, x1, y1;
-};
-
-struct ll_magpattern_param_t
-{
-    struct ll_lenses_t lenses;
-    struct ll_rect_t region;
-    unsigned xpixels, ypixels;
-    double pixels_per_width, pixels_per_height;
-};
 
 extern void
 ll_init_magpattern_params(struct ll_magpattern_param_t *params,

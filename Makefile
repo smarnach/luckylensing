@@ -1,13 +1,26 @@
-CFLAGS = -std=c99 -pedantic -O3 -Wall -Wextra -Winline \
-         -funroll-loops -fexpensive-optimizations
-# Note: -fexpensive-optimizations should be implied by -O3, but it
-# yields consistently slightly faster results on my system when also
-# -funroll-loops is given
-LDFLAGS =
-LIBS = -lm
+# lucky lens Makefile
 
+CFLAGS = -std=c99 -pedantic -Wall -Wextra -Winline \
+         -O3 -funroll-loops -fexpensive-optimizations
+#  (Note: -fexpensive-optimizations should be implied by -O3, but it
+#   yields consistently slightly faster results on my system when also
+#   -funroll-loops is given)
+
+LDLIBS = -lm
+
+default: libll.so
+
+all: default testll
+
+testll.o ll.o: ll.h
+
+libll.so: LDFLAGS += -shared
 libll.so: ll.o
-	$(CC) -o $@ $(LDFLAGS) -shared $+ $(LIBS)
+	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-testll: testll.o
-	$(CC) -o $@ $(LDFLAGS) $+ $(LIBS)
+testll: testll.o ll.o
+
+clean:
+	rm -f ll.o libll.so testll.o testll luckylens.pyc
+
+.PHONY: all clean default
