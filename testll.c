@@ -9,14 +9,14 @@
 int main(int argc, char *argv[])
 {
     const unsigned N = XPIXELS*YPIXELS;
-    struct ll_lens_type lens[3] = {{0.0, 0.0,  1.},
+    struct ll_lens_t lens[3] = {{0.0, 0.0,  1.},
                                    {1.2, 0.0,  2e-2},
                                    {1.2, 0.025, 4e-3}};
-    struct ll_lenses_type lenses = {3, lens};
-    struct ll_rect_type region = {.26, -.05, .46, .05};
-    struct ll_magpattern_param_type params;
+    struct ll_lenses_t lenses = {3, lens};
+    struct ll_rect_t region = {.26, -.05, .46, .05};
+    struct ll_magpattern_param_t params;
     ll_init_magpattern_params(&params, &lenses, &region, XPIXELS, YPIXELS);
-    struct ll_rect_type rect = {-1., -.25, 1.5, .25};
+    struct ll_rect_t rect = {-1., -.25, 1.5, .25};
     double progress;
     int *magpat = calloc(N, sizeof(int));
     char *buf = calloc(N, sizeof(char));

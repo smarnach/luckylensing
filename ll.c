@@ -3,34 +3,34 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-struct ll_lens_type
+struct ll_lens_t
 {
     double x, y, theta_E;
 };
 
-struct ll_lenses_type
+struct ll_lenses_t
 {
     unsigned num_lenses;
-    struct ll_lens_type *lens;
+    struct ll_lens_t *lens;
 };
 
-struct ll_rect_type
+struct ll_rect_t
 {
     double x0, y0, x1, y1;
 };
 
-struct ll_magpattern_param_type
+struct ll_magpattern_param_t
 {
-    struct ll_lenses_type lenses;
-    struct ll_rect_type region;
+    struct ll_lenses_t lenses;
+    struct ll_rect_t region;
     unsigned xpixels, ypixels;
     double pixels_per_width, pixels_per_height;
 };
 
 extern void
-ll_init_magpattern_params(struct ll_magpattern_param_type *params,
-                          struct ll_lenses_type *lenses,
-                          struct ll_rect_type *region,
+ll_init_magpattern_params(struct ll_magpattern_param_t *params,
+                          struct ll_lenses_t *lenses,
+                          struct ll_rect_t *region,
                           unsigned xpixels, unsigned ypixels)
 {
     params->lenses.num_lenses = lenses->num_lenses;
@@ -46,10 +46,10 @@ ll_init_magpattern_params(struct ll_magpattern_param_type *params,
 }
 
 extern inline bool __attribute__ ((hot))
-ll_shoot_single_ray(struct ll_magpattern_param_type *params,
+ll_shoot_single_ray(struct ll_magpattern_param_t *params,
                     double x, double y, double *mag_x, double *mag_y)
 {
-    struct ll_lens_type *lens = params->lenses.lens;
+    struct ll_lens_t *lens = params->lenses.lens;
     double x_deflect = 0.0, y_deflect = 0.0;
     for(unsigned i = 0; i < params->lenses.num_lenses; ++i)
     {
@@ -73,8 +73,8 @@ ll_shoot_single_ray(struct ll_magpattern_param_type *params,
 }
 
 extern void __attribute__ ((hot))
-ll_rayshoot_rect(struct ll_magpattern_param_type *params, int *magpat,
-                 const struct ll_rect_type *rect, int xrays, int yrays)
+ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
+                 const struct ll_rect_t *rect, int xrays, int yrays)
 {
     double width_per_xrays = (rect->x1 - rect->x0) / xrays;
     double height_per_yrays = (rect->y1 - rect->y0) / yrays;
@@ -93,8 +93,8 @@ int ll_refine_final = 25;
 double ll_inv_refine_final = 0.04;
 
 extern void __attribute__ ((hot))
-ll_rayshoot(struct ll_magpattern_param_type *params, int *magpat,
-            struct ll_rect_type *rect, int xrays, int yrays,
+ll_rayshoot(struct ll_magpattern_param_t *params, int *magpat,
+            struct ll_rect_t *rect, int xrays, int yrays,
             unsigned levels, double* progress)
 {
     if (levels)
@@ -124,7 +124,7 @@ ll_rayshoot(struct ll_magpattern_param_type *params, int *magpat,
                 {
                     double x = rect->x0 + i*width_per_xrays;
                     double y = rect->y0 + j*height_per_yrays;
-                    struct ll_rect_type subrect
+                    struct ll_rect_t subrect
                         = {x, y, x+width_per_xrays, y+height_per_yrays};
                     double dummy;
                     ll_rayshoot(params, magpat, &subrect, ll_refine, ll_refine,
@@ -194,7 +194,7 @@ ll_image_from_magpat(char *buf, int *magpat, unsigned size)
 }
 
 extern void
-ll_light_curve(struct ll_magpattern_param_type *params, int *magpat,
+ll_light_curve(struct ll_magpattern_param_t *params, int *magpat,
                double *curve, unsigned num_points,
                double x0, double y0, double x1, double y1)
 {
