@@ -68,7 +68,7 @@ _image_from_magpat.argtypes = [ctypes.POINTER(ctypes.c_char),
 def image_from_magpat(buf, magpat):
     _image_from_magpat(buf.ctypes.data_as(ctypes.POINTER(ctypes.c_char)),
                        magpat.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
-                       numpy.prod(magpat.shape))
+                       magpat.size)
 
 _light_curve = _libll.ll_light_curve
 _light_curve.argtypes = [ctypes.POINTER(MagPatternParams),
