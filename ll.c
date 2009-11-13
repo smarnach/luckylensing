@@ -48,7 +48,7 @@ ll_shoot_single_ray(struct ll_magpattern_param_t *params,
             0 <= *mag_y && *mag_y < params->ypixels);
 }
 
-extern void __attribute__ ((hot))
+extern void
 ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays)
 {
@@ -64,11 +64,54 @@ ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
                 ++magpat[(int)mag_y*params->xpixels + (int)mag_x];
 }
 
-int ll_refine = 15;
-int ll_refine_final = 25;
-double ll_inv_refine_final = 0.04;
+int ll_refine_bilinear = 25;
+double ll_inv_refine_bilinear = 0.04;
 
-extern void __attribute__ ((hot))
+extern inline void __attribute__ ((hot))
+ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
+                     struct ll_rect_t *rect)
+{
+    double ul_x, ul_y, ur_x, ur_y, ll_x, ll_y, lr_x, lr_y;
+    bool ul = ll_shoot_single_ray(params, rect->x0, rect->y0, &ul_x, &ul_y);
+    bool ur = ll_shoot_single_ray(params, rect->x1, rect->y0, &ur_x, &ur_y);
+    bool ll = ll_shoot_single_ray(params, rect->x0, rect->y1, &ll_x, &ll_y);
+    bool lr = ll_shoot_single_ray(params, rect->x1, rect->y1, &lr_x, &lr_y);
+    if (ul && ur && ll && lr)
+    {
+        double ldown_x = (ll_x - ul_x) * ll_inv_refine_bilinear;
+        double ldown_y = (ll_y - ul_y) * ll_inv_refine_bilinear;
+        double rdown_x = (lr_x - ur_x) * ll_inv_refine_bilinear;
+        double rdown_y = (lr_y - ur_y) * ll_inv_refine_bilinear;
+        double right_x = (ur_x - ul_x) * ll_inv_refine_bilinear;
+        double right_y = (ur_y - ul_y) * ll_inv_refine_bilinear;
+        double update_x = (rdown_x - ldown_x) * ll_inv_refine_bilinear;
+        double update_y = (rdown_y - ldown_y) * ll_inv_refine_bilinear;
+        double sx = ul_x;
+        double sy = ul_y;
+        for (int j = 0; j < ll_refine_bilinear; ++j)
+        {
+            double x = sx;
+            double y = sy;
+            for (int i = 0; i < ll_refine_bilinear; ++i)
+            {
+                ++magpat[(int)y*params->xpixels + (int)x];
+                x += right_x;
+                y += right_y;
+            }
+            sx += ldown_x;
+            sy += ldown_y;
+            right_x += update_x;
+            right_y += update_y;
+        }
+    }
+    else
+        ll_rayshoot_rect(params, magpat, rect,
+                         ll_refine_bilinear, ll_refine_bilinear);
+}
+
+int ll_refine = 15;
+
+extern void
 ll_rayshoot(struct ll_magpattern_param_t *params, int *magpat,
             struct ll_rect_t *rect, int xrays, int yrays,
             unsigned levels, double* progress)
@@ -108,44 +151,7 @@ ll_rayshoot(struct ll_magpattern_param_t *params, int *magpat,
                 }
     }
     else
-    {
-        double ul_x, ul_y, ur_x, ur_y, ll_x, ll_y, lr_x, lr_y;
-        bool ul = ll_shoot_single_ray(params, rect->x0, rect->y0, &ul_x, &ul_y);
-        bool ur = ll_shoot_single_ray(params, rect->x1, rect->y0, &ur_x, &ur_y);
-        bool ll = ll_shoot_single_ray(params, rect->x0, rect->y1, &ll_x, &ll_y);
-        bool lr = ll_shoot_single_ray(params, rect->x1, rect->y1, &lr_x, &lr_y);
-        if (ul && ur && ll && lr)
-        {
-            double ldown_x = (ll_x - ul_x) * ll_inv_refine_final;
-            double ldown_y = (ll_y - ul_y) * ll_inv_refine_final;
-            double rdown_x = (lr_x - ur_x) * ll_inv_refine_final;
-            double rdown_y = (lr_y - ur_y) * ll_inv_refine_final;
-            double right_x = (ur_x - ul_x) * ll_inv_refine_final;
-            double right_y = (ur_y - ul_y) * ll_inv_refine_final;
-            double update_x = (rdown_x - ldown_x) * ll_inv_refine_final;
-            double update_y = (rdown_y - ldown_y) * ll_inv_refine_final;
-            double sx = ul_x;
-            double sy = ul_y;
-            for (int j = 0; j < ll_refine_final; ++j)
-            {
-                double x = sx;
-                double y = sy;
-                for (int i = 0; i < ll_refine_final; ++i)
-                {
-                    ++magpat[(int)y*params->xpixels + (int)x];
-                    x += right_x;
-                    y += right_y;
-                }
-                sx += ldown_x;
-                sy += ldown_y;
-                right_x += update_x;
-                right_y += update_y;
-            }
-        }
-        else
-            ll_rayshoot_rect(params, magpat, rect,
-                             ll_refine_final, ll_refine_final);
-    }
+        ll_rayshoot_bilinear(params, magpat, rect);
 }
 
 extern void

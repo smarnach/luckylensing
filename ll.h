@@ -38,9 +38,14 @@ extern void
 ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays);
 
-extern int ll_refine;
 extern int ll_refine_final;
 extern double ll_inv_refine_final;
+
+extern void
+ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
+                     struct ll_rect_t *rect);
+
+extern int ll_refine;
 
 extern void
 ll_rayshoot(struct ll_magpattern_param_t *params, int *magpat,
