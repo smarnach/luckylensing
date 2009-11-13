@@ -114,8 +114,10 @@ int ll_refine = 15;
 extern void
 ll_rayshoot(struct ll_magpattern_param_t *params, int *magpat,
             struct ll_rect_t *rect, int xrays, int yrays,
-            unsigned levels, double* progress)
+            unsigned levels, double *progress, bool *cancel)
 {
+    if (*cancel)
+        return;
     if (levels)
     {
         double width_per_xrays = (rect->x1 - rect->x0) / xrays;
@@ -147,7 +149,7 @@ ll_rayshoot(struct ll_magpattern_param_t *params, int *magpat,
                         = {x, y, x+width_per_xrays, y+height_per_yrays};
                     double dummy;
                     ll_rayshoot(params, magpat, &subrect, ll_refine, ll_refine,
-                                levels-1, &dummy);
+                                levels-1, &dummy, cancel);
                 }
     }
     else

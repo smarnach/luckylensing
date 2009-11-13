@@ -52,13 +52,24 @@ _rayshoot.argtypes = [ctypes.POINTER(MagPatternParams),
                       ctypes.c_int,
                       ctypes.c_int,
                       ctypes.c_uint,
-                      ctypes.POINTER(ctypes.c_double)]
+                      ctypes.POINTER(ctypes.c_double),
+                      ctypes.POINTER(ctypes.c_int)]
 
-Progress = ctypes.c_double
+class Rayshooter:
+    def __init__(self, params):
+        self.params = params
+        self.progress = ctypes.c_double(0.0)
+        self.cancel = ctypes.c_int(False)
 
-def rayshoot(params, magpat, rect, xrays, yrays, levels, progress):
-    _rayshoot(params, magpat.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
-              rect, xrays, yrays, levels, progress)
+    def cancel(self):
+        self.cancel = True
+
+    def get_progress(self):
+        return self.progress.value
+
+    def start(self, magpat, rect, xrays, yrays, levels):
+        _rayshoot(self.params, magpat.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
+                  rect, xrays, yrays, levels, self.progress, self.cancel)
 
 _image_from_magpat = _libll.ll_image_from_magpat
 _image_from_magpat.argtypes = [ctypes.POINTER(ctypes.c_char),

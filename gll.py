@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+import gobject
+import threading
 import gtk
+import pyconsole
 import numpy
 import luckylens as ll
-import pyconsole
-import threading
-import gobject
+from time import time
 
 xpixels = 1024
 ypixels = 512
@@ -12,26 +13,27 @@ ypixels = 512
 class RayshootThread(threading.Thread):
     def __init__(self, params, magpat, callback):
         super(RayshootThread, self).__init__()
-        self.params = params
         self.magpat = magpat
-        self.progress1 = ll.Progress();
-        self.progress2 = ll.Progress();
+        self.rs1 = ll.Rayshooter(params)
+        self.rs2 = ll.Rayshooter(params)
         self.callback = callback
 
     def progress(self):
-        return (self.progress1.value + self.progress2.value)/2
+        return (self.rs1.get_progress() + self.rs2.get_progress())/2
 
     def run(self):
+        t = time()
         rect = ll.Rect(-1., -.25, 1.5, 0.)
-        t1 = threading.Thread(target=ll.rayshoot,
-                              args=(self.params, self.magpat, rect, 50, 5, 3, self.progress1))
+        t1 = threading.Thread(target=self.rs1.start,
+                              args=(self.magpat, rect, 300, 30, 2))
         t1.start()
         rect = ll.Rect(-1., 0., 1.5, .25)
-        t2 = threading.Thread(target=ll.rayshoot,
-                              args=(self.params, self.magpat, rect, 50, 5, 3, self.progress2))
+        t2 = threading.Thread(target=self.rs2.start,
+                              args=(self.magpat, rect, 300, 30, 2))
         t2.start()
         t1.join()
         t2.join()
+        print time()-t
         buf = numpy.empty((ypixels, xpixels), numpy.uint8)
         ll.image_from_magpat(buf, self.magpat)
         gobject.idle_add(self.callback, buf)

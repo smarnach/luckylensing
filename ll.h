@@ -50,7 +50,7 @@ extern int ll_refine;
 extern void
 ll_rayshoot(struct ll_magpattern_param_t *params, int *magpat,
             struct ll_rect_t *rect, int xrays, int yrays,
-            unsigned levels, double* progress);
+            unsigned levels, double *progress, bool *cancel);
 
 extern void
 ll_image_from_magpat(char *buf, int *magpat, unsigned size);
