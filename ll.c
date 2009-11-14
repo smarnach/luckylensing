@@ -37,12 +37,12 @@ ll_cancel_rayshooter(struct ll_rayshooter_t *rs)
     rs->cancel = true;
 }
 
-extern inline bool __attribute__ ((hot))
+extern bool __attribute__ ((hot))
 ll_shoot_single_ray(struct ll_magpattern_param_t *params,
                     double x, double y, double *mag_x, double *mag_y)
 {
     struct ll_lens_t *lens = params->lenses.lens;
-    double x_deflect = 0.0, y_deflect = 0.0;
+    double x_deflected = x, y_deflected = y;
     for(unsigned i = 0; i < params->lenses.num_lenses; ++i)
     {
         double dx = x - lens[i].x;
@@ -55,11 +55,11 @@ ll_shoot_single_ray(struct ll_magpattern_param_t *params,
             return false;
         }
         double deflection = lens[i].theta_E*lens[i].theta_E / theta_squared;
-        x_deflect -= dx * deflection;
-        y_deflect -= dy * deflection;
+        x_deflected -= dx * deflection;
+        y_deflected -= dy * deflection;
     }
-    *mag_x = (x + x_deflect - params->region.x0) * params->pixels_per_width;
-    *mag_y = (y + y_deflect - params->region.y0) * params->pixels_per_height;
+    *mag_x = (x_deflected - params->region.x0) * params->pixels_per_width;
+    *mag_y = (y_deflected - params->region.y0) * params->pixels_per_height;
     return (0 <= *mag_x && *mag_x < params->xpixels &&
             0 <= *mag_y && *mag_y < params->ypixels);
 }

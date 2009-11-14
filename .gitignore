@@ -1,4 +1,7 @@
 *~
+*.c.gcov
+*.gcda
+*.gcno
 *.o
 *.pyc
 *.so
