@@ -1,10 +1,10 @@
 # lucky lens Makefile
 
-CFLAGS = -std=c99 -pedantic -Wall -Wextra -Winline \
-         -O3 -funroll-loops -fexpensive-optimizations -ffinite-math-only
-#  (Note: -fexpensive-optimizations should be implied by -O3, but it
-#   yields consistently slightly faster results on my system when also
-#   -funroll-loops is given)
+CFLAGS_ALWAYS = -std=c99 -pedantic -Wall -Wextra -Winline
+
+CFLAGS_OPTIMISE = -O3 -ffinite-math-only
+
+CFLAGS = $(CFLAGS_ALWAYS) $(CFLAGS_OPTIMISE)
 
 LDLIBS = -lm
 
@@ -20,7 +20,36 @@ libll.so: ll.o
 
 testll: testll.o ll.o
 
-clean:
+#####################
+
+profile: CFLAGS += -fprofile-generate
+profile: LDFLAGS += -fprofile-generate
+profile: clean testll
+	./testll
+
+#####################
+
+optimised: profile
+	$(MAKE) clean_objects optimised_all
+	$(MAKE) clean_profile
+
+optimised_all: CFLAGS += -fprofile-use
+optimised_all: LDFLAGS += -fprofile-use
+optimised_all: all
+
+#####################
+
+debug: CFLAGS = $(CFLAGS_ALWAYS) -g
+debug: clean all
+
+#####################
+
+clean_objects:
 	rm -f ll.o libll.so testll.o testll luckylens.pyc
 
-.PHONY: all clean default
+clean_profile:
+	rm -f ll.gcda ll.gcno testll.gcda testll.gcno
+
+clean: clean_objects clean_profile
+
+.PHONY: all clean clean_objects clean_profile debug default optimised optimised_all profile
