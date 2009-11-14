@@ -30,6 +30,21 @@ ll_init_magpattern_params(struct ll_magpattern_param_t *params,
                           struct ll_rect_t *region,
                           unsigned xpixels, unsigned ypixels);
 
+struct ll_rayshooter_t
+{
+    struct ll_magpattern_param_t *params;
+    int refine;
+    int refine_final;
+    bool cancel;
+};
+
+extern void
+ll_init_rayshooter(struct ll_rayshooter_t *rs,
+                   struct ll_magpattern_param_t *params);
+
+extern void
+ll_cancel_rayshooter(struct ll_rayshooter_t *rs);
+
 extern bool
 ll_shoot_single_ray(struct ll_magpattern_param_t *params,
                     double x, double y, double *mag_x, double *mag_y);
@@ -38,19 +53,13 @@ extern void
 ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays);
 
-extern int ll_refine_final;
-extern double ll_inv_refine_final;
-
 extern void
 ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
-                     struct ll_rect_t *rect);
-
-extern int ll_refine;
+                     struct ll_rect_t *rect, int refine);
 
 extern void
-ll_rayshoot(struct ll_magpattern_param_t *params, int *magpat,
-            struct ll_rect_t *rect, int xrays, int yrays,
-            unsigned levels, double *progress, bool *cancel);
+ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
+            int xrays, int yrays, unsigned levels, double *progress);
 
 extern void
 ll_image_from_magpat(char *buf, int *magpat, unsigned size);

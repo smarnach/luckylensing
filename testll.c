@@ -16,15 +16,16 @@ int main(int argc, char *argv[])
     struct ll_rect_t region = {.26, -.05, .46, .05};
     struct ll_magpattern_param_t params;
     ll_init_magpattern_params(&params, &lenses, &region, XPIXELS, YPIXELS);
+    struct ll_rayshooter_t rs;
+    ll_init_rayshooter(&rs, &params);
     struct ll_rect_t rect = {-1., -.25, 1.5, .25};
     double progress;
-    bool cancel = false;
     int *magpat = calloc(N, sizeof(int));
     char *buf = calloc(N, sizeof(char));
 
     printf("Calculating magnification pattern...\n");
     clock_t t = clock();
-    ll_rayshoot(&params, magpat, &rect, 600, 120, 2, &progress, &cancel);
+    ll_rayshoot(&rs, magpat, &rect, 600, 120, 2, &progress);
     printf("finished in %g seconds.\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 
     printf("Converting to an image...\n");
