@@ -194,6 +194,32 @@
               </packing>
             </child>
             <child>
+              <object class="GtkToolButton" id="toolbutton3">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Convolve</property>
+                <property name="use_underline">True</property>
+                <accelerator key="c" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                <signal name="clicked" handler="convolve_pattern"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="toolbutton4">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Light curve</property>
+                <property name="use_underline">True</property>
+                <accelerator key="l" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                <signal name="clicked" handler="extract_light_curve"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkSeparatorToolItem" id="separator1">
                 <property name="visible">True</property>
               </object>
@@ -208,19 +234,8 @@
                 <property name="label" translatable="yes">toolbutton2</property>
                 <property name="use_underline">True</property>
                 <property name="icon_name">utilities-terminal</property>
+                <accelerator key="t" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <signal name="clicked" handler="show_console"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="toolbutton3">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Convolve</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="convolve_pattern"/>
               </object>
               <packing>
                 <property name="expand">False</property>
