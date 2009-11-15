@@ -83,19 +83,18 @@ ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
     bool ur = ll_shoot_single_ray(params, rect->x1, rect->y0, &ur_x, &ur_y);
     bool ll = ll_shoot_single_ray(params, rect->x0, rect->y1, &ll_x, &ll_y);
     bool lr = ll_shoot_single_ray(params, rect->x1, rect->y1, &lr_x, &lr_y);
+    double inv_refine = 1.0/refine;
+    double ldown_x = (ll_x - ul_x) * inv_refine;
+    double ldown_y = (ll_y - ul_y) * inv_refine;
+    double rdown_x = (lr_x - ur_x) * inv_refine;
+    double rdown_y = (lr_y - ur_y) * inv_refine;
+    double right_x = (ur_x - ul_x) * inv_refine;
+    double right_y = (ur_y - ul_y) * inv_refine;
+    double update_x = (rdown_x - ldown_x) * inv_refine;
+    double update_y = (rdown_y - ldown_y) * inv_refine;
+    double sx = ul_x;
+    double sy = ul_y;
     if (ul && ur && ll && lr)
-    {
-        double inv_refine = 1.0/refine;
-        double ldown_x = (ll_x - ul_x) * inv_refine;
-        double ldown_y = (ll_y - ul_y) * inv_refine;
-        double rdown_x = (lr_x - ur_x) * inv_refine;
-        double rdown_y = (lr_y - ur_y) * inv_refine;
-        double right_x = (ur_x - ul_x) * inv_refine;
-        double right_y = (ur_y - ul_y) * inv_refine;
-        double update_x = (rdown_x - ldown_x) * inv_refine;
-        double update_y = (rdown_y - ldown_y) * inv_refine;
-        double sx = ul_x;
-        double sy = ul_y;
         for (int j = 0; j < refine; ++j)
         {
             double x = sx;
@@ -111,9 +110,34 @@ ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
             right_x += update_x;
             right_y += update_y;
         }
-    }
     else
-        ll_rayshoot_rect(params, magpat, rect, refine, refine);
+        for (int j = 0; j < refine; ++j)
+        {
+            double x = sx;
+            double y = sy;
+            int i = 0;
+            while ((x < 0.0 || x >= params->xpixels ||
+                    y < 0.0 || y >= params->ypixels) &&
+                   i < refine)
+            {
+                x += right_x;
+                y += right_y;
+                ++i;
+            }
+            while (i < refine &&
+                   x >= 0.0 && x < params->xpixels &&
+                   y >= 0.0 && y < params->ypixels)
+            {
+                ++magpat[(int)y*params->xpixels + (int)x];
+                x += right_x;
+                y += right_y;
+                ++i;
+            }
+            sx += ldown_x;
+            sy += ldown_y;
+            right_x += update_x;
+            right_y += update_y;
+        }
 }
 
 extern void
