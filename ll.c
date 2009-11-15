@@ -48,12 +48,6 @@ ll_shoot_single_ray(struct ll_magpattern_param_t *params,
         double dx = x - lens[i].x;
         double dy = y - lens[i].y;
         double theta_squared = dx*dx + dy*dy;
-        if (theta_squared == 0.0)
-        {
-            *mag_x = x;
-            *mag_y = y;
-            return false;
-        }
         double deflection = lens[i].theta_E*lens[i].theta_E / theta_squared;
         x_deflected -= dx * deflection;
         y_deflected -= dy * deflection;
