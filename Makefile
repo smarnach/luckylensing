@@ -4,7 +4,9 @@ CFLAGS_ALWAYS = -std=c99 -pedantic -Wall -Wextra -Winline
 
 CFLAGS_OPTIMISE = -O3 -ffinite-math-only
 
-CFLAGS = $(CFLAGS_ALWAYS) $(CFLAGS_OPTIMISE)
+CFLAGS_ARCH = -msse3
+
+CFLAGS = $(CFLAGS_ALWAYS) $(CFLAGS_OPTIMISE) $(CFLAGS_ARCH)
 
 LDLIBS = -lm
 
