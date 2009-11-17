@@ -23,9 +23,10 @@ ll_init_magpattern_params(struct ll_magpattern_param_t *params,
 
 extern void
 ll_init_rayshooter(struct ll_rayshooter_t *rs,
-                   struct ll_magpattern_param_t *params)
+                   struct ll_magpattern_param_t *params, unsigned levels)
 {
     rs->params = params;
+    rs->levels = levels;
     rs->refine = 15;
     rs->refine_final = 25;
     rs->cancel = false;
@@ -74,9 +75,9 @@ ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
                 ++magpat[(int)mag_y*params->xpixels + (int)mag_x];
 }
 
-extern void __attribute__ ((hot))
-ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
-                     struct ll_rect_t *rect, int refine)
+static void __attribute__ ((hot))
+_ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
+                      struct ll_rect_t *rect, int refine)
 {
     double ul_x, ul_y, ur_x, ur_y, ll_x, ll_y, lr_x, lr_y;
     bool ul = ll_shoot_single_ray(params, rect->x0, rect->y0, &ul_x, &ul_y);
@@ -140,13 +141,14 @@ ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
         }
 }
 
-extern void
-ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
-            int xrays, int yrays, unsigned levels, double *progress)
+static void
+_ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
+                         struct ll_rect_t *rect, int xrays, int yrays,
+                         unsigned level, double *progress)
 {
     if (rs->cancel)
         return;
-    if (levels)
+    if (level)
     {
         double width_per_xrays = (rect->x1 - rect->x0) / xrays;
         double height_per_yrays = (rect->y1 - rect->y0) / yrays;
@@ -176,12 +178,20 @@ ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
                     struct ll_rect_t subrect
                         = {x, y, x+width_per_xrays, y+height_per_yrays};
                     double dummy;
-                    ll_rayshoot(rs, magpat, &subrect, rs->refine,
-                                rs->refine, levels-1, &dummy);
+                    _ll_rayshoot_recursively(rs, magpat, &subrect, rs->refine,
+                                             rs->refine, level-1, &dummy);
                 }
     }
     else
-        ll_rayshoot_bilinear(rs->params, magpat, rect, rs->refine_final);
+        _ll_rayshoot_bilinear(rs->params, magpat, rect, rs->refine_final);
+}
+
+extern void
+ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
+            int xrays, int yrays, double *progress)
+{
+    _ll_rayshoot_recursively(rs, magpat, rect, xrays, yrays,
+                             rs->levels - 1, progress);
 }
 
 extern void

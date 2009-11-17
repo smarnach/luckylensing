@@ -34,12 +34,14 @@ class MagPatternParams(c.Structure):
 
 class Rayshooter(c.Structure):
     _fields_ = [("params", c.POINTER(MagPatternParams)),
+                ("levels", c.c_uint),
                 ("refine", c.c_int),
                 ("refine_final", c.c_int),
                 ("cancel", c.c_int)]
 
-    def __init__(self, params):
+    def __init__(self, params, levels):
         self.params = c.pointer(params)
+        self.levels = levels
         self.refine = 15
         self.refine_final = 25
         self.cancel = False
@@ -61,10 +63,10 @@ class Rayshooter(c.Structure):
         else:
             return 1.0
 
-    def start(self, magpat, rect, xrays, yrays, levels):
+    def start(self, magpat, rect, xrays, yrays):
         self.progress.append(c.c_double(0.0))
         _rayshoot(self, magpat.ctypes.data_as(c.POINTER(c.c_int)),
-                  rect, xrays, yrays, levels, self.progress[-1])
+                  rect, xrays, yrays, self.progress[-1])
         self.progress.pop()
 
 _libll = numpy.ctypeslib.load_library('libll', '.')
@@ -86,7 +88,6 @@ _rayshoot.argtypes = [c.POINTER(Rayshooter),
                       c.POINTER(Rect),
                       c.c_int,
                       c.c_int,
-                      c.c_uint,
                       c.POINTER(c.c_double)]
 
 _image_from_magpat = _libll.ll_image_from_magpat

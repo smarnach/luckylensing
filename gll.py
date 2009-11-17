@@ -14,7 +14,7 @@ class RayshootThread(threading.Thread):
     def __init__(self, params, magpat, callback):
         super(RayshootThread, self).__init__()
         self.magpat = magpat
-        self.rs = ll.Rayshooter(params)
+        self.rs = ll.Rayshooter(params, 3)
         self.callback = callback
 
     def progress(self):
@@ -24,11 +24,11 @@ class RayshootThread(threading.Thread):
         t = time()
         rect = ll.Rect(-1., -.25, 1.5, 0.)
         t1 = threading.Thread(target=self.rs.start,
-                              args=(self.magpat, rect, 300, 30, 2))
+                              args=(self.magpat, rect, 300, 30))
         t1.start()
         rect = ll.Rect(-1., 0., 1.5, .25)
         t2 = threading.Thread(target=self.rs.start,
-                              args=(self.magpat, rect, 300, 30, 2))
+                              args=(self.magpat, rect, 300, 30))
         t2.start()
         t1.join()
         t2.join()

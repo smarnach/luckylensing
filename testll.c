@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     struct ll_magpattern_param_t params;
     ll_init_magpattern_params(&params, &lenses, &region, XPIXELS, YPIXELS);
     struct ll_rayshooter_t rs;
-    ll_init_rayshooter(&rs, &params);
+    ll_init_rayshooter(&rs, &params, 3);
     struct ll_rect_t rect = {-1., -.25, 1.5, .25};
     double progress;
     int *magpat = calloc(N, sizeof(int));
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     printf("Calculating magnification pattern...\n");
     clock_t t = clock();
-    ll_rayshoot(&rs, magpat, &rect, 600, 120, 2, &progress);
+    ll_rayshoot(&rs, magpat, &rect, 600, 120, &progress);
     printf("finished in %g seconds.\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 
     printf("Converting to an image...\n");
