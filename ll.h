@@ -1,3 +1,6 @@
+#ifndef LL_LL_H
+#define LL_LL_H
+
 #include <stdbool.h>
 
 struct ll_lens_t
@@ -68,3 +71,5 @@ extern void
 ll_light_curve(struct ll_magpattern_param_t *params, int *magpat,
                double *curve, unsigned num_points,
                double x0, double y0, double x1, double y1);
+
+#endif
