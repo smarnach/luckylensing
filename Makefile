@@ -33,7 +33,6 @@ profile: clean testll
 
 optimised: profile
 	$(MAKE) clean_objects optimised_all
-	$(MAKE) clean_profile
 
 optimised_all: CFLAGS += -fprofile-use
 optimised_all: LDFLAGS += -fprofile-use
