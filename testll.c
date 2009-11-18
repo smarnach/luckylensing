@@ -3,30 +3,50 @@
 #include <stdlib.h>
 #include "ll.h"
 
-#define XPIXELS 1024
-#define YPIXELS 512
-
 int main(int argc, char *argv[])
 {
-    const unsigned N = XPIXELS*YPIXELS;
+    const int xpixels = 1024;
+    const int ypixels = 512;
+    const unsigned N = xpixels*ypixels;
+    const unsigned levels = 3;
+    const int xrays = 600;
+    const int yrays = 120;
+    struct ll_rect_t rect = {-1., -.25, 1.5, .25};
+
     struct ll_lens_t lens[3] = {{0.0, 0.0,  1.},
-                                   {1.2, 0.0,  2e-2},
-                                   {1.2, 0.025, 4e-3}};
+                                {1.2, 0.0,  2e-2},
+                                {1.2, 0.025, 5e-3}};
     struct ll_lenses_t lenses = {3, lens};
     struct ll_rect_t region = {.26, -.05, .46, .05};
+
     struct ll_magpattern_param_t params;
-    ll_init_magpattern_params(&params, &lenses, &region, XPIXELS, YPIXELS);
+    ll_init_magpattern_params(&params, &lenses, &region, xpixels, ypixels);
     struct ll_rayshooter_t rs;
-    ll_init_rayshooter(&rs, &params, 3);
-    struct ll_rect_t rect = {-1., -.25, 1.5, .25};
+    ll_init_rayshooter(&rs, &params, levels);
     double progress;
     int *magpat = calloc(N, sizeof(int));
     char *buf = calloc(N, sizeof(char));
 
     printf("Calculating magnification pattern...\n");
     clock_t t = clock();
-    ll_rayshoot(&rs, magpat, &rect, 600, 120, &progress);
+    ll_rayshoot(&rs, magpat, &rect, xrays, yrays, &progress);
     printf("finished in %g seconds.\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+
+    double density = xrays*yrays;
+    for (unsigned i = 0; i < levels-2; ++i)
+        density *= rs.refine * rs.refine;
+    density *= rs.refine_final * rs.refine_final;
+    density /= N;
+    density /= (rect.x1 - rect.x0) * (rect.y1 - rect.y0);
+    density *= (region.x1 - region.x0) * (region.y1 - region.y0);
+    printf("Average rays per pixel shot:    %8.2f\n", density);
+
+    double avg = 0.0;
+    for (unsigned i = 0; i < N; ++i)
+        avg += magpat[i];
+    avg /= N;
+    printf("Average rays per pixel counted: %8.2f\n", avg);
+    printf("Average magnification:          %8.2f\n", avg/density);
 
     printf("Converting to an image...\n");
     t = clock();
