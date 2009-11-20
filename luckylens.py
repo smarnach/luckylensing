@@ -39,6 +39,8 @@ class Rayshooter(_c.Structure):
                 ("cancel", _c.c_int)]
 
     def __init__(self, params, levels):
+        if type(params) is not MagPatternParams:
+            params = MagPatternParams(*params)
         self.params = _c.pointer(params)
         self.levels = levels
         self.refine = 15
