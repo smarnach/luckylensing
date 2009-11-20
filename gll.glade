@@ -8,7 +8,7 @@
       <column type="gdouble"/>
       <!-- column-name y -->
       <column type="gdouble"/>
-      <!-- column-name theta_E -->
+      <!-- column-name mass -->
       <column type="gdouble"/>
     </columns>
     <data>
@@ -20,12 +20,12 @@
       <row>
         <col id="0">1.2</col>
         <col id="1">0</col>
-        <col id="2">0.02</col>
+        <col id="2">0.0004</col>
       </row>
       <row>
         <col id="0">1.2</col>
-        <col id="1">0.025000000000000001</col>
-        <col id="2">0.0040000000000000001</col>
+        <col id="1">0.025</col>
+        <col id="2">0.000025</col>
       </row>
     </data>
   </object>
@@ -389,7 +389,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkTreeViewColumn" id="treeviewcolumn3">
-                                    <property name="title">Einstein radius</property>
+                                    <property name="title">Mass</property>
                                     <property name="expand">True</property>
                                     <child>
                                       <object class="GtkCellRendererText" id="cellrenderertext3">

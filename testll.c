@@ -14,8 +14,8 @@ int main(int argc, char *argv[])
     struct ll_rect_t rect = {-1., -.25, 1.5, .25};
 
     struct ll_lens_t lens[3] = {{0.0, 0.0,  1.},
-                                {1.2, 0.0,  2e-2},
-                                {1.2, 0.025, 5e-3}};
+                                {1.2, 0.0,  4e-4},
+                                {1.2, 0.025, 2.5e-5}};
     struct ll_lenses_t lenses = {3, lens};
     struct ll_rect_t region = {.26, -.05, .46, .05};
 

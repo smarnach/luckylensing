@@ -4,7 +4,7 @@ import ctypes as c
 class Lens(c.Structure):
     _fields_ = [("x", c.c_double),
                 ("y", c.c_double),
-                ("theta_E", c.c_double)]
+                ("mass", c.c_double)]
 
 class Lenses(c.Structure):
     _fields_ = [("num_lenses", c.c_uint),

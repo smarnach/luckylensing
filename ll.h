@@ -5,7 +5,7 @@
 
 struct ll_lens_t
 {
-    double x, y, theta_E;
+    double x, y, mass;
 };
 
 struct ll_lenses_t
