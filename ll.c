@@ -160,26 +160,34 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
                                              rect->x0 + i*width_per_xrays,
                                              rect->y0 + j*height_per_yrays,
                                              &mag_x, &mag_y);
-        bool hit_dilated[(xrays+1)*(yrays+1)];
-        for (int j = 0, m = xrays+4, n = 0; j <= yrays; ++j, m += 2)
-            for (int i = 0; i <= xrays; ++i, ++m, ++n)
-                hit_dilated[n] = (hit[m] ||
-                                  hit[m-1] || hit[m-xrays-3] ||
-                                  hit[m+1] || hit[m+xrays+3]);
-        *progress = 0.0;
-        double progress_inc = 1.0 / (xrays*yrays);
-        for (int j = 0, n = 0; j < yrays; ++j, ++n)
-            for (int i = 0; i < xrays; ++i, ++n, *progress += progress_inc)
-                if (hit_dilated[n] || hit_dilated[n+1] ||
-                    hit_dilated[n+xrays+1] || hit_dilated[n+xrays+2])
+        int patches = 0;
+        bool hit_patches[xrays*yrays];
+        for (int j = 0, m = xrays+4, n = 0; j < yrays; ++j, m += 3)
+            for (int i = 0; i < xrays; ++i, ++m, ++n)
+            {
+                hit_patches[n] = (hit[m-xrays-3] || hit[m-xrays-2] ||
+                                  hit[m-1] || hit[m] || hit[m+1] || hit[m+2] ||
+                                  hit[m+xrays+2] || hit[m+xrays+3] ||
+                                  hit[m+xrays+4] || hit[m+xrays+5] ||
+                                  hit[m+2*xrays+6] || hit[m+2*xrays+7]);
+                if (hit_patches[n])
+                    ++patches;
+            }
+        if (progress)
+            *progress = 0.0;
+        double progress_inc = 1.0 / patches;
+        for (int j = 0, n = 0; j < yrays; ++j)
+            for (int i = 0; i < xrays; ++i, ++n)
+                if (hit_patches[n])
                 {
                     double x = rect->x0 + i*width_per_xrays;
                     double y = rect->y0 + j*height_per_yrays;
                     struct ll_rect_t subrect
                         = {x, y, x+width_per_xrays, y+height_per_yrays};
-                    double dummy;
                     _ll_rayshoot_recursively(rs, magpat, &subrect, rs->refine,
-                                             rs->refine, level-1, &dummy);
+                                             rs->refine, level-1, 0);
+                    if (progress)
+                        *progress += progress_inc;
                 }
     }
     else
