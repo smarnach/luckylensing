@@ -2,6 +2,7 @@
 #include <values.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 extern void
 ll_init_magpattern_params(struct ll_magpattern_param_t *params,
@@ -152,7 +153,7 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
     {
         double width_per_xrays = (rect->x1 - rect->x0) / xrays;
         double height_per_yrays = (rect->y1 - rect->y0) / yrays;
-        bool hit[(xrays+3)*(yrays+3)];
+        bool *hit = malloc((xrays+3)*(yrays+3) * sizeof(bool));
         double mag_x, mag_y;
         for (int j = -1, m = 0; j <= yrays+1; ++j)
             for (int i = -1; i <= xrays+1; ++i, ++m)
@@ -161,7 +162,7 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
                                              rect->y0 + j*height_per_yrays,
                                              &mag_x, &mag_y);
         int patches = 0;
-        bool hit_patches[xrays*yrays];
+        bool *hit_patches = malloc(xrays*yrays * sizeof(bool));
         for (int j = 0, m = xrays+4, n = 0; j < yrays; ++j, m += 3)
             for (int i = 0; i < xrays; ++i, ++m, ++n)
             {
@@ -173,6 +174,7 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
                 if (hit_patches[n])
                     ++patches;
             }
+        free(hit);
         if (progress)
             *progress = 0.0;
         double progress_inc = 1.0 / patches;
@@ -189,6 +191,7 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
                     if (progress)
                         *progress += progress_inc;
                 }
+        free(hit_patches);
     }
     else
         _ll_rayshoot_bilinear(rs->params, magpat, rect, rs->refine_final);
