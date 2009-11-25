@@ -20,12 +20,12 @@
       <row>
         <col id="0">1.2</col>
         <col id="1">0</col>
-        <col id="2">0.0004</col>
+        <col id="2">0.00040000000000000002</col>
       </row>
       <row>
         <col id="0">1.2</col>
-        <col id="1">0.025</col>
-        <col id="2">0.000025</col>
+        <col id="1">0.025000000000000001</col>
+        <col id="2">2.5000000000000001e-05</col>
       </row>
     </data>
   </object>
@@ -249,25 +249,20 @@
           </packing>
         </child>
         <child>
-          <object class="GtkHPaned" id="hpaned1">
+          <object class="GtkHPaned" id="hpaned">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkEventBox" id="magpat_box">
+              <object class="GtkVBox" id="vbox">
                 <property name="visible">True</property>
-                <signal name="size_allocate" handler="show_pattern"/>
+                <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkImage" id="magpat">
-                    <property name="width_request">50</property>
-                    <property name="height_request">50</property>
-                    <property name="visible">True</property>
-                    <property name="stock">gtk-missing-image</property>
-                  </object>
+                  <placeholder/>
                 </child>
               </object>
               <packing>
                 <property name="resize">True</property>
-                <property name="shrink">False</property>
+                <property name="shrink">True</property>
               </packing>
             </child>
             <child>
@@ -466,7 +461,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkStatusbar" id="statusbar1">
+          <object class="GtkStatusbar" id="statusbar">
             <property name="visible">True</property>
             <property name="spacing">2</property>
           </object>
@@ -483,34 +478,5 @@
     <property name="short_label">Pattern</property>
     <property name="icon_name">application-x-executable</property>
     <signal name="activate" handler="generate_pattern"/>
-  </object>
-  <object class="GtkAlignment" id="progress_box">
-    <property name="visible">True</property>
-    <child>
-      <object class="GtkVBox" id="vbox2">
-        <property name="visible">True</property>
-        <property name="orientation">vertical</property>
-        <child>
-          <object class="GtkFrame" id="frame1">
-            <property name="visible">True</property>
-            <property name="label_xalign">0</property>
-            <property name="shadow_type">in</property>
-            <child>
-              <object class="GtkProgressBar" id="progressbar">
-                <property name="visible">True</property>
-                <property name="show_text">True</property>
-              </object>
-            </child>
-            <child type="label_item">
-              <placeholder/>
-            </child>
-          </object>
-          <packing>
-            <property name="fill">False</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-      </object>
-    </child>
   </object>
 </interface>
