@@ -52,7 +52,7 @@ class Rayshooter(_c.Structure):
                 ("levels", _c.c_uint),
                 ("refine", _c.c_int),
                 ("refine_final", _c.c_int),
-                ("cancel", _c.c_int)]
+                ("cancel_flag", _c.c_int)]
 
     def __init__(self, params, levels):
         if type(params) is not MagPatternParams:
@@ -61,7 +61,7 @@ class Rayshooter(_c.Structure):
         self.progress = []
 
     def cancel(self):
-        self.cancel = True
+        self.cancel_flag = True
 
     def set_refine(refine):
         self.refine = refine
@@ -77,6 +77,7 @@ class Rayshooter(_c.Structure):
             return 1.0
 
     def start(self, magpat, rect, xrays, yrays):
+        self.cancel_flag = False
         self.progress.append(_c.c_double(0.0))
         _rayshoot(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
                   rect, xrays, yrays, self.progress[-1])
