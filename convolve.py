@@ -29,11 +29,10 @@ class GllConvolve:
         self.convolved_pattern = numpy.empty_like(count)
         self.convolved_pattern[:] = numpy.fft.irfft2(
             numpy.fft.rfft2(count) * self.kernel_fft)
-        buf = numpy.empty(count.shape, numpy.uint8)
+        buf = numpy.empty(count.shape + (1,), numpy.uint8)
         ll.image_from_magpat(buf, self.convolved_pattern)
-        self.pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
-                                     count.shape[1], count.shape[0])
-        self.pixbuf.get_pixels_array()[:] = numpy.dstack([buf]*3)
+        self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
+                                                    gtk.gdk.COLORSPACE_RGB, 8)
         gobject.idle_add(self.imageview.set_pixbuf, self.pixbuf)
         self.running = False
 

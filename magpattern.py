@@ -49,6 +49,7 @@ class MagPattern(ll.Rayshooter):
         self.levels = levels + 2
 
         print xrays, yrays
+        print self.levels
 
         t = clock()
         super(MagPattern, self).start(self.count, rect, xrays, yrays)
@@ -78,15 +79,9 @@ class GllMagPattern(MagPattern):
         super(GllMagPattern, self).start()
         if self.cancel_flag:
             return
-        params = self.params[0]
-        buf = numpy.empty((params.ypixels, params.xpixels), numpy.uint8)
+        buf = numpy.empty(self.count.shape + (1,), numpy.uint8)
         ll.image_from_magpat(buf, self.count)
-        if self.cancel_flag:
-            return
-        self.pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
-                                     params.xpixels, params.ypixels)
-        self.pixbuf.get_pixels_array()[:] = numpy.dstack([buf]*3)
-        if self.cancel_flag:
-            return
+        self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
+                                                    gtk.gdk.COLORSPACE_RGB, 8)
         gobject.idle_add(self.imageview.set_pixbuf, self.pixbuf)
         self.running = False
