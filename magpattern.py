@@ -39,7 +39,7 @@ class MagPattern(ll.Rayshooter):
         rays = sqrt(self.density) / self.refine_final
         xrays = rays * params.xpixels
         yrays = rays * params.ypixels
-        levels = max(0, int(log(min(xrays, yrays)/8.0)/log(self.refine)))
+        levels = max(0, int(log(min(xrays, yrays))/log(self.refine)))
         xrays /= self.refine**levels
         yrays /= self.refine**levels
         xrays *= (rect.x1 - rect.x0) / (params.region.x1 - params.region.x0)
