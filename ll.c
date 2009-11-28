@@ -153,24 +153,30 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
     {
         double width_per_xrays = (rect->x1 - rect->x0) / xrays;
         double height_per_yrays = (rect->y1 - rect->y0) / yrays;
-        bool *hit = malloc((xrays+3)*(yrays+3) * sizeof(bool));
+        int *hit = malloc((xrays+3)*(yrays+3) * sizeof(int));
         double mag_x, mag_y;
+        double xpixels = rs->params->xpixels;
+        double ypixels = rs->params->ypixels;
         for (int j = -1, m = 0; j <= yrays+1; ++j)
             for (int i = -1; i <= xrays+1; ++i, ++m)
-                hit[m] = ll_shoot_single_ray(rs->params,
-                                             rect->x0 + i*width_per_xrays,
-                                             rect->y0 + j*height_per_yrays,
-                                             &mag_x, &mag_y);
+            {
+                ll_shoot_single_ray(rs->params,
+                                    rect->x0 + i*width_per_xrays,
+                                    rect->y0 + j*height_per_yrays,
+                                    &mag_x, &mag_y);
+                hit[m] = (((0 <= mag_x)     ) | ((mag_x < xpixels) << 1) |
+                          ((0 <= mag_y) << 2) | ((mag_y < ypixels) << 3));
+            }
         int patches = 0;
         bool *hit_patches = malloc(xrays*yrays * sizeof(bool));
         for (int j = 0, m = xrays+4, n = 0; j < yrays; ++j, m += 3)
             for (int i = 0; i < xrays; ++i, ++m, ++n)
             {
-                hit_patches[n] = (hit[m-xrays-3] || hit[m-xrays-2] ||
-                                  hit[m-1] || hit[m] || hit[m+1] || hit[m+2] ||
-                                  hit[m+xrays+2] || hit[m+xrays+3] ||
-                                  hit[m+xrays+4] || hit[m+xrays+5] ||
-                                  hit[m+2*xrays+6] || hit[m+2*xrays+7]);
+                hit_patches[n] = (hit[m-xrays-3] | hit[m-xrays-2] |
+                                  hit[m-1] | hit[m] | hit[m+1] | hit[m+2] |
+                                  hit[m+xrays+2] | hit[m+xrays+3] |
+                                  hit[m+xrays+4] | hit[m+xrays+5] |
+                                  hit[m+2*xrays+6] | hit[m+2*xrays+7]) == 15;
                 if (hit_patches[n])
                     ++patches;
             }
