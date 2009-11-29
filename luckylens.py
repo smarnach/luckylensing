@@ -26,7 +26,8 @@ class MagPatternParams(_c.Structure):
                 ("pixels_per_width", _c.c_double),
                 ("pixels_per_height", _c.c_double)]
 
-    def __init__(self, lenses, region, xpixels, ypixels):
+    def __init__(self, lenses=[], region=(-1.,-1.,1.,1.),
+                 xpixels=1024, ypixels=1024):
         super(MagPatternParams, self).__init__(Lenses(lenses), region,
                                                xpixels, ypixels)
         self.pixels_per_width = xpixels / (self.region.x1 - self.region.x0)
