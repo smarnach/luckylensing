@@ -212,6 +212,22 @@ ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
 }
 
 extern void
+ll_ray_hit_pattern(struct ll_magpattern_param_t *params, char *buf,
+                   struct ll_rect_t *rect)
+{
+    double width_per_xrays = (rect->x1 - rect->x0) / params->xpixels;
+    double height_per_yrays = (rect->y1 - rect->y0) / params->ypixels;
+    double mag_x, mag_y;
+    for (unsigned j = 0; j < params->ypixels; ++j)
+        for (unsigned i = 0; i < params->xpixels; ++i)
+            buf[j*params->xpixels + i] = 255 *
+                ll_shoot_single_ray(params,
+                                    rect->x0 + i*width_per_xrays,
+                                    rect->y0 + j*height_per_yrays,
+                                    &mag_x, &mag_y);
+}
+
+extern void
 ll_image_from_magpat(char *buf, int *magpat, unsigned size)
 {
     int max_count = 0;

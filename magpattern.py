@@ -12,13 +12,9 @@ class MagPattern(ll.Rayshooter):
         self.density = 100
         self.count = None
 
-    def start(self):
-        assert self.params is not None
-
+    def shooting_rectangle(self):
+        "Determine sufficiently large shooting rectangle to cover the pattern"
         params = self.params[0]
-        self.count = numpy.zeros((params.ypixels, params.xpixels), numpy.int)
-
-        # Determine shooting rectangle
         lens = [params.lenses.lens[i] for i in range(params.lenses.num_lenses)]
         rect = ll.Rect()
         x0 = min(l.x - sqrt(l.mass) for l in lens)
@@ -33,6 +29,12 @@ class MagPattern(ll.Rayshooter):
         y1 = max(l.y + sqrt(l.mass) for l in lens)
         d = sum(l.mass/(y1 - l.y) for l in lens)
         rect.y1 = max(y1, params.region.y1 + d)
+        return rect
+
+    def start(self):
+        params = self.params[0]
+        self.count = numpy.zeros((params.ypixels, params.xpixels), numpy.int)
+        rect = self.shooting_rectangle()
 
         # Determine number of rays needed to achieve the ray density
         # specified by self.density (assuming magnification = 1)
@@ -69,8 +71,9 @@ class GllMagPattern(MagPattern):
         self.scrollwin.show_all()
         self.dragger = self.imageview.get_tool()
         self.selector = gtkimageview.ImageToolSelector(self.imageview)
-        self.imageview.connect("button-press-event", self.imageview_clicked)
         self.selector.connect("selection-changed", self.update_selection)
+        self.imageview.connect("button-press-event", self.imageview_clicked)
+        self.imageview.connect("key-press-event", self.imageview_key_pressed)
         self.builder = gtk.Builder()
         self.builder.add_from_file("magpattern.glade")
         self.builder.connect_signals(self)
@@ -84,6 +87,11 @@ class GllMagPattern(MagPattern):
             widget.set_tool(self.dragger)
         if event.button == 3:
             widget.set_tool(self.selector)
+
+    def imageview_key_pressed(self, widget, event, data=None):
+        if event.string == "h":
+            self.show_hit_pattern()
+            return True
 
     def update_selection(self, selector):
         rect = selector.get_selection()
@@ -151,3 +159,13 @@ class GllMagPattern(MagPattern):
                                                     gtk.gdk.COLORSPACE_RGB, 8)
         gobject.idle_add(self.imageview.set_tool, self.dragger)
         gobject.idle_add(self.imageview.set_pixbuf, self.pixbuf)
+
+    def show_hit_pattern(self):
+        params = self.params[0]
+        buf = numpy.empty((params.xpixels, params.ypixels, 1), numpy.uint8)
+        rect = self.shooting_rectangle()
+        self.params[0].ray_hit_pattern(buf, rect)
+        self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
+                                                    gtk.gdk.COLORSPACE_RGB, 8)
+        self.imageview.set_tool(self.dragger)
+        self.imageview.set_pixbuf(self.pixbuf)

@@ -43,6 +43,9 @@ class MagPatternParams(_c.Structure):
         _rayshoot_rect(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
                        rect, xrays, yrays)
 
+    def ray_hit_pattern(self, buf, rect):
+        _ray_hit_pattern(self, buf.ctypes.data_as(_c.POINTER(_c.c_char)), rect)
+
     def light_curve(self, magpat, curve, num_points, x0, y0, x1, y1):
         _light_curve(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
                      curve.ctypes.data_as(_c.POINTER(_c.c_double)),
@@ -109,6 +112,11 @@ _rayshoot.argtypes = [_c.POINTER(Rayshooter),
                       _c.c_int,
                       _c.c_int,
                       _c.POINTER(_c.c_double)]
+
+_ray_hit_pattern = _libll.ll_ray_hit_pattern
+_ray_hit_pattern.argtypes = [_c.POINTER(MagPatternParams),
+                             _c.POINTER(_c.c_char),
+                             _c.POINTER(Rect)]
 
 _image_from_magpat = _libll.ll_image_from_magpat
 _image_from_magpat.argtypes = [_c.POINTER(_c.c_char),

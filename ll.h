@@ -62,6 +62,10 @@ ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
             int xrays, int yrays, double *progress);
 
 extern void
+ll_ray_hit_pattern(struct ll_magpattern_param_t *params, char *buf,
+                   struct ll_rect_t *rect);
+
+extern void
 ll_image_from_magpat(char *buf, int *magpat, unsigned size);
 
 extern void
