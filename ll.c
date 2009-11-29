@@ -207,6 +207,10 @@ extern void
 ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
             int xrays, int yrays, double *progress)
 {
+    rs->params->pixels_per_width = rs->params->xpixels /
+        (rs->params->region.x1 - rs->params->region.x0);
+    rs->params->pixels_per_height = rs->params->ypixels /
+        (rs->params->region.y1 - rs->params->region.y0);
     _ll_rayshoot_recursively(rs, magpat, rect, xrays, yrays,
                              rs->levels - 1, progress);
 }
@@ -229,7 +233,7 @@ ll_image_from_magpat(char *buf, int *magpat, unsigned size)
     double logmin = log(min_count+1);
     double factor = 255/(logmax-logmin);
     for(unsigned i = 0; i < size; ++i)
-        buf[i] = 255 - (log(magpat[i]+1)-logmin)*factor;
+        buf[i] = (log(magpat[i]+1)-logmin)*factor;
 }
 
 extern void
