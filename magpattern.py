@@ -77,7 +77,6 @@ class GllMagPattern(MagPattern):
         self.lens_list = self.builder.get_object("lens_list")
         self.fix_adjustments()
         self.set_params_from_ui()
-        self.running = False
 
     def imageview_clicked(self, widget, event, data=None):
         widget.grab_focus()
@@ -125,9 +124,6 @@ class GllMagPattern(MagPattern):
         params.region.y1 = self.builder.get_object("region_y1").get_value()
         self.density = self.builder.get_object("density").get_value()
 
-    def is_running(self):
-        return self.running
-
     def main_widget(self):
         return self.scrollwin
 
@@ -145,7 +141,6 @@ class GllMagPattern(MagPattern):
         return
 
     def start(self):
-        self.running = True
         self.set_params_from_ui()
         super(GllMagPattern, self).start()
         if self.cancel_flag:
@@ -156,4 +151,3 @@ class GllMagPattern(MagPattern):
                                                     gtk.gdk.COLORSPACE_RGB, 8)
         gobject.idle_add(self.imageview.set_tool, self.dragger)
         gobject.idle_add(self.imageview.set_pixbuf, self.pixbuf)
-        self.running = False

@@ -21,8 +21,9 @@ class GllApp(object):
         self.hpaned.pack2(self.magpattern.config_widget(), resize=False)
 
     def generate_pattern(self, *args):
-        self.init_progressbar(self.magpattern)
-        threading.Thread(target=self.magpattern.start).start()
+        thread = threading.Thread(target=self.magpattern.start)
+        self.init_progressbar(self.magpattern, thread)
+        thread.start()
 
     def convolve_pattern(self, *args):
         self.convolve = GllConvolve(self.magpattern)
@@ -36,12 +37,12 @@ class GllApp(object):
     def extract_light_curve(self, *args):
         pass
 
-    def init_progressbar(self, comp):
+    def init_progressbar(self, comp, thread):
         self.progressbar.set_property("show-text", True)
-        gobject.timeout_add(100, self.update_progressbar, comp)
+        gobject.timeout_add(100, self.update_progressbar, comp, thread)
 
-    def update_progressbar(self, comp):
-        if comp.is_running():
+    def update_progressbar(self, comp, thread):
+        if thread.isAlive():
             self.progressbar.set_fraction(min(comp.get_progress(), 1.0))
         else:
             self.progressbar.set_property("show-text", False)

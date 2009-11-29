@@ -7,7 +7,6 @@ import luckylens as ll
 class GllConvolve:
     def __init__(self, magpat):
         self.magpat = magpat
-        self.running = False
         params = magpat.params[0]
         kernel = numpy.indices((params.ypixels/2, params.xpixels/2))
         kernel = numpy.exp(-sum(kernel*kernel)/8.)
@@ -24,7 +23,6 @@ class GllConvolve:
         return self.scrollwin
 
     def start(self):
-        self.running = True
         count = self.magpat.get_output("count")
         self.convolved_pattern = numpy.empty_like(count)
         self.convolved_pattern[:] = numpy.fft.irfft2(
@@ -34,15 +32,9 @@ class GllConvolve:
         self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
                                                     gtk.gdk.COLORSPACE_RGB, 8)
         gobject.idle_add(self.imageview.set_pixbuf, self.pixbuf)
-        self.running = False
 
     def cancel(self):
         pass
 
     def get_progress(self):
-        if self.running:
-            return 0.5
-        return 1.0
-
-    def is_running(self):
-        return self.running
+        return 0.5
