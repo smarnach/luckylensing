@@ -4,7 +4,7 @@ import gobject
 import gtk
 import gtkimageview
 import numpy
-import luckylens as ll
+import luckylensing as ll
 
 class MagPattern(ll.Rayshooter):
     def __init__(self, params):

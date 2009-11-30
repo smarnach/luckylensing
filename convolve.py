@@ -2,7 +2,7 @@ import gobject
 import gtk
 import gtkimageview
 import numpy
-import luckylens as ll
+import luckylensing as ll
 
 class GllConvolve:
     def __init__(self, magpat):

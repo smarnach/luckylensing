@@ -47,7 +47,7 @@ debug: clean all
 
 clean_objects:
 	rm -f ll.o libll.so testll.o testll
-	rm -f luckylens.pyc magpattern.pyc convolve.pyc
+	rm -f luckylensing.pyc magpattern.pyc convolve.pyc
 
 clean_profile:
 	rm -f ll.gcda ll.gcno testll.gcda testll.gcno
