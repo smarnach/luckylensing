@@ -46,7 +46,7 @@ debug: clean all
 #####################
 
 clean_objects:
-	rm -f ll.o libll.so testll.o testll luckylens.pyc
+	rm -f ll.o libll.so testll.o testll luckylensing.pyc
 
 clean_profile:
 	rm -f ll.gcda ll.gcno testll.gcda testll.gcno

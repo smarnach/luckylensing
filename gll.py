@@ -4,7 +4,7 @@ import threading
 import gtk
 import pyconsole
 import numpy
-import luckylens as ll
+import luckylensing as ll
 from time import time
 
 xpixels = 1024
