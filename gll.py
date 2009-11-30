@@ -16,7 +16,7 @@ class GllApp(object):
         self.statusbar = self.builder.get_object("statusbar")
         self.progressbar = self.builder.get_object("progressbar")
 
-        self.magpattern = GllMagPattern()
+        self.magpattern = GllMagPattern(self)
         self.hpaned.pack1(self.magpattern.main_widget(), resize=True)
         self.hpaned.pack2(self.magpattern.config_widget(), resize=False)
 

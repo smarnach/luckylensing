@@ -61,7 +61,8 @@ class MagPattern(ll.Rayshooter):
         return None
 
 class GllMagPattern(MagPattern):
-    def __init__(self):
+    def __init__(self, app):
+        self.app = app
         params = ll.MagPatternParams()
         super(GllMagPattern, self).__init__(params)
         self.imageview = gtkimageview.ImageView()
@@ -81,8 +82,10 @@ class GllMagPattern(MagPattern):
 
     def imageview_clicked(self, widget, event, data=None):
         widget.grab_focus()
-        if event.button == 2:
-            # widget.set_tool(self.dragger)
+        if event.button == 1:
+            if event.type == gtk.gdk._2BUTTON_PRESS:
+                self.app.generate_pattern()
+        elif event.button == 2:
             draw_rect = self.imageview.get_draw_rect()
             zoom = self.imageview.get_zoom()
             viewport = self.imageview.get_viewport()
@@ -92,7 +95,10 @@ class GllMagPattern(MagPattern):
             source_r = .005 * params.xpixels / params.region.width
             self.show_source_images(source_x, source_y, source_r);
         if event.button == 3:
-            widget.set_tool(self.selector)
+            if widget.get_tool() is self.dragger:
+                widget.set_tool(self.selector)
+            else:
+                widget.set_tool(self.dragger)
 
     def imageview_key_pressed(self, widget, event, data=None):
         if event.string == "h":
