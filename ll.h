@@ -66,6 +66,11 @@ ll_ray_hit_pattern(struct ll_magpattern_param_t *params, char *buf,
                    struct ll_rect_t *rect);
 
 extern void
+ll_source_images(struct ll_magpattern_param_t *params, char *buf,
+                 struct ll_rect_t *rect, int xrays, int yrays, int refine,
+                 double source_x, double source_y, double source_r);
+
+extern void
 ll_image_from_magpat(char *buf, int *magpat, unsigned size);
 
 extern void

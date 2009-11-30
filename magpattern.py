@@ -84,7 +84,15 @@ class GllMagPattern(MagPattern):
     def imageview_clicked(self, widget, event, data=None):
         widget.grab_focus()
         if event.button == 2:
-            widget.set_tool(self.dragger)
+            # widget.set_tool(self.dragger)
+            draw_rect = self.imageview.get_draw_rect()
+            zoom = self.imageview.get_zoom()
+            viewport = self.imageview.get_viewport()
+            source_x = (event.x - draw_rect.x) / zoom + viewport.x
+            source_y = (event.y - draw_rect.y) / zoom + viewport.y
+            params = self.params[0]
+            source_r = .005 * params.xpixels / (params.region.x1 - params.region.x0)
+            self.show_source_images(source_x, source_y, source_r);
         if event.button == 3:
             widget.set_tool(self.selector)
 
@@ -164,7 +172,18 @@ class GllMagPattern(MagPattern):
         params = self.params[0]
         buf = numpy.empty((params.xpixels, params.ypixels, 1), numpy.uint8)
         rect = self.shooting_rectangle()
-        self.params[0].ray_hit_pattern(buf, rect)
+        params.ray_hit_pattern(buf, rect)
+        self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
+                                                    gtk.gdk.COLORSPACE_RGB, 8)
+        self.imageview.set_tool(self.dragger)
+        self.imageview.set_pixbuf(self.pixbuf)
+
+    def show_source_images(self, source_x, source_y, source_r):
+        params = self.params[0]
+        buf = numpy.zeros((params.xpixels, params.ypixels, 1), numpy.uint8)
+        rect = self.shooting_rectangle()
+        params.source_images(buf, rect, params.xpixels, params.ypixels, 2,
+                             source_x, source_y, source_r)
         self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
                                                     gtk.gdk.COLORSPACE_RGB, 8)
         self.imageview.set_tool(self.dragger)

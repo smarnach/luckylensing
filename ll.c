@@ -228,6 +228,40 @@ ll_ray_hit_pattern(struct ll_magpattern_param_t *params, char *buf,
 }
 
 extern void
+ll_source_images(struct ll_magpattern_param_t *params, char *buf,
+                 struct ll_rect_t *rect, int xrays, int yrays, int refine,
+                 double source_x, double source_y, double source_r)
+{
+    double r_squared = source_r*source_r;
+    double width_per_xrays = (rect->x1 - rect->x0) / xrays;
+    double height_per_yrays = (rect->y1 - rect->y0) / yrays;
+    double x_inc = width_per_xrays / refine;
+    double y_inc = height_per_yrays / refine;
+    int buf_inc = 255 / (refine*refine);
+    for (int j = 0, m = 0; j < xrays; ++j)
+        for (int i = 0; i < yrays; ++i, ++m)
+        {
+            double x0 = rect->x0 + i*width_per_xrays;
+            double y = rect->y0 + j*height_per_yrays;
+            for (int k = 0; k < refine; ++k)
+            {
+                double x = x0;
+                for (int l = 0; l < refine; ++l)
+                {
+                    double mag_x, mag_y;
+                    ll_shoot_single_ray(params, x, y, &mag_x, &mag_y);
+                    double dx = source_x - mag_x;
+                    double dy = source_y - mag_y;
+                    if (dx*dx + dy*dy < r_squared)
+                        buf[m] += buf_inc;
+                    x += x_inc;
+                }
+                y += y_inc;
+            }
+        }
+}
+
+extern void
 ll_image_from_magpat(char *buf, int *magpat, unsigned size)
 {
     int max_count = 0;
