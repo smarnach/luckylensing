@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
     printf("Converting to an image...\n");
     t = clock();
-    ll_image_from_magpat(buf, magpat, N);
+    ll_render_magpattern_greyscale(buf, magpat, N);
     printf("finished in %g seconds.\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 
     if (argc > 1)

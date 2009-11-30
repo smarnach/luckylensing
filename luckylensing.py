@@ -134,15 +134,15 @@ _source_images.argtypes = [_c.POINTER(MagPatternParams),
                            _c.c_double,
                            _c.c_double]
 
-_image_from_magpat = _libll.ll_image_from_magpat
-_image_from_magpat.argtypes = [_c.POINTER(_c.c_char),
+_render_magpattern_greyscale = _libll.ll_render_magpattern_greyscale
+_render_magpattern_greyscale.argtypes = [_c.POINTER(_c.c_char),
                                _c.POINTER(_c.c_int),
                                _c.c_uint]
 
-def image_from_magpat(buf, magpat):
-    _image_from_magpat(buf.ctypes.data_as(_c.POINTER(_c.c_char)),
-                       magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
-                       magpat.size)
+def render_magpattern_greyscale(buf, magpat):
+    _render_magpattern_greyscale(buf.ctypes.data_as(_c.POINTER(_c.c_char)),
+                                 magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
+                                 magpat.size)
 
 _light_curve = _libll.ll_light_curve
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),

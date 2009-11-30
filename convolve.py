@@ -28,7 +28,7 @@ class GllConvolve:
         self.convolved_pattern[:] = numpy.fft.irfft2(
             numpy.fft.rfft2(count) * self.kernel_fft)
         buf = numpy.empty(count.shape + (1,), numpy.uint8)
-        ll.image_from_magpat(buf, self.convolved_pattern)
+        ll.render_magpattern_greyscale(buf, self.convolved_pattern)
         self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
                                                     gtk.gdk.COLORSPACE_RGB, 8)
         gobject.idle_add(self.imageview.set_pixbuf, self.pixbuf)

@@ -162,7 +162,7 @@ class GllMagPattern(MagPattern):
         if self.cancel_flag:
             return
         buf = numpy.empty(self.count.shape + (1,), numpy.uint8)
-        ll.image_from_magpat(buf, self.count)
+        ll.render_magpattern_greyscale(buf, self.count)
         self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
                                                     gtk.gdk.COLORSPACE_RGB, 8)
         gobject.idle_add(self.imageview.set_tool, self.dragger)

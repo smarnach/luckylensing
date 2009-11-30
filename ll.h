@@ -71,7 +71,7 @@ ll_source_images(struct ll_magpattern_param_t *params, char *buf,
                  double source_x, double source_y, double source_r);
 
 extern void
-ll_image_from_magpat(char *buf, int *magpat, unsigned size);
+ll_render_magpattern_greyscale(char *buf, int *magpat, unsigned size);
 
 extern void
 ll_light_curve(struct ll_magpattern_param_t *params, int *magpat,
