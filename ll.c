@@ -157,12 +157,12 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
     {
         double width_per_xrays = rect->width / xrays;
         double height_per_yrays = rect->height / yrays;
-        int *hit = malloc((xrays+1)*(yrays+1) * sizeof(int));
+        int *hit = malloc((xrays+3)*(yrays+3) * sizeof(int));
         double mag_x, mag_y;
         double xpixels = rs->params->xpixels;
         double ypixels = rs->params->ypixels;
-        for (int j = 0, m = 0; j <= yrays; ++j)
-            for (int i = 0; i <= xrays; ++i, ++m)
+        for (int j = -1, m = 0; j <= yrays+1; ++j)
+            for (int i = -1; i <= xrays+1; ++i, ++m)
             {
                 ll_shoot_single_ray(rs->params,
                                     rect->x + i*width_per_xrays,
@@ -173,12 +173,16 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
             }
         int patches = 0;
         bool *hit_patches = malloc(xrays*yrays * sizeof(bool));
-        for (int j = 0, m = 0, n = 0; j < yrays; ++j, ++m)
+        for (int j = 0, m = xrays+4, n = 0; j < yrays; ++j, m += 3)
             for (int i = 0; i < xrays; ++i, ++m, ++n)
             {
-                hit_patches[n] = (hit[m] | hit[m+1] |
-                                  hit[m+xrays+1] | hit[m+xrays+2]) == 15;
-                patches += hit_patches[n];
+                hit_patches[n] = (hit[m-xrays-3] | hit[m-xrays-2] |
+                                  hit[m-1] | hit[m] | hit[m+1] | hit[m+2] |
+                                  hit[m+xrays+2] | hit[m+xrays+3] |
+                                  hit[m+xrays+4] | hit[m+xrays+5] |
+                                  hit[m+2*xrays+6] | hit[m+2*xrays+7]) == 15;
+                if (hit_patches[n])
+                    ++patches;
             }
         free(hit);
         if (progress)
