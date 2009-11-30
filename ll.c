@@ -12,14 +12,14 @@ ll_init_magpattern_params(struct ll_magpattern_param_t *params,
 {
     params->lenses.num_lenses = lenses->num_lenses;
     params->lenses.lens = lenses->lens;
-    params->region.x0 = region->x0;
-    params->region.x1 = region->x1;
-    params->region.y0 = region->y0;
-    params->region.y1 = region->y1;
+    params->region.x = region->x;
+    params->region.y = region->y;
+    params->region.width = region->width;
+    params->region.height = region->height;
     params->xpixels = xpixels;
     params->ypixels = ypixels;
-    params->pixels_per_width = xpixels / (region->x1 - region->x0);
-    params->pixels_per_height = ypixels / (region->y1 - region->y0);
+    params->pixels_per_width = xpixels / region->width;
+    params->pixels_per_height = ypixels / region->height;
 }
 
 extern void
@@ -54,8 +54,8 @@ ll_shoot_single_ray(struct ll_magpattern_param_t *params,
         x_deflected -= dx * deflection;
         y_deflected -= dy * deflection;
     }
-    *mag_x = (x_deflected - params->region.x0) * params->pixels_per_width;
-    *mag_y = (y_deflected - params->region.y0) * params->pixels_per_height;
+    *mag_x = (x_deflected - params->region.x) * params->pixels_per_width;
+    *mag_y = (y_deflected - params->region.y) * params->pixels_per_height;
     return (0 <= *mag_x && *mag_x < params->xpixels &&
             0 <= *mag_y && *mag_y < params->ypixels);
 }
@@ -64,14 +64,14 @@ extern void
 ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays)
 {
-    double width_per_xrays = (rect->x1 - rect->x0) / xrays;
-    double height_per_yrays = (rect->y1 - rect->y0) / yrays;
+    double width_per_xrays = rect->width / xrays;
+    double height_per_yrays = rect->height / yrays;
     double mag_x, mag_y;
     for (int j = 0; j < yrays; ++j)
         for (int i = 0; i < xrays; ++i)
             if (ll_shoot_single_ray(params,
-                                    rect->x0 + i*width_per_xrays,
-                                    rect->y0 + j*height_per_yrays,
+                                    rect->x + i*width_per_xrays,
+                                    rect->y + j*height_per_yrays,
                                     &mag_x, &mag_y))
                 ++magpat[(int)mag_y*params->xpixels + (int)mag_x];
 }
@@ -81,10 +81,14 @@ _ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
                       struct ll_rect_t *rect, int refine)
 {
     double ul_x, ul_y, ur_x, ur_y, ll_x, ll_y, lr_x, lr_y;
-    bool ul = ll_shoot_single_ray(params, rect->x0, rect->y0, &ul_x, &ul_y);
-    bool ur = ll_shoot_single_ray(params, rect->x1, rect->y0, &ur_x, &ur_y);
-    bool ll = ll_shoot_single_ray(params, rect->x0, rect->y1, &ll_x, &ll_y);
-    bool lr = ll_shoot_single_ray(params, rect->x1, rect->y1, &lr_x, &lr_y);
+    double x0 = rect->x;
+    double y0 = rect->y;
+    double x1 = rect->x + rect->width;
+    double y1 = rect->y + rect->height;
+    bool ul = ll_shoot_single_ray(params, x0, y0, &ul_x, &ul_y);
+    bool ur = ll_shoot_single_ray(params, x1, y0, &ur_x, &ur_y);
+    bool ll = ll_shoot_single_ray(params, x0, y1, &ll_x, &ll_y);
+    bool lr = ll_shoot_single_ray(params, x1, y1, &lr_x, &lr_y);
     double inv_refine = 1.0/refine;
     double ldown_x = (ll_x - ul_x) * inv_refine;
     double ldown_y = (ll_y - ul_y) * inv_refine;
@@ -151,8 +155,8 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
         return;
     if (level)
     {
-        double width_per_xrays = (rect->x1 - rect->x0) / xrays;
-        double height_per_yrays = (rect->y1 - rect->y0) / yrays;
+        double width_per_xrays = rect->width / xrays;
+        double height_per_yrays = rect->height / yrays;
         int *hit = malloc((xrays+1)*(yrays+1) * sizeof(int));
         double mag_x, mag_y;
         double xpixels = rs->params->xpixels;
@@ -161,8 +165,8 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
             for (int i = 0; i <= xrays; ++i, ++m)
             {
                 ll_shoot_single_ray(rs->params,
-                                    rect->x0 + i*width_per_xrays,
-                                    rect->y0 + j*height_per_yrays,
+                                    rect->x + i*width_per_xrays,
+                                    rect->y + j*height_per_yrays,
                                     &mag_x, &mag_y);
                 hit[m] = (((0 <= mag_x)     ) | ((mag_x < xpixels) << 1) |
                           ((0 <= mag_y) << 2) | ((mag_y < ypixels) << 3));
@@ -184,10 +188,10 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
             for (int i = 0; i < xrays; ++i, ++n)
                 if (hit_patches[n])
                 {
-                    double x = rect->x0 + i*width_per_xrays;
-                    double y = rect->y0 + j*height_per_yrays;
+                    double x = rect->x + i*width_per_xrays;
+                    double y = rect->y + j*height_per_yrays;
                     struct ll_rect_t subrect
-                        = {x, y, x+width_per_xrays, y+height_per_yrays};
+                        = {x, y, width_per_xrays, height_per_yrays};
                     _ll_rayshoot_recursively(rs, magpat, &subrect, rs->refine,
                                              rs->refine, level-1, 0);
                     if (progress)
@@ -204,9 +208,9 @@ ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
             int xrays, int yrays, double *progress)
 {
     rs->params->pixels_per_width = rs->params->xpixels /
-        (rs->params->region.x1 - rs->params->region.x0);
+        rs->params->region.width;
     rs->params->pixels_per_height = rs->params->ypixels /
-        (rs->params->region.y1 - rs->params->region.y0);
+        rs->params->region.height;
     _ll_rayshoot_recursively(rs, magpat, rect, xrays, yrays,
                              rs->levels - 1, progress);
 }
@@ -215,15 +219,15 @@ extern void
 ll_ray_hit_pattern(struct ll_magpattern_param_t *params, char *buf,
                    struct ll_rect_t *rect)
 {
-    double width_per_xrays = (rect->x1 - rect->x0) / params->xpixels;
-    double height_per_yrays = (rect->y1 - rect->y0) / params->ypixels;
+    double width_per_xrays = rect->width / params->xpixels;
+    double height_per_yrays = rect->height / params->ypixels;
     double mag_x, mag_y;
     for (unsigned j = 0; j < params->ypixels; ++j)
         for (unsigned i = 0; i < params->xpixels; ++i)
             buf[j*params->xpixels + i] = 255 *
                 ll_shoot_single_ray(params,
-                                    rect->x0 + i*width_per_xrays,
-                                    rect->y0 + j*height_per_yrays,
+                                    rect->x + i*width_per_xrays,
+                                    rect->y + j*height_per_yrays,
                                     &mag_x, &mag_y);
 }
 
@@ -233,16 +237,16 @@ ll_source_images(struct ll_magpattern_param_t *params, char *buf,
                  double source_x, double source_y, double source_r)
 {
     double r_squared = source_r*source_r;
-    double width_per_xrays = (rect->x1 - rect->x0) / xrays;
-    double height_per_yrays = (rect->y1 - rect->y0) / yrays;
+    double width_per_xrays = rect->width / xrays;
+    double height_per_yrays = rect->height / yrays;
     double x_inc = width_per_xrays / refine;
     double y_inc = height_per_yrays / refine;
     int buf_inc = 255 / (refine*refine);
     for (int j = 0, m = 0; j < xrays; ++j)
         for (int i = 0; i < yrays; ++i, ++m)
         {
-            double x0 = rect->x0 + i*width_per_xrays;
-            double y = rect->y0 + j*height_per_yrays;
+            double x0 = rect->x + i*width_per_xrays;
+            double y = rect->y + j*height_per_yrays;
             for (int k = 0; k < refine; ++k)
             {
                 double x = x0;
@@ -287,8 +291,8 @@ ll_light_curve(struct ll_magpattern_param_t *params, int *magpat,
                double *curve, unsigned num_points,
                double x0, double y0, double x1, double y1)
 {
-    double mag_x = (x0 - params->region.x0) * params->pixels_per_width;
-    double mag_y = (y0 - params->region.y0) * params->pixels_per_height;
+    double mag_x = (x0 - params->region.x) * params->pixels_per_width;
+    double mag_y = (y0 - params->region.y) * params->pixels_per_height;
     double dx = (x1 - x0) * params->pixels_per_width / (num_points - 1);
     double dy = (y1 - y0) * params->pixels_per_height / (num_points - 1);
     for (unsigned i = 0; i < num_points; ++i)

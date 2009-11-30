@@ -13,10 +13,10 @@ class Lenses(_c.Structure):
         super(Lenses, self).__init__(l, (Lens*l)(*map(tuple, lens_list)))
 
 class Rect(_c.Structure):
-    _fields_ = [("x0", _c.c_double),
-                ("y0", _c.c_double),
-                ("x1", _c.c_double),
-                ("y1", _c.c_double)]
+    _fields_ = [("x", _c.c_double),
+                ("y", _c.c_double),
+                ("width", _c.c_double),
+                ("height", _c.c_double)]
 
 class MagPatternParams(_c.Structure):
     _fields_ = [("lenses", Lenses),
@@ -30,8 +30,8 @@ class MagPatternParams(_c.Structure):
                  xpixels=1024, ypixels=1024):
         super(MagPatternParams, self).__init__(Lenses(lenses), region,
                                                xpixels, ypixels)
-        self.pixels_per_width = xpixels / (self.region.x1 - self.region.x0)
-        self.pixels_per_height = ypixels / (self.region.y1 - self.region.y0)
+        self.pixels_per_width = xpixels / self.region.width
+        self.pixels_per_height = ypixels / self.region.width
 
     def shoot_single_ray(self, x, y):
         mag_x = _c.c_double()

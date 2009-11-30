@@ -11,13 +11,13 @@ int main(int argc, char *argv[])
     const unsigned levels = 3;
     const int xrays = 600;
     const int yrays = 120;
-    struct ll_rect_t rect = {-1., -.25, 1.5, .25};
+    struct ll_rect_t rect = {-1., -.25, 2.5, .5};
 
     struct ll_lens_t lens[3] = {{0.0, 0.0,  1.},
                                 {1.2, 0.0,  4e-4},
                                 {1.2, 0.025, 2.5e-5}};
     struct ll_lenses_t lenses = {3, lens};
-    struct ll_rect_t region = {.26, -.05, .46, .05};
+    struct ll_rect_t region = {.26, -.05, .2, .1};
 
     struct ll_magpattern_param_t params;
     ll_init_magpattern_params(&params, &lenses, &region, xpixels, ypixels);
@@ -37,8 +37,7 @@ int main(int argc, char *argv[])
         density *= rs.refine * rs.refine;
     density *= rs.refine_final * rs.refine_final;
     density /= N;
-    density /= (rect.x1 - rect.x0) * (rect.y1 - rect.y0);
-    density *= (region.x1 - region.x0) * (region.y1 - region.y0);
+    density *= region.width * region.height / rect.width * rect.height;
     printf("Average rays per pixel shot:    %8.2f\n", density);
 
     double avg = 0.0;

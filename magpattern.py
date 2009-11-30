@@ -19,16 +19,16 @@ class MagPattern(ll.Rayshooter):
         rect = ll.Rect()
         x0 = min(l.x - sqrt(l.mass) for l in lens)
         d = sum(l.mass/(x0 - l.x) for l in lens)
-        rect.x0 = min(x0, params.region.x0 + d)
-        x1 = max(l.x + sqrt(l.mass) for l in lens)
-        d = sum(l.mass/(x1 - l.x) for l in lens)
-        rect.x1 = max(x1, params.region.x1 + d)
+        rect.x = min(x0, params.region.x + d)
         y0 = min(l.y - sqrt(l.mass) for l in lens)
         d = sum(l.mass/(y0 - l.y) for l in lens)
-        rect.y0 = min(y0, params.region.y0 + d)
+        rect.y = min(y0, params.region.y + d)
+        x1 = max(l.x + sqrt(l.mass) for l in lens)
+        d = sum(l.mass/(x1 - l.x) for l in lens)
+        rect.width = max(x1, params.region.x + params.region.width + d) - rect.x
         y1 = max(l.y + sqrt(l.mass) for l in lens)
         d = sum(l.mass/(y1 - l.y) for l in lens)
-        rect.y1 = max(y1, params.region.y1 + d)
+        rect.height = max(y1, params.region.y + params.region.height + d) - rect.y
         return rect
 
     def start(self):
@@ -42,10 +42,8 @@ class MagPattern(ll.Rayshooter):
         xrays = rays * params.xpixels
         yrays = rays * params.ypixels
         levels = max(0, int(log(min(xrays, yrays))/log(self.refine)))
-        xrays /= self.refine**levels
-        yrays /= self.refine**levels
-        xrays *= (rect.x1 - rect.x0) / (params.region.x1 - params.region.x0)
-        yrays *= (rect.y1 - rect.y0) / (params.region.y1 - params.region.y0)
+        xrays *= rect.width / (params.region.width * self.refine**levels)
+        yrays *= rect.height / (params.region.height * self.refine**levels)
         xrays = int(round(xrays))
         yrays = int(round(yrays))
         self.levels = levels + 2
@@ -91,7 +89,7 @@ class GllMagPattern(MagPattern):
             source_x = (event.x - draw_rect.x) / zoom + viewport.x
             source_y = (event.y - draw_rect.y) / zoom + viewport.y
             params = self.params[0]
-            source_r = .005 * params.xpixels / (params.region.x1 - params.region.x0)
+            source_r = .005 * params.xpixels / params.region.width
             self.show_source_images(source_x, source_y, source_r);
         if event.button == 3:
             widget.set_tool(self.selector)
@@ -107,13 +105,13 @@ class GllMagPattern(MagPattern):
         region = params.region
         width = max(rect.width, rect.height*params.xpixels/params.ypixels)
         x = rect.x + (rect.width - width)/2
-        xfactor = (region.x1-region.x0)/params.xpixels
-        x0 = region.x0 + x * xfactor
+        xfactor = region.width/params.xpixels
+        x0 = region.x + x * xfactor
         x1 = x0 + width * xfactor
         height = max(rect.height, rect.width*params.ypixels/params.xpixels)
         y = rect.y + (rect.height - height)/2
-        yfactor = (region.y1-region.y0)/params.ypixels
-        y0 = region.y0 + y * yfactor
+        yfactor = region.height/params.ypixels
+        y0 = region.y + y * yfactor
         y1 = y0 + width * yfactor
         self.builder.get_object("region_x0").set_value(x0)
         self.builder.get_object("region_y0").set_value(y0)
@@ -134,10 +132,12 @@ class GllMagPattern(MagPattern):
         params.lenses = ll.Lenses(self.lens_list)
         params.xpixels = int(self.builder.get_object("xpixels").get_value())
         params.ypixels = int(self.builder.get_object("ypixels").get_value())
-        params.region.x0 = self.builder.get_object("region_x0").get_value()
-        params.region.y0 = self.builder.get_object("region_y0").get_value()
-        params.region.x1 = self.builder.get_object("region_x1").get_value()
-        params.region.y1 = self.builder.get_object("region_y1").get_value()
+        params.region.x = self.builder.get_object("region_x0").get_value()
+        params.region.y = self.builder.get_object("region_y0").get_value()
+        x1 = self.builder.get_object("region_x1").get_value()
+        params.region.width = x1 - params.region.x
+        y1 = self.builder.get_object("region_y1").get_value()
+        params.region.height = y1 - params.region.y
         self.density = self.builder.get_object("density").get_value()
 
     def main_widget(self):

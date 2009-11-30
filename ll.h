@@ -16,7 +16,7 @@ struct ll_lenses_t
 
 struct ll_rect_t
 {
-    double x0, y0, x1, y1;
+    double x, y, width, height;
 };
 
 struct ll_magpattern_param_t
