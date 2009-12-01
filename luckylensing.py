@@ -97,10 +97,11 @@ class Rayshooter(_c.Structure):
 
     def start(self, magpat, rect, xrays, yrays):
         self.cancel_flag = False
-        self.progress.append(_c.c_double(0.0))
+        progress = _c.c_double(0.0)
+        self.progress.append(progress)
         _rayshoot(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
-                  rect, xrays, yrays, self.progress[-1])
-        self.progress.pop()
+                  rect, xrays, yrays, progress)
+        self.progress.remove(progress)
 
 from numpy import ctypeslib as _ctypeslib
 _libll = _ctypeslib.load_library('libll', '.')
