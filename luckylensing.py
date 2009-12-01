@@ -5,6 +5,11 @@ class Lens(_c.Structure):
                 ("y", _c.c_double),
                 ("mass", _c.c_double)]
 
+    def __repr__(self):
+        return "%s.%s(%0.5g, %0.5g, %0.5g)" % (
+            self.__class__.__module__, self.__class__.__name__,
+            self.x, self.y, self.mass)
+
 class Lenses(_c.Structure):
     _fields_ = [("num_lenses", _c.c_uint),
                 ("lens", _c.POINTER(Lens))]
@@ -17,6 +22,11 @@ class Rect(_c.Structure):
                 ("y", _c.c_double),
                 ("width", _c.c_double),
                 ("height", _c.c_double)]
+
+    def __repr__(self):
+        return "%s.%s(%0.5g, %0.5g, %0.5g, %0.5g)" % (
+            self.__class__.__module__, self.__class__.__name__,
+            self.x, self.y, self.width, self.height)
 
 class MagPatternParams(_c.Structure):
     _fields_ = [("lenses", Lenses),
