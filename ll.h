@@ -58,6 +58,16 @@ ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays);
 
 extern void
+ll_get_subpatches(struct ll_magpattern_param_t *params, char *hit_patches,
+                  struct ll_rect_t *rect, int xrays, int yrays, int *patches);
+
+extern void
+ll_rayshoot_subpatches(struct ll_rayshooter_t *rs, int *magpat,
+                       char *hit_patches, struct ll_rect_t *rect,
+                       int xrays, int yrays, unsigned level,
+                       int patches, double *progress);
+
+extern void
 ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
             int xrays, int yrays, double *progress);
 
