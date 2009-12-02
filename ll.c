@@ -10,12 +10,8 @@ ll_init_magpattern_params(struct ll_magpattern_param_t *params,
                           struct ll_rect_t *region,
                           unsigned xpixels, unsigned ypixels)
 {
-    params->lenses.num_lenses = lenses->num_lenses;
-    params->lenses.lens = lenses->lens;
-    params->region.x = region->x;
-    params->region.y = region->y;
-    params->region.width = region->width;
-    params->region.height = region->height;
+    params->lenses = *lenses;
+    params->region = *region;
     params->xpixels = xpixels;
     params->ypixels = ypixels;
     params->pixels_per_width = xpixels / region->width;
