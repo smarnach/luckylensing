@@ -1,4 +1,5 @@
 import ctypes as _c
+import numpy as _np
 
 class Lens(_c.Structure):
     _fields_ = [("x", _c.c_double),
@@ -13,6 +14,7 @@ class Lens(_c.Structure):
 class Lenses(_c.Structure):
     _fields_ = [("num_lenses", _c.c_uint),
                 ("lens", _c.POINTER(Lens))]
+
     def __init__(self, lens_list):
         l = len(lens_list)
         super(Lenses, self).__init__(l, (Lens*l)(*map(tuple, lens_list)))
@@ -28,6 +30,21 @@ class Rect(_c.Structure):
             self.__class__.__module__, self.__class__.__name__,
             self.x, self.y, self.width, self.height)
 
+class Patches(_c.Structure):
+    _fields_ = [("rect", Rect),
+                ("xrays", _c.c_int),
+                ("yrays", _c.c_int),
+                ("width_per_xrays", _c.c_double),
+                ("height_per_yrays", _c.c_double),
+                ("hit", _c.POINTER(_c.c_char)),
+                ("num_patches", _c.c_uint)]
+
+    def __init__(self, rect, hit):
+        yrays, xrays = hit.shape
+        super(Patches, self).__init__(
+            rect, xrays, yrays, rect.width/xrays, rect.height/yrays,
+            hit.ctypes.data_as(_c.POINTER(_c.c_char)), 0)
+
 class MagPatternParams(_c.Structure):
     _fields_ = [("lenses", Lenses),
                 ("region", Rect),
@@ -40,8 +57,11 @@ class MagPatternParams(_c.Structure):
                  xpixels=1024, ypixels=1024):
         super(MagPatternParams, self).__init__(Lenses(lenses), region,
                                                xpixels, ypixels)
-        self.pixels_per_width = xpixels / self.region.width
-        self.pixels_per_height = ypixels / self.region.width
+        self.update_ratios()
+
+    def update_ratios(self):
+        self.pixels_per_width = self.xpixels / self.region.width
+        self.pixels_per_height = self.ypixels / self.region.width
 
     def shoot_single_ray(self, x, y):
         mag_x = _c.c_double()
@@ -95,16 +115,28 @@ class Rayshooter(_c.Structure):
         else:
             return 1.0
 
+    def get_subpatches(self, patches):
+        _get_subpatches(self.params, patches)
+
+    def start_subpatches(self, magpat, patches):
+        self.cancel_flag = False
+        progress = _c.c_double(0.0)
+        self.progress.append(progress)
+        self.params[0].update_ratios()
+        _rayshoot_subpatches(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
+                             patches, self.levels - 1, progress)
+        self.progress.remove(progress)
+
     def start(self, magpat, rect, xrays, yrays):
         self.cancel_flag = False
         progress = _c.c_double(0.0)
         self.progress.append(progress)
+        self.params[0].update_ratios()
         _rayshoot(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
                   rect, xrays, yrays, progress)
         self.progress.remove(progress)
 
-from numpy import ctypeslib as _ctypeslib
-_libll = _ctypeslib.load_library('libll', '.')
+_libll = _np.ctypeslib.load_library('libll', '.')
 
 _shoot_single_ray = _libll.ll_shoot_single_ray
 _shoot_single_ray.argtypes = [_c.POINTER(MagPatternParams),
@@ -120,6 +152,17 @@ _rayshoot_rect.argtypes = [_c.POINTER(MagPatternParams),
                            _c.POINTER(Rect),
                            _c.c_int,
                            _c.c_int]
+
+_get_subpatches = _libll.ll_get_subpatches
+_get_subpatches.argtypes = [_c.POINTER(MagPatternParams),
+                            _c.POINTER(Patches)]
+
+_rayshoot_subpatches = _libll.ll_rayshoot_subpatches
+_rayshoot_subpatches.argtypes = [_c.POINTER(Rayshooter),
+                                 _c.POINTER(_c.c_int),
+                                 _c.POINTER(Patches),
+                                 _c.c_uint,
+                                 _c.POINTER(_c.c_double)]
 
 _rayshoot = _libll.ll_rayshoot
 _rayshoot.argtypes = [_c.POINTER(Rayshooter),
