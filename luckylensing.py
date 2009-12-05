@@ -86,6 +86,8 @@ class MagPatternParams(_c.Structure):
                      curve.ctypes.data_as(_c.POINTER(_c.c_double)),
                      num_points, x0, y0, x1, y1)
 
+Progress = _c.c_double
+
 class Rayshooter(_c.Structure):
     _fields_ = [("params", _c.POINTER(MagPatternParams)),
                 ("levels", _c.c_uint),
@@ -97,7 +99,6 @@ class Rayshooter(_c.Structure):
         if type(params) is not MagPatternParams:
             params = MagPatternParams(*params)
         super(Rayshooter, self).__init__(_c.pointer(params), levels, 15, 25, False)
-        self.progress = []
 
     def cancel(self):
         self.cancel_flag = True
@@ -108,33 +109,20 @@ class Rayshooter(_c.Structure):
     def set_refine_final(refine_final):
         self.refine_final = refine_final
 
-    def get_progress(self):
-        l = len(self.progress)
-        if l:
-            return sum(p.value for p in self.progress) / l
-        else:
-            return 1.0
-
     def get_subpatches(self, patches):
         _get_subpatches(self.params, patches)
 
-    def start_subpatches(self, magpat, patches):
+    def start_subpatches(self, magpat, patches, progress=Progress()):
         self.cancel_flag = False
-        progress = _c.c_double(0.0)
-        self.progress.append(progress)
         self.params[0].update_ratios()
         _rayshoot_subpatches(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
                              patches, self.levels - 1, progress)
-        self.progress.remove(progress)
 
-    def start(self, magpat, rect, xrays, yrays):
+    def start(self, magpat, rect, xrays, yrays, progress=Progress()):
         self.cancel_flag = False
-        progress = _c.c_double(0.0)
-        self.progress.append(progress)
         self.params[0].update_ratios()
         _rayshoot(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
                   rect, xrays, yrays, progress)
-        self.progress.remove(progress)
 
 _libll = _np.ctypeslib.load_library('libll', '.')
 

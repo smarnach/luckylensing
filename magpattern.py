@@ -1,6 +1,8 @@
 from math import sqrt, log
-from time import clock
+from time import time
 import gobject
+import threading
+from Queue import Queue, Empty
 import gtk
 import gtkimageview
 import numpy
@@ -11,6 +13,10 @@ class MagPattern(ll.Rayshooter):
         super(MagPattern, self).__init__(params, 3)
         self.density = 100
         self.count = None
+        self.progress = []
+
+    def get_progress(self):
+        return sum(p.value for p in self.progress)
 
     def shooting_rectangle(self):
         "Determine sufficiently large shooting rectangle to cover the pattern"
@@ -31,7 +37,7 @@ class MagPattern(ll.Rayshooter):
         rect.height = max(y1, params.region.y + params.region.height + d) - rect.y
         return rect
 
-    def start(self):
+    def start(self, num_threads=2):
         params = self.params[0]
         self.count = numpy.zeros((params.ypixels, params.xpixels), numpy.int)
         rect = self.shooting_rectangle()
@@ -44,6 +50,10 @@ class MagPattern(ll.Rayshooter):
         levels = max(0, int(log(min(xrays, yrays))/log(self.refine)))
         xrays *= rect.width / (params.region.width * self.refine**levels)
         yrays *= rect.height / (params.region.height * self.refine**levels)
+        if (xrays < self.refine or yrays < self.refine) and levels > 0:
+            levels -= 1
+            xrays *= self.refine
+            yrays *= self.refine
         xrays = int(round(xrays))
         yrays = int(round(yrays))
         self.levels = levels + 2
@@ -51,9 +61,64 @@ class MagPattern(ll.Rayshooter):
         print xrays, yrays
         print self.levels
 
-        t = clock()
-        super(MagPattern, self).start(self.count, rect, xrays, yrays)
-        print clock()-t
+        start_time = time()
+        hit = numpy.empty((yrays, xrays), numpy.uint8)
+        y_indices = [j*yrays//num_threads for j in range(num_threads + 1)]
+        y_values =  [rect.y + j*(rect.height/yrays) for j in y_indices]
+        subpatches = []
+        for j in range(num_threads):
+            subrect = ll.Rect(rect.x, y_values[j], rect.width,
+                              y_values[j+1] - y_values[j])
+            subhit = hit[y_indices[j]:y_indices[j+1]]
+            subpatches.append(ll.Patches(subrect, subhit))
+        threads = [threading.Thread(target=self.get_subpatches,
+                                    args=(subpatches[j],))
+                   for j in range(1, num_threads)]
+        for t in threads:
+            t.start()
+        self.get_subpatches(subpatches[0])
+        counts = [self.count] + [numpy.zeros_like(self.count)
+                                 for j in range(num_threads)]
+        patches = ll.Patches(rect, hit)
+        for t in threads:
+            t.join()
+        patches.num_patches = sum(p.num_patches for p in subpatches)
+        self.progress = [ll.Progress(0.0) for j in range(num_threads)]
+        x_indices = [i*xrays//self.refine for i in range(self.refine + 1)]
+        x_values =  [rect.x + i*(rect.width/xrays) for i in x_indices]
+        y_indices = [j*yrays//self.refine for j in range(self.refine + 1)]
+        y_values =  [rect.y + j*(rect.height/yrays) for j in y_indices]
+        queue = Queue()
+        for j in range(self.refine):
+            for i in range(self.refine):
+                subrect = ll.Rect(x_values[i], y_values[j],
+                                  x_values[i+1] - x_values[i],
+                                  y_values[j+1] - y_values[j])
+                queue.put((subrect, x_indices[i], x_indices[i+1],
+                           y_indices[j], y_indices[j+1]))
+        threads = [threading.Thread(target=self._start_queue,
+                                    args=(queue, counts[j], patches, hit, j))
+                   for j in range(1, num_threads)]
+        for t in threads:
+            t.start()
+        self._start_queue(queue, counts[0], patches, hit, 0)
+        for t in threads:
+            t.join()
+        for c in counts[1:]:
+            self.count += c
+        print time()-start_time
+        self.progress = []
+
+    def _start_queue(self, queue, count, patches, hit, index):
+        try:
+            while True:
+                rect, i0, i1, j0, j1 = queue.get(False)
+                subhit = numpy.array(hit[j0:j1, i0:i1])
+                subpatches = ll.Patches(rect, subhit)
+                subpatches.num_patches = patches.num_patches
+                self.start_subpatches(count, subpatches, self.progress[index])
+        except Empty:
+            pass
 
     def get_output(self, name):
         if name == "count":
