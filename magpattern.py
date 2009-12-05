@@ -197,7 +197,7 @@ class GllMagPattern(MagPattern):
         self.builder.get_object("region_y0").set_value(-.3)
         self.builder.get_object("region_x1").set_value( .5)
         self.builder.get_object("region_y1").set_value( .3)
-        self.builder.get_object("density").set_value(100)
+        self.builder.get_object("density").set_value(50)
 
     def set_params_from_ui(self):
         params = self.params[0]
