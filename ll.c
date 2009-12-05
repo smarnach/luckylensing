@@ -155,8 +155,6 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
         return;
     if (level)
     {
-        if (progress)
-            *progress = 0.0;
         struct ll_patches_t patches =
             { *rect, xrays, yrays, rect->width/xrays, rect->height/yrays,
               .hit = malloc(xrays*yrays * sizeof(char)), .num_patches = 0};
@@ -233,6 +231,8 @@ ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
         rs->params->region.width;
     rs->params->pixels_per_height = rs->params->ypixels /
         rs->params->region.height;
+    if (progress)
+        *progress = 0.0;
     _ll_rayshoot_recursively(rs, magpat, rect, xrays, yrays,
                              rs->levels - 1, progress);
 }
