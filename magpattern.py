@@ -50,7 +50,8 @@ class MagPattern(ll.Rayshooter):
         levels = max(0, int(log(min(xrays, yrays))/log(self.refine)))
         xrays *= rect.width / (params.region.width * self.refine**levels)
         yrays *= rect.height / (params.region.height * self.refine**levels)
-        if (xrays < self.refine or yrays < self.refine) and levels > 0:
+        subdomains = self.refine
+        if (xrays < subdomains or yrays < subdomains) and levels > 0:
             levels -= 1
             xrays *= self.refine
             yrays *= self.refine
@@ -84,13 +85,13 @@ class MagPattern(ll.Rayshooter):
             t.join()
         patches.num_patches = sum(p.num_patches for p in subpatches)
         self.progress = [ll.Progress(0.0) for j in range(num_threads)]
-        x_indices = [i*xrays//self.refine for i in range(self.refine + 1)]
+        x_indices = [i*xrays//subdomains for i in range(subdomains + 1)]
         x_values =  [rect.x + i*(rect.width/xrays) for i in x_indices]
-        y_indices = [j*yrays//self.refine for j in range(self.refine + 1)]
+        y_indices = [j*yrays//subdomains for j in range(subdomains + 1)]
         y_values =  [rect.y + j*(rect.height/yrays) for j in y_indices]
         queue = Queue()
-        for j in range(self.refine):
-            for i in range(self.refine):
+        for j in range(subdomains):
+            for i in range(subdomains):
                 subrect = ll.Rect(x_values[i], y_values[j],
                                   x_values[i+1] - x_values[i],
                                   y_values[j+1] - y_values[j])
