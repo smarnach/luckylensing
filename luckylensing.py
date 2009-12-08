@@ -61,7 +61,7 @@ class MagPatternParams(_c.Structure):
 
     def update_ratios(self):
         self.pixels_per_width = self.xpixels / self.region.width
-        self.pixels_per_height = self.ypixels / self.region.width
+        self.pixels_per_height = self.ypixels / self.region.height
 
     def shoot_single_ray(self, x, y):
         mag_x = _c.c_double()
@@ -104,6 +104,7 @@ class Rayshooter(_c.Structure):
         self.cancel_flag = True
 
     def get_subpatches(self, patches):
+        self.params[0].update_ratios()
         _get_subpatches(self.params, patches)
 
     def start_subpatches(self, magpat, patches, progress=Progress()):

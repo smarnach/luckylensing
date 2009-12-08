@@ -57,13 +57,12 @@ class MagPattern(ll.Rayshooter):
         rect.width *= xrays/xraysf
         rect.height *= yrays/yraysf
 
-        return rect, xrays, yrays, levels
+        return rect, xrays, yrays, levels + 2
 
     def start(self, num_threads=2):
         shape = self.params[0].ypixels, self.params[0].xpixels
         self.count = numpy.zeros(shape, numpy.int)
-        rect, xrays, yrays, levels = self.get_shooting_params()
-        self.levels = levels + 2
+        rect, xrays, yrays, self.levels = self.get_shooting_params()
         print xrays, yrays
         print self.levels
 
@@ -190,7 +189,7 @@ class GllMagPattern(MagPattern):
         y = rect.y + (rect.height - height)/2
         yfactor = region.height/params.ypixels
         y0 = region.y + y * yfactor
-        y1 = y0 + width * yfactor
+        y1 = y0 + height * yfactor
         self.builder.get_object("region_x0").set_value(x0)
         self.builder.get_object("region_y0").set_value(y0)
         self.builder.get_object("region_x1").set_value(x1)
