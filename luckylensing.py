@@ -30,6 +30,11 @@ class Rect(_c.Structure):
             self.__class__.__module__, self.__class__.__name__,
             self.x, self.y, self.width, self.height)
 
+    def __setattr__(self, name, value):
+        super(Rect, self).__setattr__(name, value)
+        if getattr(self, "callback", None) and name in ("width", "height"):
+            self.callback()
+
 class Patches(_c.Structure):
     _fields_ = [("rect", Rect),
                 ("xrays", _c.c_int),
@@ -53,15 +58,29 @@ class MagPatternParams(_c.Structure):
                 ("pixels_per_width", _c.c_double),
                 ("pixels_per_height", _c.c_double)]
 
-    def __init__(self, lenses=[], region=(-1.,-1.,1.,1.),
+    def __init__(self, lenses=[], region=(-1.,-1.,2.,2.),
                  xpixels=1024, ypixels=1024):
         super(MagPatternParams, self).__init__(Lenses(lenses), region,
                                                xpixels, ypixels)
-        self.update_ratios()
+
+    def __setattr__(self, name, value):
+        super(MagPatternParams, self).__setattr__(name, value)
+        if name in ("region", "xpixels", "ypixels"):
+            self.update_ratios()
+
+    def __getattribute__(self, name):
+        value = super(MagPatternParams, self).__getattribute__(name)
+        if name == "region":
+            value.callback = (super(MagPatternParams, self).
+                              __getattribute__("update_ratios"))
+        return value
 
     def update_ratios(self):
-        self.pixels_per_width = self.xpixels / self.region.width
-        self.pixels_per_height = self.ypixels / self.region.height
+        try:
+            self.pixels_per_width = self.xpixels / self.region.width
+            self.pixels_per_height = self.ypixels / self.region.height
+        except ZeroDivisionError:
+            pass
 
     def shoot_single_ray(self, x, y):
         mag_x = _c.c_double()
@@ -104,18 +123,15 @@ class Rayshooter(_c.Structure):
         self.cancel_flag = True
 
     def get_subpatches(self, patches):
-        self.params[0].update_ratios()
         _get_subpatches(self.params, patches)
 
     def start_subpatches(self, magpat, patches, progress=Progress()):
         self.cancel_flag = False
-        self.params[0].update_ratios()
         _rayshoot_subpatches(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
                              patches, self.levels - 1, progress)
 
     def start(self, magpat, rect, xrays, yrays, progress=Progress()):
         self.cancel_flag = False
-        self.params[0].update_ratios()
         _rayshoot(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
                   rect, xrays, yrays, progress)
 
