@@ -12,7 +12,6 @@ class MagPattern(ll.Rayshooter):
     def __init__(self, params):
         super(MagPattern, self).__init__(params, 3)
         self.density = 100
-        self.subdomains = self.refine
         self.count = None
         self.progress = []
 
@@ -48,16 +47,11 @@ class MagPattern(ll.Rayshooter):
         # Determine number of rays needed to achieve the ray density
         # specified by self.density (assuming magnification = 1)
         rays = sqrt(self.density) / self.refine_final
-        xraysf = rays * params.xpixels
-        yraysf = rays * params.ypixels
-        levels = max(0, int(log(min(xraysf, yraysf))/log(self.refine)))
-        xraysf *= rect.width / (params.region.width * self.refine**levels)
-        yraysf *= rect.height / (params.region.height * self.refine**levels)
-        self.subdomains = self.refine
-        if (xraysf < self.subdomains or yraysf < self.subdomains) and levels > 0:
-            levels -= 1
-            xraysf *= self.refine
-            yraysf *= self.refine
+        xraysf = rays * params.xpixels * rect.width / params.region.width
+        yraysf = rays * params.ypixels * rect.height / params.region.height
+        levels = max(0, int(log(min(xraysf, yraysf)/50)/log(self.refine)))
+        xraysf /= self.refine**levels
+        yraysf /= self.refine**levels
         xrays = int(ceil(xraysf))
         yrays = int(ceil(yraysf))
         rect.width *= xrays/xraysf
@@ -96,13 +90,14 @@ class MagPattern(ll.Rayshooter):
             t.join()
         patches.num_patches = sum(p.num_patches for p in subpatches)
         self.progress = [ll.Progress(0.0) for j in range(num_threads)]
-        x_indices = [i*xrays//self.subdomains for i in range(self.subdomains + 1)]
+        subdomains = self.refine
+        x_indices = [i*xrays//subdomains for i in range(subdomains + 1)]
         x_values =  [rect.x + i*(rect.width/xrays) for i in x_indices]
-        y_indices = [j*yrays//self.subdomains for j in range(self.subdomains + 1)]
+        y_indices = [j*yrays//subdomains for j in range(subdomains + 1)]
         y_values =  [rect.y + j*(rect.height/yrays) for j in y_indices]
         queue = Queue()
-        for j in range(self.subdomains):
-            for i in range(self.subdomains):
+        for j in range(subdomains):
+            for i in range(subdomains):
                 subrect = ll.Rect(x_values[i], y_values[j],
                                   x_values[i+1] - x_values[i],
                                   y_values[j+1] - y_values[j])
