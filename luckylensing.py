@@ -103,12 +103,6 @@ class Rayshooter(_c.Structure):
     def cancel(self):
         self.cancel_flag = True
 
-    def set_refine(refine):
-        self.refine = refine
-
-    def set_refine_final(refine_final):
-        self.refine_final = refine_final
-
     def get_subpatches(self, patches):
         _get_subpatches(self.params, patches)
 
