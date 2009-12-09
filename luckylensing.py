@@ -1,5 +1,4 @@
 import ctypes as _c
-import numpy as _np
 
 class Lens(_c.Structure):
     _fields_ = [("x", _c.c_double),
@@ -135,7 +134,7 @@ class Rayshooter(_c.Structure):
         _rayshoot(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
                   rect, xrays, yrays, progress)
 
-_libll = _np.ctypeslib.load_library('libll', '.')
+_libll = _c.CDLL("./libll.so")
 
 _shoot_single_ray = _libll.ll_shoot_single_ray
 _shoot_single_ray.argtypes = [_c.POINTER(MagPatternParams),
