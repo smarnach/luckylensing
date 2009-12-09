@@ -4,5 +4,6 @@
 *.gcno
 *.o
 *.pyc
+*.pyo
 *.so
 testll
