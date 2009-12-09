@@ -76,6 +76,8 @@ class MagPatternParams(_c.Structure):
                                                xpixels, ypixels)
 
     def __setattr__(self, name, value):
+        if name in ("pixels_per_width", "pixels_per_height"):
+            raise AttributeError, "Attribute %s is not writable" % name
         super(MagPatternParams, self).__setattr__(name, value)
         if name in ("region", "xpixels", "ypixels"):
             self.update_ratios()
@@ -89,8 +91,10 @@ class MagPatternParams(_c.Structure):
 
     def update_ratios(self):
         try:
-            self.pixels_per_width = self.xpixels / self.region.width
-            self.pixels_per_height = self.ypixels / self.region.height
+            super(MagPatternParams, self).__setattr__(
+                "pixels_per_width", self.xpixels / self.region.width)
+            super(MagPatternParams, self).__setattr__(
+                "pixels_per_height", self.ypixels / self.region.height)
         except ZeroDivisionError:
             pass
 
