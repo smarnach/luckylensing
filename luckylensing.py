@@ -1,4 +1,17 @@
 import ctypes as _c
+import numpy as _np
+from numpy.ctypeslib import ndpointer as _ndpointer
+
+_libll = _c.CDLL("./libll.so")
+_shoot_single_ray = _libll.ll_shoot_single_ray
+_rayshoot_rect = _libll.ll_rayshoot_rect
+_get_subpatches = _libll.ll_get_subpatches
+_rayshoot_subpatches = _libll.ll_rayshoot_subpatches
+_rayshoot = _libll.ll_rayshoot
+_ray_hit_pattern = _libll.ll_ray_hit_pattern
+_source_images = _libll.ll_source_images
+_render_magpattern_greyscale = _libll.ll_render_magpattern_greyscale
+_light_curve = _libll.ll_light_curve
 
 class Lens(_c.Structure):
     _fields_ = [("x", _c.c_double),
@@ -87,22 +100,10 @@ class MagPatternParams(_c.Structure):
         b = bool(_shoot_single_ray(self, x, y, mag_x, mag_y))
         return mag_x.value, mag_y.value, b
 
-    def rayshoot_rect(self, magpat, rect, xrays, yrays):
-        _rayshoot_rect(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
-                       rect, xrays, yrays)
-
-    def ray_hit_pattern(self, buf, rect):
-        _ray_hit_pattern(self, buf.ctypes.data_as(_c.POINTER(_c.c_char)), rect)
-
-    def source_images(self, buf, rect, xrays, yrays, refine,
-                      source_x, source_y, source_r):
-        _source_images(self, buf.ctypes.data_as(_c.POINTER(_c.c_char)), rect,
-                       xrays, yrays, refine, source_x, source_y, source_r)
-
-    def light_curve(self, magpat, curve, num_points, x0, y0, x1, y1):
-        _light_curve(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
-                     curve.ctypes.data_as(_c.POINTER(_c.c_double)),
-                     num_points, x0, y0, x1, y1)
+    rayshoot_rect = _rayshoot_rect
+    ray_hit_pattern = _ray_hit_pattern
+    source_images = _source_images
+    light_curve = _light_curve
 
 Progress = _c.c_double
 
@@ -126,17 +127,12 @@ class Rayshooter(_c.Structure):
 
     def start_subpatches(self, magpat, patches, progress=Progress()):
         self.cancel_flag = False
-        _rayshoot_subpatches(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
-                             patches, self.levels - 1, progress)
+        _rayshoot_subpatches(self, magpat, patches, self.levels - 1, progress)
 
     def start(self, magpat, rect, xrays, yrays, progress=Progress()):
         self.cancel_flag = False
-        _rayshoot(self, magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
-                  rect, xrays, yrays, progress)
+        _rayshoot(self, magpat, rect, xrays, yrays, progress)
 
-_libll = _c.CDLL("./libll.so")
-
-_shoot_single_ray = _libll.ll_shoot_single_ray
 _shoot_single_ray.argtypes = [_c.POINTER(MagPatternParams),
                               _c.c_double,
                               _c.c_double,
@@ -144,40 +140,34 @@ _shoot_single_ray.argtypes = [_c.POINTER(MagPatternParams),
                               _c.POINTER(_c.c_double)]
 _shoot_single_ray.restype = _c.c_int
 
-_rayshoot_rect = _libll.ll_rayshoot_rect
 _rayshoot_rect.argtypes = [_c.POINTER(MagPatternParams),
-                           _c.POINTER(_c.c_int),
+                           _ndpointer(int),
                            _c.POINTER(Rect),
                            _c.c_int,
                            _c.c_int]
 
-_get_subpatches = _libll.ll_get_subpatches
 _get_subpatches.argtypes = [_c.POINTER(MagPatternParams),
                             _c.POINTER(Patches)]
 
-_rayshoot_subpatches = _libll.ll_rayshoot_subpatches
 _rayshoot_subpatches.argtypes = [_c.POINTER(Rayshooter),
-                                 _c.POINTER(_c.c_int),
+                                 _ndpointer(int),
                                  _c.POINTER(Patches),
                                  _c.c_uint,
                                  _c.POINTER(_c.c_double)]
 
-_rayshoot = _libll.ll_rayshoot
 _rayshoot.argtypes = [_c.POINTER(Rayshooter),
-                      _c.POINTER(_c.c_int),
+                      _ndpointer(int),
                       _c.POINTER(Rect),
                       _c.c_int,
                       _c.c_int,
                       _c.POINTER(_c.c_double)]
 
-_ray_hit_pattern = _libll.ll_ray_hit_pattern
 _ray_hit_pattern.argtypes = [_c.POINTER(MagPatternParams),
-                             _c.POINTER(_c.c_char),
+                             _ndpointer(_np.uint8),
                              _c.POINTER(Rect)]
 
-_source_images = _libll.ll_source_images
 _source_images.argtypes = [_c.POINTER(MagPatternParams),
-                           _c.POINTER(_c.c_char),
+                           _ndpointer(_np.uint8),
                            _c.POINTER(Rect),
                            _c.c_int,
                            _c.c_int,
@@ -186,20 +176,16 @@ _source_images.argtypes = [_c.POINTER(MagPatternParams),
                            _c.c_double,
                            _c.c_double]
 
-_render_magpattern_greyscale = _libll.ll_render_magpattern_greyscale
-_render_magpattern_greyscale.argtypes = [_c.POINTER(_c.c_char),
-                               _c.POINTER(_c.c_int),
-                               _c.c_uint]
+_render_magpattern_greyscale.argtypes = [_ndpointer(_np.uint8),
+                                         _ndpointer(int),
+                                         _c.c_uint]
 
 def render_magpattern_greyscale(buf, magpat):
-    _render_magpattern_greyscale(buf.ctypes.data_as(_c.POINTER(_c.c_char)),
-                                 magpat.ctypes.data_as(_c.POINTER(_c.c_int)),
-                                 magpat.size)
+    _render_magpattern_greyscale(buf, magpat, magpat.size)
 
-_light_curve = _libll.ll_light_curve
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),
-                         _c.POINTER(_c.c_int),
-                         _c.POINTER(_c.c_double),
+                         _ndpointer(int),
+                         _ndpointer(float),
                          _c.c_uint,
                          _c.c_double,
                          _c.c_double,
