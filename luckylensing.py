@@ -58,9 +58,31 @@ class Patches(_c.Structure):
 
     def __init__(self, rect, hit):
         yrays, xrays = hit.shape
-        super(Patches, self).__init__(
-            rect, xrays, yrays, rect.width/xrays, rect.height/yrays,
-            hit.ctypes.data_as(_c.POINTER(_c.c_char)), 0)
+        super(Patches, self).__init__(rect, xrays, yrays,
+            hit=hit.ctypes.data_as(_c.POINTER(_c.c_char)), num_patches = 0)
+
+    def __setattr__(self, name, value):
+        if name in ("width_per_xrays", "height_per_yrays"):
+            raise AttributeError, "Attribute %s is not writable" % name
+        super(Patches, self).__setattr__(name, value)
+        if name in ("rect", "xrays", "yrays"):
+            self.update_ratios()
+
+    def __getattribute__(self, name):
+        value = super(Patches, self).__getattribute__(name)
+        if name == "rect":
+            value.callback = (super(Patches, self).
+                              __getattribute__("update_ratios"))
+        return value
+
+    def update_ratios(self):
+        try:
+            super(Patches, self).__setattr__(
+                "width_per_xrays", self.rect.width/self.xrays)
+            super(Patches, self).__setattr__(
+                "height_per_yrays", self.rect.height/self.yrays)
+        except ZeroDivisionError:
+            pass
 
 class MagPatternParams(_c.Structure):
     _fields_ = [("lenses", Lenses),
