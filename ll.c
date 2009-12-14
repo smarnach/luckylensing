@@ -6,8 +6,8 @@
 
 extern void
 ll_init_magpattern_params(struct ll_magpattern_param_t *params,
-                          struct ll_lenses_t *lenses,
-                          struct ll_rect_t *region,
+                          const struct ll_lenses_t *lenses,
+                          const struct ll_rect_t *region,
                           unsigned xpixels, unsigned ypixels)
 {
     params->lenses = *lenses;
@@ -36,7 +36,7 @@ ll_cancel_rayshooter(struct ll_rayshooter_t *rs)
 }
 
 extern bool __attribute__ ((hot))
-ll_shoot_single_ray(struct ll_magpattern_param_t *params,
+ll_shoot_single_ray(const struct ll_magpattern_param_t *params,
                     double x, double y, double *mag_x, double *mag_y)
 {
     struct ll_lens_t *lens = params->lenses.lens;
@@ -57,7 +57,7 @@ ll_shoot_single_ray(struct ll_magpattern_param_t *params,
 }
 
 extern void
-ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
+ll_rayshoot_rect(const struct ll_magpattern_param_t *params, int *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays)
 {
     double width_per_xrays = rect->width / xrays;
@@ -73,8 +73,8 @@ ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
 }
 
 static void __attribute__ ((hot))
-_ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
-                      struct ll_rect_t *rect, int refine)
+_ll_rayshoot_bilinear(const struct ll_magpattern_param_t *params, int *magpat,
+                      const struct ll_rect_t *rect, int refine)
 {
     double ul_x, ul_y, ur_x, ur_y, ll_x, ll_y, lr_x, lr_y;
     double x0 = rect->x;
@@ -143,8 +143,8 @@ _ll_rayshoot_bilinear(struct ll_magpattern_param_t *params, int *magpat,
 }
 
 static void
-_ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
-                         struct ll_rect_t *rect, int xrays, int yrays,
+_ll_rayshoot_recursively(const struct ll_rayshooter_t *rs, int *magpat,
+                         const struct ll_rect_t *rect, int xrays, int yrays,
                          unsigned level, double *progress)
 {
     if (rs->cancel)
@@ -163,7 +163,7 @@ _ll_rayshoot_recursively(struct ll_rayshooter_t *rs, int *magpat,
 }
 
 extern void
-ll_get_subpatches(struct ll_magpattern_param_t *params,
+ll_get_subpatches(const struct ll_magpattern_param_t *params,
                   struct ll_patches_t *patches)
 {
     int xrays = patches->xrays;
@@ -199,8 +199,8 @@ ll_get_subpatches(struct ll_magpattern_param_t *params,
 }
 
 extern void
-ll_rayshoot_subpatches(struct ll_rayshooter_t *rs, int *magpat,
-                       struct ll_patches_t *patches,
+ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, int *magpat,
+                       const struct ll_patches_t *patches,
                        unsigned level, double *progress)
 {
     double progress_inc = 1.0 / patches->num_patches;
@@ -220,13 +220,10 @@ ll_rayshoot_subpatches(struct ll_rayshooter_t *rs, int *magpat,
 }
 
 extern void
-ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
-            int xrays, int yrays, double *progress)
+ll_rayshoot(const struct ll_rayshooter_t *rs, int *magpat,
+            const struct ll_rect_t *rect, int xrays, int yrays,
+            double *progress)
 {
-    rs->params->pixels_per_width = rs->params->xpixels /
-        rs->params->region.width;
-    rs->params->pixels_per_height = rs->params->ypixels /
-        rs->params->region.height;
     if (progress)
         *progress = 0.0;
     _ll_rayshoot_recursively(rs, magpat, rect, xrays, yrays,
@@ -234,8 +231,8 @@ ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
 }
 
 extern void
-ll_ray_hit_pattern(struct ll_magpattern_param_t *params, char *buf,
-                   struct ll_rect_t *rect)
+ll_ray_hit_pattern(const struct ll_magpattern_param_t *params, char *buf,
+                   const struct ll_rect_t *rect)
 {
     double width_per_xrays = rect->width / params->xpixels;
     double height_per_yrays = rect->height / params->ypixels;
@@ -250,9 +247,9 @@ ll_ray_hit_pattern(struct ll_magpattern_param_t *params, char *buf,
 }
 
 extern void
-ll_source_images(struct ll_magpattern_param_t *params, char *buf,
-                 struct ll_rect_t *rect, int xrays, int yrays, int refine,
-                 double source_x, double source_y, double source_r)
+ll_source_images(const struct ll_magpattern_param_t *params, char *buf,
+                 const struct ll_rect_t *rect, int xrays, int yrays,
+                 int refine, double source_x, double source_y, double source_r)
 {
     double r_squared = source_r*source_r;
     double width_per_xrays = rect->width / xrays;
@@ -284,7 +281,7 @@ ll_source_images(struct ll_magpattern_param_t *params, char *buf,
 }
 
 extern void
-ll_render_magpattern_greyscale(char *buf, int *magpat, unsigned size)
+ll_render_magpattern_greyscale(char *buf, const int *magpat, unsigned size)
 {
     int max_count = 0;
     int min_count = MAXINT;
@@ -305,7 +302,7 @@ ll_render_magpattern_greyscale(char *buf, int *magpat, unsigned size)
 }
 
 extern void
-ll_light_curve(struct ll_magpattern_param_t *params, int *magpat,
+ll_light_curve(const struct ll_magpattern_param_t *params, const int *magpat,
                double *curve, unsigned num_points,
                double x0, double y0, double x1, double y1)
 {

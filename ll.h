@@ -29,8 +29,8 @@ struct ll_magpattern_param_t
 
 extern void
 ll_init_magpattern_params(struct ll_magpattern_param_t *params,
-                          struct ll_lenses_t *lenses,
-                          struct ll_rect_t *region,
+                          const struct ll_lenses_t *lenses,
+                          const struct ll_rect_t *region,
                           unsigned xpixels, unsigned ypixels);
 
 struct ll_rayshooter_t
@@ -50,11 +50,11 @@ extern void
 ll_cancel_rayshooter(struct ll_rayshooter_t *rs);
 
 extern bool
-ll_shoot_single_ray(struct ll_magpattern_param_t *params,
+ll_shoot_single_ray(const struct ll_magpattern_param_t *params,
                     double x, double y, double *mag_x, double *mag_y);
 
 extern void
-ll_rayshoot_rect(struct ll_magpattern_param_t *params, int *magpat,
+ll_rayshoot_rect(const struct ll_magpattern_param_t *params, int *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays);
 
 struct ll_patches_t
@@ -67,32 +67,33 @@ struct ll_patches_t
 };
 
 extern void
-ll_get_subpatches(struct ll_magpattern_param_t *params,
+ll_get_subpatches(const struct ll_magpattern_param_t *params,
                   struct ll_patches_t *patches);
 
 extern void
-ll_rayshoot_subpatches(struct ll_rayshooter_t *rs, int *magpat,
-                       struct ll_patches_t *patches,
+ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, int *magpat,
+                       const struct ll_patches_t *patches,
                        unsigned level, double *progress);
 
 extern void
-ll_rayshoot(struct ll_rayshooter_t *rs, int *magpat, struct ll_rect_t *rect,
-            int xrays, int yrays, double *progress);
+ll_rayshoot(const struct ll_rayshooter_t *rs, int *magpat,
+            const struct ll_rect_t *rect, int xrays, int yrays,
+            double *progress);
 
 extern void
-ll_ray_hit_pattern(struct ll_magpattern_param_t *params, char *buf,
-                   struct ll_rect_t *rect);
+ll_ray_hit_pattern(const struct ll_magpattern_param_t *params, char *buf,
+                   const struct ll_rect_t *rect);
 
 extern void
-ll_source_images(struct ll_magpattern_param_t *params, char *buf,
-                 struct ll_rect_t *rect, int xrays, int yrays, int refine,
-                 double source_x, double source_y, double source_r);
+ll_source_images(const struct ll_magpattern_param_t *params, char *buf,
+                 const struct ll_rect_t *rect, int xrays, int yrays,
+                 int refine, double source_x, double source_y, double source_r);
 
 extern void
-ll_render_magpattern_greyscale(char *buf, int *magpat, unsigned size);
+ll_render_magpattern_greyscale(char *buf, const int *magpat, unsigned size);
 
 extern void
-ll_light_curve(struct ll_magpattern_param_t *params, int *magpat,
+ll_light_curve(const struct ll_magpattern_param_t *params, const int *magpat,
                double *curve, unsigned num_points,
                double x0, double y0, double x1, double y1);
 
