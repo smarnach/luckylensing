@@ -119,7 +119,7 @@ class MagPattern(ll.Rayshooter):
         try:
             while True:
                 rect, i0, i1, j0, j1 = queue.get(False)
-                subhit = numpy.array(hit[j0:j1, i0:i1])
+                subhit = numpy.ascontiguousarray(hit[j0:j1, i0:i1])
                 subpatches = ll.Patches(rect, subhit)
                 subpatches.num_patches = patches.num_patches
                 self.start_subpatches(count, subpatches, self.progress[index])
