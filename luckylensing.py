@@ -170,7 +170,7 @@ _shoot_single_ray.argtypes = [_c.POINTER(MagPatternParams),
 _shoot_single_ray.restype = _c.c_int
 
 _rayshoot_rect.argtypes = [_c.POINTER(MagPatternParams),
-                           _ndpointer(int),
+                           _ndpointer(int, flags="C_CONTIGUOUS"),
                            _c.POINTER(Rect),
                            _c.c_int,
                            _c.c_int]
@@ -181,14 +181,14 @@ _get_subpatches.argtypes = [_c.POINTER(MagPatternParams),
 _get_subpatches.restype = None
 
 _rayshoot_subpatches.argtypes = [_c.POINTER(Rayshooter),
-                                 _ndpointer(int),
+                                 _ndpointer(int, flags="C_CONTIGUOUS"),
                                  _c.POINTER(Patches),
                                  _c.c_uint,
                                  _c.POINTER(_c.c_double)]
 _rayshoot_subpatches.restype = None
 
 _rayshoot.argtypes = [_c.POINTER(Rayshooter),
-                      _ndpointer(int),
+                      _ndpointer(int, flags="C_CONTIGUOUS"),
                       _c.POINTER(Rect),
                       _c.c_int,
                       _c.c_int,
@@ -196,12 +196,12 @@ _rayshoot.argtypes = [_c.POINTER(Rayshooter),
 _rayshoot.restype = None
 
 _ray_hit_pattern.argtypes = [_c.POINTER(MagPatternParams),
-                             _ndpointer(_np.uint8),
+                             _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
                              _c.POINTER(Rect)]
 _ray_hit_pattern.restype = None
 
 _source_images.argtypes = [_c.POINTER(MagPatternParams),
-                           _ndpointer(_np.uint8),
+                           _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
                            _c.POINTER(Rect),
                            _c.c_int,
                            _c.c_int,
@@ -211,8 +211,8 @@ _source_images.argtypes = [_c.POINTER(MagPatternParams),
                            _c.c_double]
 _source_images.restype = None
 
-_render_magpattern_greyscale.argtypes = [_ndpointer(_np.uint8),
-                                         _ndpointer(int),
+_render_magpattern_greyscale.argtypes = [_ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+                                         _ndpointer(int, flags="C_CONTIGUOUS"),
                                          _c.c_uint]
 _render_magpattern_greyscale.restype = None
 
@@ -220,8 +220,8 @@ def render_magpattern_greyscale(buf, magpat):
     _render_magpattern_greyscale(buf, magpat, magpat.size)
 
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),
-                         _ndpointer(int),
-                         _ndpointer(float),
+                         _ndpointer(int, flags="C_CONTIGUOUS"),
+                         _ndpointer(float, flags="C_CONTIGUOUS"),
                          _c.c_uint,
                          _c.c_double,
                          _c.c_double,
