@@ -225,6 +225,11 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, int *magpa
         }
 
         // Render the triangle
+        if (mag_x0 == mag_x1 && mag_y0 == mag_y1)
+        {
+            magpat[mag_y0*params->xpixels + mag_x0] += 65536;
+            continue;
+        }
         for (int y = mag_y0; y <= mag_y1; ++y)
             for (int x = mag_x0; x <= mag_x1; ++x)
             {
