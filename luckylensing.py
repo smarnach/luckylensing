@@ -1,7 +1,31 @@
+"""Wrap the C functions in the ll library with an Pythonic interface.
+
+The functions in the ll ("Lucky Lensing") library allow for high
+performance computations in the context of gravitational lensing.
+This module provides Python bindings for the functions and data types
+in this C library.
+
+Classes:
+
+Lens              -- coordinates and mass of a point lens
+Lenses            -- array of point lenses
+Rect              -- coordinates of a rectangle
+Patches           -- subpatch pattern for hierarchical ray shooting
+MagPatternParams  -- parameters of a magnification pattern
+Progress          -- helper for some methods of Rayshooter
+Rayshooter        -- compute magnification patterns
+
+Functions:
+
+render_magpattern_greyscale
+                  -- render a magnification pattern
+"""
+
 import ctypes as _c
 import numpy as _np
 from numpy.ctypeslib import ndpointer as _ndpointer
 
+# Import symbols from libll.so to the module namespace
 _libll = _c.CDLL("./libll.so")
 _shoot_single_ray = _libll.ll_shoot_single_ray
 _rayshoot_rect = _libll.ll_rayshoot_rect
@@ -17,6 +41,15 @@ def _wrap(func):
     return lambda *args, **kwargs: func(*args, **kwargs)
 
 class Lens(_c.Structure):
+
+    """Store the position and mass of a point lens in a C struct.
+
+    x    -- x-coordinate in lens plane coordinates
+    y    -- y-coordinate in lens plane coordinates
+    mass -- Einstein radius of the lens squared (this is proportional
+            to the lens' mass)
+    """
+
     _fields_ = [("x", _c.c_double),
                 ("y", _c.c_double),
                 ("mass", _c.c_double)]
@@ -27,14 +60,42 @@ class Lens(_c.Structure):
             self.x, self.y, self.mass)
 
 class Lenses(_c.Structure):
+
+    """Store an C array of Lens objects.
+
+    num_lenses -- number of Lens objects in the array
+    lens       -- the actual C array
+    """
+
     _fields_ = [("num_lenses", _c.c_uint),
                 ("lens", _c.POINTER(Lens))]
 
     def __init__(self, lens_list):
+        """Initialise the C array from a Python sequence of sequences.
+
+        Each element of the sequence lens_list shall be a sequence of
+        three floats, containing the coordinates and mass of the
+        respective lens.  For example
+
+        Lenses([(0,0,1), (1.2, 0, .0004)])
+
+        will create an array of the two given lenses
+        """
         l = len(lens_list)
         super(Lenses, self).__init__(l, (Lens*l)(*map(tuple, lens_list)))
 
 class Rect(_c.Structure):
+
+    """Store the coordinates of a rectangle in a C struct.
+
+    The rectangle must be aligned with the coordinate system.
+
+    x      -- the x-coordinate of the left boundary
+    y      -- the y-coordinate of the lower boundary
+    width  -- the distance between left and right boundary
+    height -- the distance between upper and lower boundary
+    """
+
     _fields_ = [("x", _c.c_double),
                 ("y", _c.c_double),
                 ("width", _c.c_double),
@@ -46,11 +107,17 @@ class Rect(_c.Structure):
             self.x, self.y, self.width, self.height)
 
     def __setattr__(self, name, value):
+        # This method is needed for the consistency magic in the
+        # MagPatternParams and Patches classes
         super(Rect, self).__setattr__(name, value)
         if getattr(self, "callback", None) and name in ("width", "height"):
             self.callback()
 
 class Patches(_c.Structure):
+
+    """Stores the pattern of subpatches for hierarchic ray shooting.
+    """
+
     _fields_ = [("rect", Rect),
                 ("xrays", _c.c_int),
                 ("yrays", _c.c_int),
@@ -64,7 +131,12 @@ class Patches(_c.Structure):
         super(Patches, self).__init__(rect, xrays, yrays,
             hit=hit.ctypes.data_as(_c.POINTER(_c.c_char)), num_patches = 0)
 
+    # The following methods try to always keep the quotients
+    # width_per_xrays and height_per_yrays consistent.  These ratios
+    # cache redundant information (see the _update_ratios method).
+
     def __setattr__(self, name, value):
+        # Update ratios if needed; disallow direct write access
         if name in ("width_per_xrays", "height_per_yrays"):
             raise AttributeError, "Attribute %s is not writable" % name
         super(Patches, self).__setattr__(name, value)
@@ -72,6 +144,10 @@ class Patches(_c.Structure):
             self._update_ratios()
 
     def __getattribute__(self, name):
+        # If the rect attribute is read, ctypes returns a new Rect
+        # object, which is nonetheless linked to the data in the
+        # Patches class.  So we have to add a callback to the new
+        # object to ensure consistency.
         value = super(Patches, self).__getattribute__(name)
         if name == "rect":
             value.callback = (super(Patches, self).
@@ -135,6 +211,12 @@ class MagPatternParams(_c.Structure):
     light_curve = _wrap(_light_curve)
 
 Progress = _c.c_double
+"""Type for the Progress argument of some methods of Rayshooter.
+
+The current value can be extracted by reading the value attribute.
+"""
+# It should not be necessary for user code to use anything from the
+# ctypes module, so we expose this type
 
 class Rayshooter(_c.Structure):
     _fields_ = [("params", _c.POINTER(MagPatternParams)),
@@ -162,6 +244,7 @@ class Rayshooter(_c.Structure):
         self.cancel_flag = False
         _rayshoot(self, magpat, rect, xrays, yrays, progress)
 
+# ctypes prototypes for the functions in libll.so
 _shoot_single_ray.argtypes = [_c.POINTER(MagPatternParams),
                               _c.c_double,
                               _c.c_double,
@@ -217,6 +300,16 @@ _render_magpattern_greyscale.argtypes = [_ndpointer(_np.uint8, flags="C_CONTIGUO
 _render_magpattern_greyscale.restype = None
 
 def render_magpattern_greyscale(buf, magpat):
+    """Render the magnification pattern using a logarithmic greyscale palette.
+
+    buf    -- a contiguous C array of char which the image will be
+              rendered into
+    magpat -- a contiguous C array of int with the magpattern counts
+
+    Both parameters are assumed to be numpy array of the same size
+    (meaning there size attributes coincide).  They do not need to
+    have the same shape.
+    """
     assert buf.size == magpat.size
     _render_magpattern_greyscale(buf, magpat, magpat.size)
 
