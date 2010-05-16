@@ -61,7 +61,7 @@ class MagPattern(ll.Rayshooter):
 
     def start(self, num_threads=2):
         shape = self.params[0].ypixels, self.params[0].xpixels
-        self.count = numpy.zeros(shape, numpy.int)
+        self.count = numpy.zeros(shape, numpy.float32)
         rect, xrays, yrays, self.levels = self.get_shooting_params()
         print xrays, yrays
         print self.levels

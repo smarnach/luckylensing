@@ -57,7 +57,7 @@ ll_shoot_single_ray(const struct ll_magpattern_param_t *params,
 }
 
 extern void
-ll_rayshoot_rect(const struct ll_magpattern_param_t *params, int *magpat,
+ll_rayshoot_rect(const struct ll_magpattern_param_t *params, float *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays)
 {
     double width_per_xrays = rect->width / xrays;
@@ -73,7 +73,7 @@ ll_rayshoot_rect(const struct ll_magpattern_param_t *params, int *magpat,
 }
 
 static void __attribute__ ((hot))
-_ll_rayshoot_bilinear(const struct ll_magpattern_param_t *params, int *magpat,
+_ll_rayshoot_bilinear(const struct ll_magpattern_param_t *params, float *magpat,
                       const struct ll_rect_t *rect, int refine)
 {
     double ul_x, ul_y, ur_x, ur_y, ll_x, ll_y, lr_x, lr_y;
@@ -143,7 +143,7 @@ _ll_rayshoot_bilinear(const struct ll_magpattern_param_t *params, int *magpat,
 }
 
 static void __attribute__ ((hot))
-_ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, int *magpat,
+_ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *magpat,
                           const struct ll_rect_t *rect)
 {
     double tri_vertices[3][2];
@@ -227,7 +227,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, int *magpa
         // Render the triangle
         if (mag_x0 == mag_x1 && mag_y0 == mag_y1)
         {
-            magpat[mag_y0*params->xpixels + mag_x0] += 65536;
+            magpat[mag_y0*params->xpixels + mag_x0] += 1.0;
             continue;
         }
         for (int y = mag_y0; y <= mag_y1; ++y)
@@ -361,14 +361,14 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, int *magpa
                             area +=  (vertices[i0][0]-x0) * (vertices[i1][1]-y0)
                                 - (vertices[i0][1]-y0) * (vertices[i1][0]-x0);
                         }
-                    magpat[y*params->xpixels + x] += (int)(65536 * fabs(area) / tri_area);
+                    magpat[y*params->xpixels + x] += fabs(area) / tri_area;
                 }
             }
     }
 }
 
 static void
-_ll_rayshoot_recursively(const struct ll_rayshooter_t *rs, int *magpat,
+_ll_rayshoot_recursively(const struct ll_rayshooter_t *rs, float *magpat,
                          const struct ll_rect_t *rect, int xrays, int yrays,
                          unsigned level, double *progress)
 {
@@ -384,6 +384,7 @@ _ll_rayshoot_recursively(const struct ll_rayshooter_t *rs, int *magpat,
         free(patches.hit);
     }
     else
+//        _ll_rayshoot_bilinear(rs->params, magpat, rect, rs->refine_final);
         _ll_rayshoot_triangulated(rs->params, magpat, rect);
 }
 
@@ -424,7 +425,7 @@ ll_get_subpatches(const struct ll_magpattern_param_t *params,
 }
 
 extern void
-ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, int *magpat,
+ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, float *magpat,
                        const struct ll_patches_t *patches,
                        unsigned level, double *progress)
 {
@@ -445,7 +446,7 @@ ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, int *magpat,
 }
 
 extern void
-ll_rayshoot(const struct ll_rayshooter_t *rs, int *magpat,
+ll_rayshoot(const struct ll_rayshooter_t *rs, float *magpat,
             const struct ll_rect_t *rect, int xrays, int yrays,
             double *progress)
 {
@@ -506,10 +507,10 @@ ll_source_images(const struct ll_magpattern_param_t *params, char *buf,
 }
 
 extern void
-ll_render_magpattern_greyscale(char *buf, const int *magpat, unsigned size)
+ll_render_magpattern_greyscale(char *buf, const float *magpat, unsigned size)
 {
-    int max_count = 0;
-    int min_count = MAXINT;
+    float max_count = 0.0;
+    float min_count = __FLT_MAX__;
     for(unsigned i = 0; i < size; ++i)
     {
         if (magpat[i] > max_count)
@@ -519,15 +520,15 @@ ll_render_magpattern_greyscale(char *buf, const int *magpat, unsigned size)
     }
     if (max_count == min_count)
         return;
-    double logmax = log(max_count+1);
-    double logmin = log(min_count+1);
+    double logmax = log(max_count+1e-10);
+    double logmin = log(min_count+1e-10);
     double factor = 255/(logmax-logmin);
     for(unsigned i = 0; i < size; ++i)
-        buf[i] = (log(magpat[i]+1)-logmin)*factor;
+        buf[i] = (log(magpat[i]+1e-10)-logmin)*factor;
 }
 
 extern void
-ll_light_curve(const struct ll_magpattern_param_t *params, const int *magpat,
+ll_light_curve(const struct ll_magpattern_param_t *params, const float *magpat,
                double *curve, unsigned num_points,
                double x0, double y0, double x1, double y1)
 {

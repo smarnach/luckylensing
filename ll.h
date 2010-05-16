@@ -54,7 +54,7 @@ ll_shoot_single_ray(const struct ll_magpattern_param_t *params,
                     double x, double y, double *mag_x, double *mag_y);
 
 extern void
-ll_rayshoot_rect(const struct ll_magpattern_param_t *params, int *magpat,
+ll_rayshoot_rect(const struct ll_magpattern_param_t *params, float *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays);
 
 struct ll_patches_t
@@ -71,12 +71,12 @@ ll_get_subpatches(const struct ll_magpattern_param_t *params,
                   struct ll_patches_t *patches);
 
 extern void
-ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, int *magpat,
+ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, float *magpat,
                        const struct ll_patches_t *patches,
                        unsigned level, double *progress);
 
 extern void
-ll_rayshoot(const struct ll_rayshooter_t *rs, int *magpat,
+ll_rayshoot(const struct ll_rayshooter_t *rs, float *magpat,
             const struct ll_rect_t *rect, int xrays, int yrays,
             double *progress);
 
@@ -90,10 +90,10 @@ ll_source_images(const struct ll_magpattern_param_t *params, char *buf,
                  int refine, double source_x, double source_y, double source_r);
 
 extern void
-ll_render_magpattern_greyscale(char *buf, const int *magpat, unsigned size);
+ll_render_magpattern_greyscale(char *buf, const float *magpat, unsigned size);
 
 extern void
-ll_light_curve(const struct ll_magpattern_param_t *params, const int *magpat,
+ll_light_curve(const struct ll_magpattern_param_t *params, const float *magpat,
                double *curve, unsigned num_points,
                double x0, double y0, double x1, double y1);
 

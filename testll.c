@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     struct ll_rayshooter_t rs;
     ll_init_rayshooter(&rs, &params, levels);
     double progress;
-    int *magpat = calloc(N, sizeof(int));
+    float *magpat = calloc(N, sizeof(float));
     char *buf = calloc(N, sizeof(char));
 
     printf("Calculating magnification pattern...\n");
