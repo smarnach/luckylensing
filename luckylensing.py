@@ -69,16 +69,16 @@ class Patches(_c.Structure):
             raise AttributeError, "Attribute %s is not writable" % name
         super(Patches, self).__setattr__(name, value)
         if name in ("rect", "xrays", "yrays"):
-            self.update_ratios()
+            self._update_ratios()
 
     def __getattribute__(self, name):
         value = super(Patches, self).__getattribute__(name)
         if name == "rect":
             value.callback = (super(Patches, self).
-                              __getattribute__("update_ratios"))
+                              __getattribute__("_update_ratios"))
         return value
 
-    def update_ratios(self):
+    def _update_ratios(self):
         try:
             super(Patches, self).__setattr__(
                 "width_per_xrays", self.rect.width/self.xrays)
@@ -105,16 +105,16 @@ class MagPatternParams(_c.Structure):
             raise AttributeError, "Attribute %s is not writable" % name
         super(MagPatternParams, self).__setattr__(name, value)
         if name in ("region", "xpixels", "ypixels"):
-            self.update_ratios()
+            self._update_ratios()
 
     def __getattribute__(self, name):
         value = super(MagPatternParams, self).__getattribute__(name)
         if name == "region":
             value.callback = (super(MagPatternParams, self).
-                              __getattribute__("update_ratios"))
+                              __getattribute__("_update_ratios"))
         return value
 
-    def update_ratios(self):
+    def _update_ratios(self):
         try:
             super(MagPatternParams, self).__setattr__(
                 "pixels_per_width", self.xpixels / self.region.width)
