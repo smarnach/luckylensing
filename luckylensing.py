@@ -217,6 +217,7 @@ _render_magpattern_greyscale.argtypes = [_ndpointer(_np.uint8, flags="C_CONTIGUO
 _render_magpattern_greyscale.restype = None
 
 def render_magpattern_greyscale(buf, magpat):
+    assert buf.size == magpat.size
     _render_magpattern_greyscale(buf, magpat, magpat.size)
 
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),
