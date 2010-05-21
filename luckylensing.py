@@ -37,9 +37,6 @@ _source_images = _libll.ll_source_images
 _render_magpattern_greyscale = _libll.ll_render_magpattern_greyscale
 _light_curve = _libll.ll_light_curve
 
-def _wrap(func):
-    return lambda *args, **kwargs: func(*args, **kwargs)
-
 class Lens(_c.Structure):
 
     """Store the position and mass of a point lens in a C struct.
@@ -205,10 +202,19 @@ class MagPatternParams(_c.Structure):
         b = bool(_shoot_single_ray(self, x, y, mag_x, mag_y))
         return mag_x.value, mag_y.value, b
 
-    rayshoot_rect = _wrap(_rayshoot_rect)
-    ray_hit_pattern = _wrap(_ray_hit_pattern)
-    source_images = _wrap(_source_images)
-    light_curve = _wrap(_light_curve)
+    def rayshoot_rect(self, magpat, rect, xrays, yrays):
+        _rayshoot_rect(self, magpat, rect, xrays, yrays)
+
+    def ray_hit_pattern(self, buf, rect):
+        _ray_hit_pattern(self, buf, rect)
+
+    def source_images(self, buf, rect, xrays, yarays, refine,
+                      source_x, source_y, source_r):
+        _source_images(self, buf, rect, xrays, yarays, refine,
+                      source_x, source_y, source_r)
+
+    def light_curve(self, magpat, curve, num_points, x0, y0, x1, y1):
+        _light_curve(self, magpat, curve, num_points, x0, y0, x1, y1)
 
 Progress = _c.c_double
 """Type for the Progress argument of some methods of Rayshooter.
