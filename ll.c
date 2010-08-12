@@ -155,7 +155,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
     ll_shoot_single_ray(params, x0, y1, tri_vertices[1], tri_vertices[1]+1);
     ll_shoot_single_ray(params, x1, y0, tri_vertices[2], tri_vertices[2]+1);
 
-    for (int triangle = 0; ; ++triangle)
+    for (int triangle = 0; triangle < 2; ++triangle)
     {
         if (triangle == 1)
         {
@@ -163,10 +163,9 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
             tri_vertices[0][1] = tri_vertices[2][1];
             ll_shoot_single_ray(params, x1, y1, tri_vertices[2], tri_vertices[2]+1);
         }
-        else if (triangle > 1)
-            break;
 
         // Get minimum and maximum x coordinate in the magpattern
+        bool single_pixel_optimization = true;
         int min = 0, max = 0;
         if (tri_vertices[1][0] < tri_vertices[0][0])
             min = 1;
@@ -180,12 +179,18 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
         if (mag_x0 >= (int)params->xpixels)
             continue;
         if (mag_x0 < 0)
+        {
             mag_x0 = 0;
-        int mag_x1 = tri_vertices[max][0];
-        if (mag_x1 < 0)
+            single_pixel_optimization = false;
+        }
+        if (tri_vertices[max][0] < 0.0)
             continue;
+        int mag_x1 = tri_vertices[max][0];
         if (mag_x1 >= (int)params->xpixels)
+        {
             mag_x1 = params->xpixels - 1;
+            single_pixel_optimization = false;
+        }
 
         // Get minimum and maximum y coordinate in the magpattern
         min = 0, max = 0;
@@ -201,12 +206,18 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
         if (mag_y0 >= (int)params->ypixels)
             continue;
         if (mag_y0 < 0)
+        {
             mag_y0 = 0;
-        int mag_y1 = tri_vertices[max][1];
-        if (mag_y1 < 0)
+            single_pixel_optimization = false;
+        }
+        if (tri_vertices[max][1] < 0.0)
             continue;
+        int mag_y1 = tri_vertices[max][1];
         if (mag_y1 >= (int)params->ypixels)
+        {
             mag_y1 = params->ypixels - 1;
+            single_pixel_optimization = false;
+        }
 
         double tri_area =
             (tri_vertices[1][0]-tri_vertices[0][0]) *
@@ -225,18 +236,22 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
         }
 
         // Render the triangle
-        if (mag_x0 == mag_x1 && mag_y0 == mag_y1)
+        if (single_pixel_optimization && mag_x0 == mag_x1 && mag_y0 == mag_y1)
         {
+            // The triangle is completely contained in a single pixel,
+            // so we can take a shortcut
             magpat[mag_y0*params->xpixels + mag_x0] += 1.0;
             continue;
         }
         for (int y = mag_y0; y <= mag_y1; ++y)
+        {
+            double yi0 = y;
+            double yi1 = y + 1;
+
             for (int x = mag_x0; x <= mag_x1; ++x)
             {
                 double xi0 = x;
                 double xi1 = x + 1;
-                double yi0 = y;
-                double yi1 = y + 1;
 
                 int num_edges = 4;
                 bool valid_edges[7] =
@@ -364,6 +379,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
                     magpat[y*params->xpixels + x] += fabs(area) / tri_area;
                 }
             }
+        }
     }
 }
 
