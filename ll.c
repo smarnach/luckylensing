@@ -219,14 +219,17 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
             single_pixel_optimization = false;
         }
 
-        double tri_area =
-            (tri_vertices[1][0]-tri_vertices[0][0]) *
-            (tri_vertices[2][1]-tri_vertices[0][1]) -
-            (tri_vertices[1][1]-tri_vertices[0][1]) *
-            (tri_vertices[2][0]-tri_vertices[0][0]);
-        if (tri_area < 0.0)
+        double pixel_area = 0.5 *
+            rect->width * params->pixels_per_width *
+            rect->height * params->pixels_per_height;
+        double magnification =  pixel_area /
+            ((tri_vertices[1][0]-tri_vertices[0][0]) *
+             (tri_vertices[2][1]-tri_vertices[0][1]) -
+             (tri_vertices[1][1]-tri_vertices[0][1]) *
+             (tri_vertices[2][0]-tri_vertices[0][0]));
+        if (magnification < 0.0)
         {
-            tri_area *= -1.0;
+            magnification *= -1.0;
             double x = tri_vertices[1][0];
             double y = tri_vertices[1][1];
             tri_vertices[1][0] = tri_vertices[2][0];
@@ -240,7 +243,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
         {
             // The triangle is completely contained in a single pixel,
             // so we can take a shortcut
-            magpat[mag_y0*params->xpixels + mag_x0] += 1.0;
+            magpat[mag_y0*params->xpixels + mag_x0] += pixel_area;
             continue;
         }
         for (int y = mag_y0; y <= mag_y1; ++y)
@@ -376,7 +379,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
                             area +=  (vertices[i0][0]-x0) * (vertices[i1][1]-y0)
                                 - (vertices[i0][1]-y0) * (vertices[i1][0]-x0);
                         }
-                    magpat[y*params->xpixels + x] += fabs(area) / tri_area;
+                    magpat[y*params->xpixels + x] += fabs(area) * magnification;
                 }
             }
         }
