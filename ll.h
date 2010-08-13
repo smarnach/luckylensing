@@ -33,9 +33,17 @@ ll_init_magpattern_params(struct ll_magpattern_param_t *params,
                           const struct ll_rect_t *region,
                           unsigned xpixels, unsigned ypixels);
 
+enum ll_rayshooting_kernel_t
+{
+    LL_KERNEL_SIMPLE,
+    LL_KERNEL_BILINEAR,
+    LL_KERNEL_TRIANGULATED
+};
+
 struct ll_rayshooter_t
 {
     struct ll_magpattern_param_t *params;
+    enum ll_rayshooting_kernel_t kernel;
     unsigned levels;
     int refine;
     int refine_final;
@@ -54,7 +62,7 @@ ll_shoot_single_ray(const struct ll_magpattern_param_t *params,
                     double x, double y, double *mag_x, double *mag_y);
 
 extern void
-ll_rayshoot_rect(const struct ll_magpattern_param_t *params, float *magpat,
+ll_rayshoot_rect(const struct ll_magpattern_param_t *params, int *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays);
 
 struct ll_patches_t
@@ -71,12 +79,16 @@ ll_get_subpatches(const struct ll_magpattern_param_t *params,
                   struct ll_patches_t *patches);
 
 extern void
-ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, float *magpat,
+ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
                        const struct ll_patches_t *patches,
                        unsigned level, double *progress);
 
 extern void
-ll_rayshoot(const struct ll_rayshooter_t *rs, float *magpat,
+ll_finalise_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
+                       const struct ll_patches_t *patches);
+
+extern void
+ll_rayshoot(const struct ll_rayshooter_t *rs, void *magpat,
             const struct ll_rect_t *rect, int xrays, int yrays,
             double *progress);
 

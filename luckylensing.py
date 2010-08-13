@@ -31,6 +31,7 @@ _shoot_single_ray = _libll.ll_shoot_single_ray
 _rayshoot_rect = _libll.ll_rayshoot_rect
 _get_subpatches = _libll.ll_get_subpatches
 _rayshoot_subpatches = _libll.ll_rayshoot_subpatches
+_finalise_subpatches = _libll.ll_finalise_subpatches
 _rayshoot = _libll.ll_rayshoot
 _ray_hit_pattern = _libll.ll_ray_hit_pattern
 _source_images = _libll.ll_source_images
@@ -224,8 +225,14 @@ The current value can be extracted by reading the value attribute.
 # It should not be necessary for user code to use anything from the
 # ctypes module, so we expose this type
 
+# Constants to select a ra shooting kernel.  These are enum constants in C.
+KERNEL_SIMPLE = 0
+KERNEL_BILINEAR = 1
+KERNEL_TRIANGULATED = 2
+
 class Rayshooter(_c.Structure):
     _fields_ = [("params", _c.POINTER(MagPatternParams)),
+                ("kernel", _c.c_int),
                 ("levels", _c.c_uint),
                 ("refine", _c.c_int),
                 ("refine_final", _c.c_int),
@@ -234,7 +241,8 @@ class Rayshooter(_c.Structure):
     def __init__(self, params, levels):
         if type(params) is not MagPatternParams:
             params = MagPatternParams(*params)
-        super(Rayshooter, self).__init__(_c.pointer(params), levels, 15, 25, False)
+        super(Rayshooter, self).__init__(_c.pointer(params), KERNEL_BILINEAR,
+                                         levels, 15, 25, False)
 
     def cancel(self):
         self.cancel_flag = True
@@ -245,6 +253,9 @@ class Rayshooter(_c.Structure):
     def start_subpatches(self, magpat, patches, progress=Progress()):
         self.cancel_flag = False
         _rayshoot_subpatches(self, magpat, patches, self.levels - 1, progress)
+
+    def finalise_subpatches(self, magpat, patches):
+        _finalise_subpatches(self, magpat, patches)
 
     def start(self, magpat, rect, xrays, yrays, progress=Progress()):
         self.cancel_flag = False
@@ -259,7 +270,7 @@ _shoot_single_ray.argtypes = [_c.POINTER(MagPatternParams),
 _shoot_single_ray.restype = _c.c_int
 
 _rayshoot_rect.argtypes = [_c.POINTER(MagPatternParams),
-                           _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
+                           _ndpointer(_np.int, flags="C_CONTIGUOUS"),
                            _c.POINTER(Rect),
                            _c.c_int,
                            _c.c_int]
@@ -270,14 +281,19 @@ _get_subpatches.argtypes = [_c.POINTER(MagPatternParams),
 _get_subpatches.restype = None
 
 _rayshoot_subpatches.argtypes = [_c.POINTER(Rayshooter),
-                                 _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
+                                 _ndpointer(flags="C_CONTIGUOUS"),
                                  _c.POINTER(Patches),
                                  _c.c_uint,
                                  _c.POINTER(_c.c_double)]
 _rayshoot_subpatches.restype = None
 
+_finalise_subpatches.argtypes = [_c.POINTER(Rayshooter),
+                                 _ndpointer(flags="C_CONTIGUOUS"),
+                                 _c.POINTER(Patches)]
+_finalise_subpatches.restype = None
+
 _rayshoot.argtypes = [_c.POINTER(Rayshooter),
-                      _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
+                      _ndpointer(flags="C_CONTIGUOUS"),
                       _c.POINTER(Rect),
                       _c.c_int,
                       _c.c_int,

@@ -23,6 +23,7 @@ ll_init_rayshooter(struct ll_rayshooter_t *rs,
                    struct ll_magpattern_param_t *params, unsigned levels)
 {
     rs->params = params;
+    rs->kernel = LL_KERNEL_BILINEAR;
     rs->levels = levels;
     rs->refine = 15;
     rs->refine_final = 25;
@@ -57,7 +58,7 @@ ll_shoot_single_ray(const struct ll_magpattern_param_t *params,
 }
 
 extern void
-ll_rayshoot_rect(const struct ll_magpattern_param_t *params, float *magpat,
+ll_rayshoot_rect(const struct ll_magpattern_param_t *params, int *magpat,
                  const struct ll_rect_t *rect, int xrays, int yrays)
 {
     double width_per_xrays = rect->width / xrays;
@@ -73,7 +74,7 @@ ll_rayshoot_rect(const struct ll_magpattern_param_t *params, float *magpat,
 }
 
 static void __attribute__ ((hot))
-_ll_rayshoot_bilinear(const struct ll_magpattern_param_t *params, float *magpat,
+_ll_rayshoot_bilinear(const struct ll_magpattern_param_t *params, int *magpat,
                       const struct ll_rect_t *rect, int refine)
 {
     double ul_x, ul_y, ur_x, ur_y, ll_x, ll_y, lr_x, lr_y;
@@ -387,7 +388,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
 }
 
 static void
-_ll_rayshoot_recursively(const struct ll_rayshooter_t *rs, float *magpat,
+_ll_rayshoot_recursively(const struct ll_rayshooter_t *rs, void *magpat,
                          const struct ll_rect_t *rect, int xrays, int yrays,
                          unsigned level, double *progress)
 {
@@ -403,8 +404,20 @@ _ll_rayshoot_recursively(const struct ll_rayshooter_t *rs, float *magpat,
         free(patches.hit);
     }
     else
-//        _ll_rayshoot_bilinear(rs->params, magpat, rect, rs->refine_final);
-        _ll_rayshoot_triangulated(rs->params, magpat, rect);
+        switch (rs->kernel)
+        {
+        case LL_KERNEL_SIMPLE:
+            ll_rayshoot_rect(rs->params, (int*)magpat, rect,
+                             rs->refine_final, rs->refine_final);
+            break;
+        case LL_KERNEL_BILINEAR:
+            _ll_rayshoot_bilinear(rs->params, (int*)magpat, rect,
+                                  rs->refine_final);
+            break;
+        case LL_KERNEL_TRIANGULATED:
+            _ll_rayshoot_triangulated(rs->params, (float*)magpat, rect);
+            break;
+        }
 }
 
 extern void
@@ -444,7 +457,7 @@ ll_get_subpatches(const struct ll_magpattern_param_t *params,
 }
 
 extern void
-ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, float *magpat,
+ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
                        const struct ll_patches_t *patches,
                        unsigned level, double *progress)
 {
@@ -464,8 +477,44 @@ ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, float *magpat,
             }
 }
 
+static void
+_ll_scale_magpattern(const struct ll_rayshooter_t *rs, void *magpat,
+                     const struct ll_rect_t *rect, int xrays, int yrays)
+{
+    switch (rs->kernel)
+    {
+    case LL_KERNEL_SIMPLE:
+    case LL_KERNEL_BILINEAR:
+    {
+        unsigned pixels = rs->params->xpixels * rs->params->ypixels;
+        double density = xrays * yrays;
+        for (unsigned i = 0; i < rs->levels-2; ++i)
+            density *= rs->refine * rs->refine;
+        density *= rs->refine_final * rs->refine_final;
+        density *= rs->params->region.width * rs->params->region.height;
+        density /= rect->width * rect->height * pixels;
+        density = 1.0/density;
+        float *fpat = magpat;
+        int *ipat = magpat;
+        for (unsigned i = 0; i < pixels; ++i)
+            fpat[i] = ipat[i] * density;
+        break;
+    }
+    case LL_KERNEL_TRIANGULATED:
+        break;
+    }
+}
+
 extern void
-ll_rayshoot(const struct ll_rayshooter_t *rs, float *magpat,
+ll_finalise_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
+                       const struct ll_patches_t *patches)
+{
+    _ll_scale_magpattern(rs, magpat, &patches->rect,
+                         patches->xrays, patches->yrays);
+}
+
+extern void
+ll_rayshoot(const struct ll_rayshooter_t *rs, void *magpat,
             const struct ll_rect_t *rect, int xrays, int yrays,
             double *progress)
 {
@@ -473,6 +522,7 @@ ll_rayshoot(const struct ll_rayshooter_t *rs, float *magpat,
         *progress = 0.0;
     _ll_rayshoot_recursively(rs, magpat, rect, xrays, yrays,
                              rs->levels - 1, progress);
+    _ll_scale_magpattern(rs, magpat, rect, xrays, yrays);
 }
 
 extern void

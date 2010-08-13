@@ -124,7 +124,7 @@ class MagPattern(ll.Rayshooter):
                 subpatches.num_patches = patches.num_patches
                 self.start_subpatches(count, subpatches, self.progress[index])
         except Empty:
-            pass
+            self.finalise_subpatches(count, patches)
 
     def get_output(self, name):
         if name == "count":
