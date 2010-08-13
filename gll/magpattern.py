@@ -1,3 +1,6 @@
+import sys
+sys.path.append("../libll")
+
 from math import sqrt, log, ceil
 from time import time
 import gobject

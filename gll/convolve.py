@@ -1,3 +1,6 @@
+import sys
+sys.path.append("../libll")
+
 import gobject
 import gtk
 import gtkimageview

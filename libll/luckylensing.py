@@ -21,12 +21,13 @@ render_magpattern_greyscale
                   -- render a magnification pattern
 """
 
+import os.path as _path
 import ctypes as _c
 import numpy as _np
 from numpy.ctypeslib import ndpointer as _ndpointer
 
 # Import symbols from libll.so to the module namespace
-_libll = _c.CDLL("./libll.so")
+_libll = _c.CDLL(_path.join(_path.dirname(__file__), "libll.so"))
 _shoot_single_ray = _libll.ll_shoot_single_ray
 _rayshoot_rect = _libll.ll_rayshoot_rect
 _get_subpatches = _libll.ll_get_subpatches
