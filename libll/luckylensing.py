@@ -12,8 +12,8 @@ Lenses            -- array of point lenses
 Rect              -- coordinates of a rectangle
 Patches           -- subpatch pattern for hierarchical ray shooting
 MagPatternParams  -- parameters of a magnification pattern
-Progress          -- helper for some methods of Rayshooter
-Rayshooter        -- compute magnification patterns
+Progress          -- helper for some methods of BasicRayshooter
+BasicRayshooter   -- compute magnification patterns
 
 Functions:
 
@@ -252,7 +252,7 @@ class MagPatternParams(_c.Structure):
         _light_curve(self, magpat, curve, num_points, x0, y0, x1, y1)
 
 Progress = _c.c_double
-"""Type for the progress argument of some methods of Rayshooter.
+"""Type for the progress argument of some methods of BasicRayshooter.
 
 The current value can be extracted by reading the attribute 'value'.
 """
@@ -264,7 +264,7 @@ KERNEL_SIMPLE = 0
 KERNEL_BILINEAR = 1
 KERNEL_TRIANGULATED = 2
 
-class Rayshooter(_c.Structure):
+class BasicRayshooter(_c.Structure):
 
     """A class controlling the ray shooting process.
     """
@@ -279,8 +279,9 @@ class Rayshooter(_c.Structure):
     def __init__(self, params, levels):
         if type(params) is not MagPatternParams:
             params = MagPatternParams(*params)
-        super(Rayshooter, self).__init__(_c.pointer(params), KERNEL_BILINEAR,
-                                         levels, 15, 25, False)
+        super(BasicRayshooter, self).__init__(_c.pointer(params),
+                                              KERNEL_BILINEAR,
+                                              levels, 15, 25, False)
 
     def cancel(self):
         """Cancel the currently running ray shooting function.
@@ -324,19 +325,19 @@ _get_subpatches.argtypes = [_c.POINTER(MagPatternParams),
                             _c.POINTER(Patches)]
 _get_subpatches.restype = None
 
-_rayshoot_subpatches.argtypes = [_c.POINTER(Rayshooter),
+_rayshoot_subpatches.argtypes = [_c.POINTER(BasicRayshooter),
                                  _ndpointer(flags="C_CONTIGUOUS"),
                                  _c.POINTER(Patches),
                                  _c.c_uint,
                                  _c.POINTER(_c.c_double)]
 _rayshoot_subpatches.restype = None
 
-_finalise_subpatches.argtypes = [_c.POINTER(Rayshooter),
+_finalise_subpatches.argtypes = [_c.POINTER(BasicRayshooter),
                                  _ndpointer(flags="C_CONTIGUOUS"),
                                  _c.POINTER(Patches)]
 _finalise_subpatches.restype = None
 
-_rayshoot.argtypes = [_c.POINTER(Rayshooter),
+_rayshoot.argtypes = [_c.POINTER(BasicRayshooter),
                       _ndpointer(flags="C_CONTIGUOUS"),
                       _c.POINTER(Rect),
                       _c.c_int,

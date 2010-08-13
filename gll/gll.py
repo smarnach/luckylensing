@@ -3,8 +3,8 @@ import gobject
 import threading
 import gtk
 import pyconsole
-from magpattern import GllMagPattern
-from convolve import GllConvolve
+from gllrayshooter import GllRayshooter
+from gllconvolve import GllConvolve
 
 class GllApp(object):
     def __init__(self):
@@ -16,7 +16,7 @@ class GllApp(object):
         self.statusbar = self.builder.get_object("statusbar")
         self.progressbar = self.builder.get_object("progressbar")
 
-        self.magpattern = GllMagPattern(self)
+        self.magpattern = GllRayshooter(self)
         self.hpaned.pack1(self.magpattern.main_widget(), resize=True)
         self.hpaned.pack2(self.magpattern.config_widget(), resize=False)
 
