@@ -4,7 +4,6 @@ import threading
 import gtk
 import pyconsole
 from gllrayshooter import GllRayshooter
-from gllconvolve import GllConvolve
 
 class GllApp(object):
     def __init__(self):
@@ -19,30 +18,21 @@ class GllApp(object):
         self.magpattern = GllRayshooter(self)
         self.hpaned.pack1(self.magpattern.main_widget(), resize=True)
         self.hpaned.pack2(self.magpattern.config_widget(), resize=False)
+        self.thread = None
 
     def generate_pattern(self, *args):
-        thread = threading.Thread(target=self.magpattern.start)
-        self.init_progressbar(self.magpattern, thread)
-        thread.start()
+        if self.thread and self.thread.isAlive():
+            return
+        self.thread = threading.Thread(target=self.magpattern.start)
+        self.init_progressbar(self.magpattern)
+        self.thread.start()
 
-    def convolve_pattern(self, *args):
-        self.convolve = GllConvolve(self.magpattern)
-        if self.mode != 2:
-            self.vbox.remove(self.magpattern.main_widget())
-            self.vbox.pack_start(self.convolve.main_widget())
-            self.mode = 2
-        self.init_progressbar(self.convolve)
-        threading.Thread(target=self.convolve.start).start()
-
-    def extract_light_curve(self, *args):
-        pass
-
-    def init_progressbar(self, comp, thread):
+    def init_progressbar(self, comp):
         self.progressbar.set_property("show-text", True)
-        gobject.timeout_add(100, self.update_progressbar, comp, thread)
+        gobject.timeout_add(100, self.update_progressbar, comp)
 
-    def update_progressbar(self, comp, thread):
-        if thread.isAlive():
+    def update_progressbar(self, comp):
+        if self.thread.isAlive():
             self.progressbar.set_fraction(min(comp.get_progress(), 1.0))
         else:
             self.progressbar.set_property("show-text", False)

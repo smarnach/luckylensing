@@ -156,36 +156,11 @@
             <child>
               <object class="GtkToolButton" id="toolbutton1">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Pattern</property>
-                <property name="icon_name">application-x-executable</property>
+                <property name="tooltip_text" translatable="yes">Run the computation</property>
+                <property name="label" translatable="yes">Run</property>
+                <property name="icon_name">system-run</property>
                 <accelerator key="r" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <signal name="clicked" handler="generate_pattern"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="toolbutton3">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Convolve</property>
-                <property name="use_underline">True</property>
-                <accelerator key="c" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
-                <signal name="clicked" handler="convolve_pattern"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="toolbutton4">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Light curve</property>
-                <property name="use_underline">True</property>
-                <accelerator key="l" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
-                <signal name="clicked" handler="extract_light_curve"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -204,7 +179,8 @@
             <child>
               <object class="GtkToolButton" id="toolbutton2">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">toolbutton2</property>
+                <property name="tooltip_text" translatable="yes">Start the debugging console</property>
+                <property name="label" translatable="yes">Console</property>
                 <property name="use_underline">True</property>
                 <property name="icon_name">utilities-terminal</property>
                 <accelerator key="t" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
