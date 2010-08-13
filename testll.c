@@ -1,6 +1,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ll.h"
 
 int main(int argc, char *argv[])
@@ -27,30 +28,41 @@ int main(int argc, char *argv[])
     float *magpat = calloc(N, sizeof(float));
     char *buf = calloc(N, sizeof(char));
 
-    printf("Calculating magnification pattern...\n");
-    clock_t t = clock();
-    ll_rayshoot(&rs, magpat, &rect, xrays, yrays, &progress);
-    printf("finished in %g seconds.\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+    for (rs.kernel = LL_KERNEL_BILINEAR;
+         rs.kernel <= LL_KERNEL_TRIANGULATED; ++rs.kernel)
+    {
+        if (rs.kernel == LL_KERNEL_BILINEAR)
+            printf("Using bilinear ray shooting\n");
+        else if (rs.kernel == LL_KERNEL_TRIANGULATED)
+            printf("Using triangulated ray shooting\n");
+        else
+            continue;
 
-    double density = xrays*yrays;
-    for (unsigned i = 0; i < levels-2; ++i)
-        density *= rs.refine * rs.refine;
-    density *= rs.refine_final * rs.refine_final;
-    density /= N;
-    density *= region.width * region.height / (rect.width * rect.height);
-    printf("Average rays per pixel shot:    %8.2f\n", density);
+        memset(magpat, 0, N * sizeof(float));
+        printf("Calculating magnification pattern...\n");
+        clock_t t = clock();
+        ll_rayshoot(&rs, magpat, &rect, xrays, yrays, &progress);
+        printf("finished in %g seconds.\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 
-    double avg = 0.0;
-    for (unsigned i = 0; i < N; ++i)
-        avg += magpat[i];
-    avg /= N;
-    printf("Average rays per pixel counted: %8.2f\n", avg);
-    printf("Average magnification:          %8.2f\n", avg/density);
+        double density = xrays*yrays;
+        for (unsigned i = 0; i < levels-2; ++i)
+            density *= rs.refine * rs.refine;
+        density *= rs.refine_final * rs.refine_final;
+        density /= N;
+        density *= region.width * region.height / (rect.width * rect.height);
+        printf("Average rays per pixel shot:    %8.2f\n", density);
 
-    printf("Converting to an image...\n");
-    t = clock();
-    ll_render_magpattern_greyscale(buf, magpat, N);
-    printf("finished in %g seconds.\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+        double avg = 0.0;
+        for (unsigned i = 0; i < N; ++i)
+            avg += magpat[i];
+        avg /= N;
+        printf("Average magnification:          %8.2f\n", avg);
+
+        printf("Converting to an image...\n");
+        t = clock();
+        ll_render_magpattern_greyscale(buf, magpat, N);
+        printf("finished in %g seconds.\n\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+    }
 
     if (argc > 1)
     {
