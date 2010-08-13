@@ -576,7 +576,7 @@ ll_source_images(const struct ll_magpattern_param_t *params, char *buf,
 }
 
 extern void
-ll_render_magpattern_greyscale(char *buf, const float *magpat, unsigned size)
+ll_render_magpattern_greyscale(const float *magpat, char *buf, unsigned size)
 {
     float max_count = 0.0;
     float min_count = __FLT_MAX__;

@@ -361,24 +361,32 @@ _source_images.argtypes = [_c.POINTER(MagPatternParams),
                            _c.c_double]
 _source_images.restype = None
 
-_render_magpattern_greyscale.argtypes = [_ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
-                                         _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
+_render_magpattern_greyscale.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
+                                         _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
                                          _c.c_uint]
 _render_magpattern_greyscale.restype = None
 
-def render_magpattern_greyscale(buf, magpat):
+def render_magpattern_greyscale(magpat, buf = None):
     """Render the magnification pattern using a logarithmic greyscale palette.
 
-    buf    -- a contiguous C array of char which the image will be
-              rendered into
     magpat -- a contiguous C array of float with the magpattern counts
+    buf    -- a contiguous C array of char which the image will be
+              rendered into; if None is given, the function will allocate
+              a suitable buffer
 
-    Both parameters are assumed to be numpy array of the same size
+    Both parameters are assumed to be numpy arrays of the same size
     (meaning there size attributes coincide).  They do not need to
     have the same shape.
+
+    The function returns the buffer with the greyscale data.  If you
+    provided this buffer, the return value can be ignored.
     """
-    assert buf.size == magpat.size
-    _render_magpattern_greyscale(buf, magpat, magpat.size)
+    if buf is None:
+        buf = _np.empty(magpat.shape, _np.uint8)
+    else:
+        assert buf.size == magpat.size
+    _render_magpattern_greyscale(magpat, buf, magpat.size)
+    return buf
 
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),
                          _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
