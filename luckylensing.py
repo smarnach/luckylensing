@@ -321,7 +321,7 @@ def render_magpattern_greyscale(buf, magpat):
 
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),
                          _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
-                         _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
+                         _ndpointer(_np.double, flags="C_CONTIGUOUS"),
                          _c.c_uint,
                          _c.c_double,
                          _c.c_double,
