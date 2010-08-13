@@ -1,6 +1,6 @@
 """Wrap the C functions in the ll library with an Pythonic interface.
 
-The functions in the ll ("Lucky Lensing") library allow for high
+The functions in the Lucky Lensing Library (libll.so) allow for high
 performance computations in the context of gravitational lensing.
 This module provides Python bindings for the functions and data types
 in this C library.
@@ -125,6 +125,7 @@ class Patches(_c.Structure):
                 ("num_patches", _c.c_uint)]
 
     def __init__(self, rect, hit):
+        """Create a patches object with the given rect and subpatch pattern."""
         yrays, xrays = hit.shape
         super(Patches, self).__init__(rect, xrays, yrays,
             hit=hit.ctypes.data_as(_c.POINTER(_c.c_char)), num_patches = 0)
@@ -162,6 +163,23 @@ class Patches(_c.Structure):
             pass
 
 class MagPatternParams(_c.Structure):
+
+    """Parameters describing a magnification pattern.
+
+    This structure contains all information needed to describe a
+    magnification pattern, but does not include the parameters of the
+    actual shooting process.  In particular they are
+
+    lenses            -- list of lenses in the lens plane
+    region            -- coordinates of the pattern in the source plane
+    xpixels           -- x resolution of the pattern
+    ypixels           -- y resolution of the pattern
+    pixels_per_width  -- xpixels/region.width; needed internally and kept
+                         up to date autommatically
+    pixels_per_hieght -- ypixels/region.height; needed internally and kept
+                         up to date autommatically
+    """
+
     _fields_ = [("lenses", Lenses),
                 ("region", Rect),
                 ("xpixels", _c.c_uint),
@@ -173,6 +191,10 @@ class MagPatternParams(_c.Structure):
                  xpixels=1024, ypixels=1024):
         super(MagPatternParams, self).__init__(Lenses(lenses), region,
                                                xpixels, ypixels)
+
+    # The following methods try to always keep the quotients
+    # pixels_per_width and pixels_per_height consistens.  The same
+    # pattern is used in the Patches class above.
 
     def __setattr__(self, name, value):
         if name in ("pixels_per_width", "pixels_per_height"):
@@ -198,6 +220,17 @@ class MagPatternParams(_c.Structure):
             pass
 
     def shoot_single_ray(self, x, y):
+        """Return the magnification pattern coordinates of a single ray.
+
+        The arguments x and y give the lens plane coordinates of the
+        ray to shoot.  The return value is a tuple of length 3.  The
+        first two components of give the coordinates where the ray
+        hits the source plane after being deflected by the lenses.
+        The coordinates are pixel coordinates in the magnification
+        pattern, but given as floating point numbers.  The third
+        component is a bool describing if the magnification pattern
+        region.
+        """
         mag_x = _c.c_double()
         mag_y = _c.c_double()
         b = bool(_shoot_single_ray(self, x, y, mag_x, mag_y))
@@ -218,9 +251,9 @@ class MagPatternParams(_c.Structure):
         _light_curve(self, magpat, curve, num_points, x0, y0, x1, y1)
 
 Progress = _c.c_double
-"""Type for the Progress argument of some methods of Rayshooter.
+"""Type for the progress argument of some methods of Rayshooter.
 
-The current value can be extracted by reading the value attribute.
+The current value can be extracted by reading the attribute 'value'.
 """
 # It should not be necessary for user code to use anything from the
 # ctypes module, so we expose this type
@@ -231,6 +264,10 @@ KERNEL_BILINEAR = 1
 KERNEL_TRIANGULATED = 2
 
 class Rayshooter(_c.Structure):
+
+    """A class controlling the ray shooting process.
+    """
+
     _fields_ = [("params", _c.POINTER(MagPatternParams)),
                 ("kernel", _c.c_int),
                 ("levels", _c.c_uint),
@@ -245,6 +282,10 @@ class Rayshooter(_c.Structure):
                                          levels, 15, 25, False)
 
     def cancel(self):
+        """Cancel the currently running ray shooting function.
+
+        Only useful in multithreaded applications.
+        """
         self.cancel_flag = True
 
     def get_subpatches(self, patches):
@@ -258,6 +299,8 @@ class Rayshooter(_c.Structure):
         _finalise_subpatches(self, magpat, patches)
 
     def start(self, magpat, rect, xrays, yrays, progress=Progress()):
+        """Start the actual ray shooting.
+        """
         self.cancel_flag = False
         _rayshoot(self, magpat, rect, xrays, yrays, progress)
 
@@ -326,7 +369,7 @@ def render_magpattern_greyscale(buf, magpat):
 
     buf    -- a contiguous C array of char which the image will be
               rendered into
-    magpat -- a contiguous C array of int with the magpattern counts
+    magpat -- a contiguous C array of float with the magpattern counts
 
     Both parameters are assumed to be numpy array of the same size
     (meaning there size attributes coincide).  They do not need to
