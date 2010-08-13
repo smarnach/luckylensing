@@ -313,6 +313,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="add_lens"/>
                 <child>
                   <object class="GtkImage" id="image1">
                     <property name="visible">True</property>
@@ -331,6 +332,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="delete_lens"/>
                 <child>
                   <object class="GtkImage" id="image2">
                     <property name="visible">True</property>
@@ -352,12 +354,13 @@
           </packing>
         </child>
         <child>
-          <object class="GtkTreeView" id="treeview2">
+          <object class="GtkTreeView" id="treeview">
             <property name="width_request">300</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="model">lens_list</property>
             <property name="headers_clickable">False</property>
+            <property name="reorderable">True</property>
             <property name="search_column">0</property>
             <child>
               <object class="GtkTreeViewColumn" id="treeviewcolumn1">

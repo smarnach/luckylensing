@@ -25,6 +25,8 @@ class GllRayshooter(rayshooter.Rayshooter):
         self.builder.add_from_file("gllrayshooter.glade")
         self.builder.connect_signals(self)
         self.lens_list = self.builder.get_object("lens_list")
+        self.lens_selection = self.builder.get_object("treeview").get_selection()
+        self.lens_selection.set_mode(gtk.SELECTION_MULTIPLE)
         self.fix_adjustments()
         self.set_params_from_ui()
 
@@ -109,6 +111,14 @@ class GllRayshooter(rayshooter.Rayshooter):
     def edit_lens_cell2(self, cell, path, new_text):
         self.lens_list[path][2] = float(new_text)
         return
+
+    def add_lens(self, button):
+        self.lens_list.append()
+
+    def delete_lens(self, button):
+        lens_list, selected = self.lens_selection.get_selected_rows()
+        for row_path in reversed(selected):
+            lens_list.remove(lens_list.get_iter(row_path))
 
     def start(self):
         self.set_params_from_ui()
