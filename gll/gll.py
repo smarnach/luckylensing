@@ -2,8 +2,11 @@
 import gobject
 import threading
 import gtk
-import pyconsole
 from gllrayshooter import GllRayshooter
+try:
+    import pyconsole
+except:
+    pyconsole = None
 
 class GllApp(object):
     def __init__(self):
@@ -19,6 +22,8 @@ class GllApp(object):
         self.hpaned.pack1(self.magpattern.main_widget(), resize=True)
         self.hpaned.pack2(self.magpattern.config_widget(), resize=False)
         self.thread = None
+        if not pyconsole:
+            self.builder.get_object("toolbutton_console").hide()
 
     def generate_pattern(self, *args):
         if self.thread and self.thread.isAlive():
@@ -50,6 +55,8 @@ class GllApp(object):
         return True
 
     def show_console(self, *args):
+        if not pyconsole:
+            return
         window = gtk.Window()
         window.set_title("Gll Python Console")
         swin = gtk.ScrolledWindow()

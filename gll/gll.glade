@@ -227,7 +227,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="toolbutton2">
+              <object class="GtkToolButton" id="toolbutton_console">
                 <property name="visible">True</property>
                 <property name="tooltip_text" translatable="yes">Start the debugging console</property>
                 <property name="label" translatable="yes">Console</property>
