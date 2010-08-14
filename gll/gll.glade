@@ -168,6 +168,28 @@
               </packing>
             </child>
             <child>
+              <object class="GtkToolButton" id="toolbutton5">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Stop</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-stop</property>
+                <signal name="clicked" handler="stop"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="toolbutton6">
+                <property name="visible">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkToolButton" id="toolbutton3">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Back</property>
