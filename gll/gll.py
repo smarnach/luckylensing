@@ -27,6 +27,12 @@ class GllApp(object):
         self.init_progressbar(self.magpattern)
         self.thread.start()
 
+    def back(self, *args):
+        self.magpattern.back()
+
+    def forward(self, *args):
+        self.magpattern.forward()
+
     def init_progressbar(self, comp):
         self.progressbar.set_property("show-text", True)
         gobject.timeout_add(100, self.update_progressbar, comp)

@@ -168,6 +168,34 @@
               </packing>
             </child>
             <child>
+              <object class="GtkToolButton" id="toolbutton3">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Back</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-go-back</property>
+                <accelerator key="Left" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                <signal name="clicked" handler="back"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="toolbutton4">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Forward</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-go-forward</property>
+                <accelerator key="Right" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                <signal name="clicked" handler="forward"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkSeparatorToolItem" id="separator1">
                 <property name="visible">True</property>
               </object>

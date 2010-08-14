@@ -29,6 +29,8 @@ class GllRayshooter(rayshooter.Rayshooter):
         self.lens_selection.set_mode(gtk.SELECTION_MULTIPLE)
         self.fix_adjustments()
         self.set_params_from_ui()
+        self.history = []
+        self.history_pos = -1
 
     def imageview_clicked(self, widget, event, data=None):
         widget.grab_focus()
@@ -106,6 +108,11 @@ class GllRayshooter(rayshooter.Rayshooter):
             self.kernel = ll.KERNEL_BILINEAR
         elif self.builder.get_object("kernel_triangulated").get_active():
             self.kernel = ll.KERNEL_TRIANGULATED
+        self.history_params = (map(tuple, self.lens_list),
+                               params.xpixels, params.ypixels,
+                               (params.region.x, params.region.y,
+                                params.region.width, params.region.height),
+                               self.density, self.kernel)
 
     def main_widget(self):
         return self.scrollwin
@@ -130,17 +137,67 @@ class GllRayshooter(rayshooter.Rayshooter):
         for row_path in reversed(selected):
             lens_list.remove(lens_list.get_iter(row_path))
 
-    def start(self):
-        self.set_params_from_ui()
-        super(GllRayshooter, self).start()
-        if self.cancel_flag:
-            return
+    def _update_pixbuf(self):
         buf = numpy.empty(self.count.shape + (1,), numpy.uint8)
         ll.render_magpattern_greyscale(self.count, buf)
         self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
                                                     gtk.gdk.COLORSPACE_RGB, 8)
         gobject.idle_add(self.imageview.set_tool, self.dragger)
         gobject.idle_add(self.imageview.set_pixbuf, self.pixbuf)
+
+    def start(self):
+        self.set_params_from_ui()
+        super(GllRayshooter, self).start()
+        if self.cancel_flag:
+            return
+        self.history_pos += 1
+        del self.history[self.history_pos:]
+        self.history.append((self.history_params, numpy.array(self.count)))
+        self._update_pixbuf()
+
+    def _restore_from_history(self):
+        history_params = self.history[self.history_pos][0]
+        self.count = self.history[self.history_pos][1]
+        params = self.params[0]
+        lenses = []
+        self.lens_list.clear()
+        for l in history_params[0]:
+            self.lens_list.append(l)
+            if l[0]:
+                lenses.append(l[1:])
+        params.lenses = ll.Lenses(lenses)
+        params.xpixels = history_params[1]
+        params.ypixels = history_params[2]
+        params.region = ll.Rect(*history_params[3])
+        self.density = history_params[4]
+        self.kernel = history_params[5]
+
+        self.builder.get_object("xpixels").set_value(params.xpixels)
+        self.builder.get_object("ypixels").set_value(params.ypixels)
+        self.builder.get_object("region_x0").set_value(params.region.x)
+        self.builder.get_object("region_y0").set_value(params.region.y)
+        x1 = params.region.x + params.region.width
+        self.builder.get_object("region_x1").set_value(x1)
+        y1 = params.region.y + params.region.height
+        self.builder.get_object("region_y1").set_value(y1)
+        self.builder.get_object("density").set_value(self.density)
+        if self.kernel == ll.KERNEL_SIMPLE:
+            self.builder.get_object("kernel_simple").set_active(True)
+        elif self.kernel == ll.KERNEL_BILINEAR:
+            self.builder.get_object("kernel_bilinear").set_active(True)
+        elif self.kernel == ll.KERNEL_TRIANGULATED:
+            self.builder.get_object("kernel_triangulated").set_active(True)
+        self._update_pixbuf()
+
+    def back(self):
+        if self.history_pos > 0:
+            self.history_pos -= 1
+            self._restore_from_history()
+
+    def forward(self):
+        if self.history_pos < len(self.history) - 1:
+            self.history_pos += 1
+            self._restore_from_history()
 
     def show_hit_pattern(self):
         params = self.params[0]
