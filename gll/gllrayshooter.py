@@ -82,6 +82,7 @@ class GllRayshooter(rayshooter.Rayshooter):
         self.builder.get_object("region_x1").set_value( .5)
         self.builder.get_object("region_y1").set_value( .3)
         self.builder.get_object("density").set_value(50)
+        self.builder.get_object("kernel_bilinear").set_active(True)
 
     def set_params_from_ui(self):
         params = self.params[0]
@@ -95,6 +96,12 @@ class GllRayshooter(rayshooter.Rayshooter):
         y1 = self.builder.get_object("region_y1").get_value()
         params.region.height = y1 - params.region.y
         self.density = self.builder.get_object("density").get_value()
+        if self.builder.get_object("kernel_simple").get_active():
+            self.kernel = ll.KERNEL_SIMPLE
+        elif self.builder.get_object("kernel_bilinear").get_active():
+            self.kernel = ll.KERNEL_BILINEAR
+        elif self.builder.get_object("kernel_triangulated").get_active():
+            self.kernel = ll.KERNEL_TRIANGULATED
 
     def main_widget(self):
         return self.scrollwin
