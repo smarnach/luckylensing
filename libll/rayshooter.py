@@ -60,6 +60,7 @@ class Rayshooter(ll.BasicRayshooter):
         return rect, xrays, yrays, levels + 2
 
     def start(self, num_threads=2):
+        self.cancel_flag = False
         shape = self.params[0].ypixels, self.params[0].xpixels
         self.count = numpy.zeros(shape, numpy.float32)
         rect, xrays, yrays, levels = self.get_shooting_params()

@@ -298,7 +298,6 @@ class BasicRayshooter(_c.Structure):
         _get_subpatches(self.params, patches)
 
     def start_subpatches(self, magpat, patches, progress=Progress()):
-        self.cancel_flag = False
         _rayshoot_subpatches(self, magpat, patches, progress)
 
     def finalise_subpatches(self, magpat, patches):
