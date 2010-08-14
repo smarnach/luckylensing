@@ -41,6 +41,7 @@ _rayshoot = _libll.ll_rayshoot
 _ray_hit_pattern = _libll.ll_ray_hit_pattern
 _source_images = _libll.ll_source_images
 _render_magpattern_greyscale = _libll.ll_render_magpattern_greyscale
+_render_magpattern_gradient = _libll.ll_render_magpattern_gradient
 _light_curve = _libll.ll_light_curve
 del _libll
 
@@ -370,7 +371,7 @@ _render_magpattern_greyscale.argtypes = [_ndpointer(_np.float32, flags="C_CONTIG
 _render_magpattern_greyscale.restype = None
 
 def render_magpattern_greyscale(magpat, buf = None):
-    """Render the magnification pattern using a logarithmic greyscale palette.
+    """Render the magnification pattern using a logarithmic greyscale gradient.
 
     magpat -- a contiguous C array of float with the magpattern counts
     buf    -- a contiguous C array of char which the image will be
@@ -389,6 +390,39 @@ def render_magpattern_greyscale(magpat, buf = None):
     else:
         assert buf.size == magpat.size
     _render_magpattern_greyscale(magpat, buf, magpat.size)
+    return buf
+
+_render_magpattern_gradient.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
+                                        _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+                                        _c.c_uint,
+                                        _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+                                        _ndpointer(_np.uint8, flags="C_CONTIGUOUS")]
+_render_magpattern_gradient.restype = None
+
+def render_magpattern_gradient(magpat, colors, steps, buf = None):
+    """Render the magnification pattern logarithmically with the given gradient.
+
+    magpat -- a contiguous C array of float with the magpattern counts
+    colors -- a sequence of RGB triples describing colors in the gradient
+    steps  -- the number of steps to use between the color with the same
+              index and the next one.  The length of this needs to be one
+              less than the number of colors.
+    buf    -- a contiguous C array of char which the image will be
+              rendered into; if None is given, the function will allocate
+              a suitable buffer
+
+    The function returns the buffer with the image data.  If you
+    provided this buffer, the return value can be ignored.
+    """
+    if buf is None:
+        buf = _np.empty(magpat.shape + (3,), _np.uint8)
+    else:
+        assert buf.size == 3 * magpat.size
+    assert len(colors) - 1 == len(steps)
+    assert len(colors[0]) == 3
+    colors_arr = _np.array(colors, dtype=_np.uint8)
+    steps_arr = _np.array(list(steps) + [0], dtype=_np.uint8)
+    _render_magpattern_gradient(magpat, buf, magpat.size, colors_arr, steps_arr)
     return buf
 
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),
