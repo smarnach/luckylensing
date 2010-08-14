@@ -27,7 +27,11 @@ import numpy as _np
 from numpy.ctypeslib import ndpointer as _ndpointer
 
 # Import symbols from libll.so to the module namespace
-_libll = _c.CDLL(_path.join(_path.dirname(__file__), "libll.so"))
+_dir = _path.dirname(__file__)
+if not _dir:
+    _dir = "."
+_libll = _c.CDLL(_path.join(_dir, "libll.so"))
+del _dir
 _shoot_single_ray = _libll.ll_shoot_single_ray
 _rayshoot_rect = _libll.ll_rayshoot_rect
 _get_subpatches = _libll.ll_get_subpatches
@@ -38,6 +42,7 @@ _ray_hit_pattern = _libll.ll_ray_hit_pattern
 _source_images = _libll.ll_source_images
 _render_magpattern_greyscale = _libll.ll_render_magpattern_greyscale
 _light_curve = _libll.ll_light_curve
+del _libll
 
 class Lens(_c.Structure):
 
