@@ -86,7 +86,11 @@ class GllRayshooter(rayshooter.Rayshooter):
 
     def set_params_from_ui(self):
         params = self.params[0]
-        params.lenses = ll.Lenses(self.lens_list)
+        lenses = []
+        for l in self.lens_list:
+            if l[0]:
+                lenses.append(tuple(l)[1:])
+        params.lenses = ll.Lenses(lenses)
         params.xpixels = int(self.builder.get_object("xpixels").get_value())
         params.ypixels = int(self.builder.get_object("ypixels").get_value())
         params.region.x = self.builder.get_object("region_x0").get_value()
@@ -109,18 +113,17 @@ class GllRayshooter(rayshooter.Rayshooter):
     def config_widget(self):
         return self.builder.get_object("config")
 
-    def edit_lens_cell0(self, cell, path, new_text):
-        self.lens_list[path][0] = float(new_text)
-        return
+    def toggle_lens(self, cell, path):
+        self.lens_list[path][0] ^= True
     def edit_lens_cell1(self, cell, path, new_text):
         self.lens_list[path][1] = float(new_text)
-        return
     def edit_lens_cell2(self, cell, path, new_text):
         self.lens_list[path][2] = float(new_text)
-        return
+    def edit_lens_cell3(self, cell, path, new_text):
+        self.lens_list[path][3] = float(new_text)
 
     def add_lens(self, button):
-        self.lens_list.append()
+        self.lens_list.append((True, 0.0, 0.0, 0.0))
 
     def delete_lens(self, button):
         lens_list, selected = self.lens_selection.get_selected_rows()

@@ -2,33 +2,6 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkListStore" id="lens_list">
-    <columns>
-      <!-- column-name x -->
-      <column type="gdouble"/>
-      <!-- column-name y -->
-      <column type="gdouble"/>
-      <!-- column-name mass -->
-      <column type="gdouble"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0">0</col>
-        <col id="1">0</col>
-        <col id="2">1</col>
-      </row>
-      <row>
-        <col id="0">1.2</col>
-        <col id="1">0</col>
-        <col id="2">0.00040000000000000002</col>
-      </row>
-      <row>
-        <col id="0">1.2</col>
-        <col id="1">0.025000000000000001</col>
-        <col id="2">2.5000000000000001e-05</col>
-      </row>
-    </data>
-  </object>
   <object class="GtkAdjustment" id="xpixels">
     <property name="value">1024</property>
     <property name="upper">16384</property>
@@ -428,16 +401,28 @@
             <property name="reorderable">True</property>
             <property name="search_column">0</property>
             <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn4">
+                <child>
+                  <object class="GtkCellRendererToggle" id="cellrenderertoggle1">
+                    <signal name="toggled" handler="toggle_lens"/>
+                  </object>
+                  <attributes>
+                    <attribute name="active">0</attribute>
+                  </attributes>
+                </child>
+              </object>
+            </child>
+            <child>
               <object class="GtkTreeViewColumn" id="treeviewcolumn1">
                 <property name="title">x</property>
                 <property name="expand">True</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext1">
                     <property name="editable">True</property>
-                    <signal name="edited" handler="edit_lens_cell0"/>
+                    <signal name="edited" handler="edit_lens_cell1"/>
                   </object>
                   <attributes>
-                    <attribute name="text">0</attribute>
+                    <attribute name="text">1</attribute>
                   </attributes>
                 </child>
               </object>
@@ -449,10 +434,10 @@
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext2">
                     <property name="editable">True</property>
-                    <signal name="edited" handler="edit_lens_cell1"/>
+                    <signal name="edited" handler="edit_lens_cell2"/>
                   </object>
                   <attributes>
-                    <attribute name="text">1</attribute>
+                    <attribute name="text">2</attribute>
                   </attributes>
                 </child>
               </object>
@@ -464,10 +449,10 @@
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext3">
                     <property name="editable">True</property>
-                    <signal name="edited" handler="edit_lens_cell2"/>
+                    <signal name="edited" handler="edit_lens_cell3"/>
                   </object>
                   <attributes>
-                    <attribute name="text">2</attribute>
+                    <attribute name="text">3</attribute>
                   </attributes>
                 </child>
               </object>
@@ -486,5 +471,37 @@
         <property name="use_markup">True</property>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="lens_list">
+    <columns>
+      <!-- column-name enabled -->
+      <column type="gboolean"/>
+      <!-- column-name x -->
+      <column type="gdouble"/>
+      <!-- column-name y -->
+      <column type="gdouble"/>
+      <!-- column-name mass -->
+      <column type="gdouble"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0">True</col>
+        <col id="1">0</col>
+        <col id="2">0</col>
+        <col id="3">1</col>
+      </row>
+      <row>
+        <col id="0">True</col>
+        <col id="1">1.2</col>
+        <col id="2">0</col>
+        <col id="3">0.00040000000000000002</col>
+      </row>
+      <row>
+        <col id="0">True</col>
+        <col id="1">1.2</col>
+        <col id="2">0.025000000000000001</col>
+        <col id="3">2.5000000000000001e-05</col>
+      </row>
+    </data>
   </object>
 </interface>
