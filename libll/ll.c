@@ -596,6 +596,57 @@ ll_render_magpattern_greyscale(const float *magpat, char *buf, unsigned size)
 }
 
 extern void
+ll_render_magpattern_gradient(const float *magpat, char *buf, unsigned size,
+                              const unsigned char colors[][3],
+                              const unsigned char *steps)
+{
+    unsigned total_colors = 1;
+    for (int segment = 0; steps[segment]; ++segment)
+        total_colors += steps[segment];
+    char (*all_colors)[3] = malloc(3 * total_colors * sizeof(char));
+    all_colors[0][0] = colors[0][0];
+    all_colors[0][1] = colors[0][1];
+    all_colors[0][2] = colors[0][2];
+    unsigned pos = 1;
+    for (int segment = 0; steps[segment]; ++segment)
+    {
+        int diff[3];
+        diff[0] = colors[segment+1][0] - colors[segment][0];
+        diff[1] = colors[segment+1][1] - colors[segment][1];
+        diff[2] = colors[segment+1][2] - colors[segment][2];
+        for (int i = 1; i <= steps[segment]; ++i)
+        {
+            all_colors[pos][0] = colors[segment][0] + i*diff[0]/steps[segment];
+            all_colors[pos][1] = colors[segment][1] + i*diff[1]/steps[segment];
+            all_colors[pos][2] = colors[segment][2] + i*diff[2]/steps[segment];
+            ++pos;
+        }
+    }
+    float max_count = 0.0;
+    float min_count = __FLT_MAX__;
+    for(unsigned i = 0; i < size; ++i)
+    {
+        if (magpat[i] > max_count)
+            max_count = magpat[i];
+        if (magpat[i] < min_count)
+            min_count = magpat[i];
+    }
+    if (max_count == min_count)
+        return;
+    double logmax = log(max_count+1e-10);
+    double logmin = log(min_count+1e-10);
+    double factor = (total_colors-1)/(logmax-logmin);
+    for(unsigned i = 0; i < size; ++i)
+    {
+        unsigned color = (log(magpat[i]+1e-10)-logmin)*factor;
+        buf[3*i] = all_colors[color][0];
+        buf[3*i + 1] = all_colors[color][1];
+        buf[3*i + 2] = all_colors[color][2];
+    }
+    free(all_colors);
+}
+
+extern void
 ll_light_curve(const struct ll_magpattern_param_t *params, const float *magpat,
                double *curve, unsigned num_points,
                double x0, double y0, double x1, double y1)

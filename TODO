@@ -17,8 +17,6 @@ libll
  * Introduce consistent variable naming indicating whether lens plane,
    source plane or magnification pattern coordinates are used
 
- * Add function ll_render_magpattern_palette()
-
  * Triangulated ray shooting needs optimisation (this a tough one).
 
 luckylensing.py

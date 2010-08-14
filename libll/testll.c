@@ -26,7 +26,12 @@ int main(int argc, char *argv[])
     ll_init_rayshooter(&rs, &params);
     double progress;
     float *magpat = calloc(N, sizeof(float));
-    char *buf = calloc(N, sizeof(char));
+    char *buf = calloc(3*N, sizeof(char));
+    const unsigned char colors[9][3] = {{0, 0, 0}, {64, 0, 128}, {0, 0, 255},
+                                        {0, 255, 255}, {0, 255, 0}, {255, 255, 0},
+                                        {255, 0, 0}, {255, 0, 255},
+                                        {255, 255, 255}};
+    const unsigned char steps[9] = {128, 255, 255, 255, 255, 255, 255, 255, 0};
 
     for (rs.kernel = LL_KERNEL_BILINEAR;
          rs.kernel <= LL_KERNEL_TRIANGULATED; ++rs.kernel)
@@ -60,14 +65,14 @@ int main(int argc, char *argv[])
 
         printf("Converting to an image...\n");
         t = clock();
-        ll_render_magpattern_greyscale(magpat, buf, N);
+        ll_render_magpattern_gradient(magpat, buf, N, colors, steps);
         printf("finished in %g seconds.\n\n", (double)(clock()-t)/CLOCKS_PER_SEC);
     }
 
     if (argc > 1)
     {
         FILE *f = fopen(argv[1], "w");
-        fwrite(buf, sizeof(char), N, f);
+        fwrite(buf, sizeof(char), 3*N, f);
         fclose(f);
     }
 }
