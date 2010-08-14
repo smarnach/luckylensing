@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     struct ll_magpattern_param_t params;
     ll_init_magpattern_params(&params, &lenses, &region, xpixels, ypixels);
     struct ll_rayshooter_t rs;
-    ll_init_rayshooter(&rs, &params, levels);
+    ll_init_rayshooter(&rs, &params);
     double progress;
     float *magpat = calloc(N, sizeof(float));
     char *buf = calloc(N, sizeof(char));
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
         memset(magpat, 0, N * sizeof(float));
         printf("Calculating magnification pattern...\n");
         clock_t t = clock();
-        ll_rayshoot(&rs, magpat, &rect, xrays, yrays, &progress);
+        ll_rayshoot(&rs, magpat, &rect, xrays, yrays, levels, &progress);
         printf("finished in %g seconds.\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 
         double density = xrays*yrays;

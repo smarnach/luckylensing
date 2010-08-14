@@ -20,11 +20,10 @@ ll_init_magpattern_params(struct ll_magpattern_param_t *params,
 
 extern void
 ll_init_rayshooter(struct ll_rayshooter_t *rs,
-                   struct ll_magpattern_param_t *params, unsigned levels)
+                   struct ll_magpattern_param_t *params)
 {
     rs->params = params;
     rs->kernel = LL_KERNEL_BILINEAR;
-    rs->levels = levels;
     rs->refine = 15;
     rs->refine_final = 25;
     rs->cancel = false;
@@ -397,10 +396,10 @@ _ll_rayshoot_recursively(const struct ll_rayshooter_t *rs, void *magpat,
     if (level)
     {
         struct ll_patches_t patches =
-            { *rect, xrays, yrays, rect->width/xrays, rect->height/yrays,
+            { *rect, xrays, yrays, level, rect->width/xrays, rect->height/yrays,
               .hit = malloc(xrays*yrays * sizeof(char)), .num_patches = 0};
         ll_get_subpatches(rs->params, &patches);
-        ll_rayshoot_subpatches(rs, magpat, &patches, level, progress);
+        ll_rayshoot_subpatches(rs, magpat, &patches, progress);
         free(patches.hit);
     }
     else
@@ -458,8 +457,7 @@ ll_get_subpatches(const struct ll_magpattern_param_t *params,
 
 extern void
 ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
-                       const struct ll_patches_t *patches,
-                       unsigned level, double *progress)
+                       const struct ll_patches_t *patches, double *progress)
 {
     double progress_inc = 1.0 / patches->num_patches;
     for (int j = 0, n = 0; j < patches->yrays; ++j)
@@ -471,7 +469,7 @@ ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
                 struct ll_rect_t subrect
                     = {x, y, patches->width_per_xrays, patches->height_per_yrays};
                 _ll_rayshoot_recursively(rs, magpat, &subrect, rs->refine,
-                                         rs->refine, level-1, 0);
+                                         rs->refine, patches->level-1, 0);
                 if (progress)
                     *progress += progress_inc;
             }
@@ -479,7 +477,8 @@ ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
 
 static void
 _ll_scale_magpattern(const struct ll_rayshooter_t *rs, void *magpat,
-                     const struct ll_rect_t *rect, int xrays, int yrays)
+                     const struct ll_rect_t *rect, int xrays, int yrays,
+                     unsigned level)
 {
     switch (rs->kernel)
     {
@@ -488,7 +487,7 @@ _ll_scale_magpattern(const struct ll_rayshooter_t *rs, void *magpat,
     {
         unsigned pixels = rs->params->xpixels * rs->params->ypixels;
         double density = xrays * yrays;
-        for (unsigned i = 0; i < rs->levels-2; ++i)
+        for (unsigned i = 0; i < level - 1; ++i)
             density *= rs->refine * rs->refine;
         density *= rs->refine_final * rs->refine_final;
         density *= rs->params->region.width * rs->params->region.height;
@@ -510,19 +509,19 @@ ll_finalise_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
                        const struct ll_patches_t *patches)
 {
     _ll_scale_magpattern(rs, magpat, &patches->rect,
-                         patches->xrays, patches->yrays);
+                         patches->xrays, patches->yrays, patches->level);
 }
 
 extern void
 ll_rayshoot(const struct ll_rayshooter_t *rs, void *magpat,
             const struct ll_rect_t *rect, int xrays, int yrays,
-            double *progress)
+            unsigned levels, double *progress)
 {
     if (progress)
         *progress = 0.0;
     _ll_rayshoot_recursively(rs, magpat, rect, xrays, yrays,
-                             rs->levels - 1, progress);
-    _ll_scale_magpattern(rs, magpat, rect, xrays, yrays);
+                             levels - 1, progress);
+    _ll_scale_magpattern(rs, magpat, rect, xrays, yrays, levels - 1);
 }
 
 extern void

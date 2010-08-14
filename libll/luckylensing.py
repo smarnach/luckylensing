@@ -125,15 +125,16 @@ class Patches(_c.Structure):
     _fields_ = [("rect", Rect),
                 ("xrays", _c.c_int),
                 ("yrays", _c.c_int),
+                ("level", _c.c_uint),
                 ("width_per_xrays", _c.c_double),
                 ("height_per_yrays", _c.c_double),
                 ("hit", _c.POINTER(_c.c_char)),
                 ("num_patches", _c.c_uint)]
 
-    def __init__(self, rect, hit):
+    def __init__(self, rect, level, hit):
         """Create a patches object with the given rect and subpatch pattern."""
         yrays, xrays = hit.shape
-        super(Patches, self).__init__(rect, xrays, yrays,
+        super(Patches, self).__init__(rect, xrays, yrays, level,
             hit=hit.ctypes.data_as(_c.POINTER(_c.c_char)), num_patches = 0)
 
     # The following methods try to always keep the quotients
@@ -276,17 +277,15 @@ class BasicRayshooter(_c.Structure):
 
     _fields_ = [("params", _c.POINTER(MagPatternParams)),
                 ("kernel", _c.c_int),
-                ("levels", _c.c_uint),
                 ("refine", _c.c_int),
                 ("refine_final", _c.c_int),
                 ("cancel_flag", _c.c_int)]
 
-    def __init__(self, params, levels):
+    def __init__(self, params):
         if type(params) is not MagPatternParams:
             params = MagPatternParams(*params)
         super(BasicRayshooter, self).__init__(_c.pointer(params),
-                                              KERNEL_BILINEAR,
-                                              levels, 15, 25, False)
+                                              KERNEL_BILINEAR, 15, 25, False)
 
     def cancel(self):
         """Cancel the currently running ray shooting function.
@@ -300,16 +299,16 @@ class BasicRayshooter(_c.Structure):
 
     def start_subpatches(self, magpat, patches, progress=Progress()):
         self.cancel_flag = False
-        _rayshoot_subpatches(self, magpat, patches, self.levels - 1, progress)
+        _rayshoot_subpatches(self, magpat, patches, progress)
 
     def finalise_subpatches(self, magpat, patches):
         _finalise_subpatches(self, magpat, patches)
 
-    def start(self, magpat, rect, xrays, yrays, progress=Progress()):
+    def start(self, magpat, rect, xrays, yrays, levels, progress=Progress()):
         """Start the actual ray shooting.
         """
         self.cancel_flag = False
-        _rayshoot(self, magpat, rect, xrays, yrays, progress)
+        _rayshoot(self, magpat, rect, xrays, yrays, levels, progress)
 
 # ctypes prototypes for the functions in libll.so
 _shoot_single_ray.argtypes = [_c.POINTER(MagPatternParams),
@@ -333,7 +332,6 @@ _get_subpatches.restype = None
 _rayshoot_subpatches.argtypes = [_c.POINTER(BasicRayshooter),
                                  _ndpointer(flags="C_CONTIGUOUS"),
                                  _c.POINTER(Patches),
-                                 _c.c_uint,
                                  _c.POINTER(_c.c_double)]
 _rayshoot_subpatches.restype = None
 
@@ -347,6 +345,7 @@ _rayshoot.argtypes = [_c.POINTER(BasicRayshooter),
                       _c.POINTER(Rect),
                       _c.c_int,
                       _c.c_int,
+                      _c.c_uint,
                       _c.POINTER(_c.c_double)]
 _rayshoot.restype = None
 

@@ -44,7 +44,6 @@ struct ll_rayshooter_t
 {
     struct ll_magpattern_param_t *params;
     enum ll_rayshooting_kernel_t kernel;
-    unsigned levels;
     int refine;
     int refine_final;
     bool cancel;
@@ -52,7 +51,7 @@ struct ll_rayshooter_t
 
 extern void
 ll_init_rayshooter(struct ll_rayshooter_t *rs,
-                   struct ll_magpattern_param_t *params, unsigned levels);
+                   struct ll_magpattern_param_t *params);
 
 extern void
 ll_cancel_rayshooter(struct ll_rayshooter_t *rs);
@@ -69,6 +68,7 @@ struct ll_patches_t
 {
     struct ll_rect_t rect;
     int xrays, yrays;
+    unsigned level;
     double width_per_xrays, height_per_yrays;
     char* hit;
     unsigned num_patches;
@@ -80,8 +80,7 @@ ll_get_subpatches(const struct ll_magpattern_param_t *params,
 
 extern void
 ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
-                       const struct ll_patches_t *patches,
-                       unsigned level, double *progress);
+                       const struct ll_patches_t *patches, double *progress);
 
 extern void
 ll_finalise_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
@@ -90,7 +89,7 @@ ll_finalise_subpatches(const struct ll_rayshooter_t *rs, void *magpat,
 extern void
 ll_rayshoot(const struct ll_rayshooter_t *rs, void *magpat,
             const struct ll_rect_t *rect, int xrays, int yrays,
-            double *progress);
+            unsigned levels, double *progress);
 
 extern void
 ll_ray_hit_pattern(const struct ll_magpattern_param_t *params, char *buf,

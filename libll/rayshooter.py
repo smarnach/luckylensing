@@ -10,7 +10,7 @@ import luckylensing as ll
 
 class Rayshooter(ll.BasicRayshooter):
     def __init__(self, params):
-        super(Rayshooter, self).__init__(params, 3)
+        super(Rayshooter, self).__init__(params)
         self.density = 100
         self.count = None
         self.progress = []
@@ -62,9 +62,9 @@ class Rayshooter(ll.BasicRayshooter):
     def start(self, num_threads=2):
         shape = self.params[0].ypixels, self.params[0].xpixels
         self.count = numpy.zeros(shape, numpy.float32)
-        rect, xrays, yrays, self.levels = self.get_shooting_params()
+        rect, xrays, yrays, levels = self.get_shooting_params()
         print xrays, yrays
-        print self.levels
+        print levels
 
         start_time = time()
         hit = numpy.empty((yrays, xrays), numpy.uint8)
@@ -75,7 +75,7 @@ class Rayshooter(ll.BasicRayshooter):
             subrect = ll.Rect(rect.x, y_values[j], rect.width,
                               y_values[j+1] - y_values[j])
             subhit = hit[y_indices[j]:y_indices[j+1]]
-            subpatches.append(ll.Patches(subrect, subhit))
+            subpatches.append(ll.Patches(subrect, levels - 1, subhit))
         threads = [threading.Thread(target=self.get_subpatches,
                                     args=(subpatches[j],))
                    for j in range(1, num_threads)]
@@ -84,7 +84,7 @@ class Rayshooter(ll.BasicRayshooter):
         self.get_subpatches(subpatches[0])
         counts = [self.count] + [numpy.zeros_like(self.count)
                                  for j in range(num_threads)]
-        patches = ll.Patches(rect, hit)
+        patches = ll.Patches(rect, levels - 1, hit)
         for t in threads:
             t.join()
         patches.num_patches = sum(p.num_patches for p in subpatches)
@@ -120,7 +120,7 @@ class Rayshooter(ll.BasicRayshooter):
             while True:
                 rect, i0, i1, j0, j1 = queue.get(False)
                 subhit = numpy.ascontiguousarray(hit[j0:j1, i0:i1])
-                subpatches = ll.Patches(rect, subhit)
+                subpatches = ll.Patches(rect, patches.level, subhit)
                 subpatches.num_patches = patches.num_patches
                 self.start_subpatches(count, subpatches, self.progress[index])
         except Empty:
