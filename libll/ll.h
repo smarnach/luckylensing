@@ -106,7 +106,7 @@ ll_render_magpattern_greyscale(const float *magpat, char *buf, unsigned size);
 extern void
 ll_render_magpattern_gradient(const float *magpat, char *buf, unsigned size,
                               const unsigned char colors[][3],
-                              const unsigned char *steps);
+                              const unsigned *steps);
 
 extern void
 ll_light_curve(const struct ll_magpattern_param_t *params, const float *magpat,

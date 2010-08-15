@@ -396,7 +396,7 @@ _render_magpattern_gradient.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGU
                                         _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
                                         _c.c_uint,
                                         _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
-                                        _ndpointer(_np.uint8, flags="C_CONTIGUOUS")]
+                                        _ndpointer(_np.uint, flags="C_CONTIGUOUS")]
 _render_magpattern_gradient.restype = None
 
 def render_magpattern_gradient(magpat, colors, steps, buf = None):
@@ -421,7 +421,7 @@ def render_magpattern_gradient(magpat, colors, steps, buf = None):
     assert len(colors) - 1 == len(steps)
     assert len(colors[0]) == 3
     colors_arr = _np.array(colors, dtype=_np.uint8)
-    steps_arr = _np.array(list(steps) + [0], dtype=_np.uint8)
+    steps_arr = _np.array(list(steps) + [0], dtype=_np.uint)
     _render_magpattern_gradient(magpat, buf, magpat.size, colors_arr, steps_arr)
     return buf
 

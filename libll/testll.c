@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
                                         {0, 255, 255}, {0, 255, 0}, {255, 255, 0},
                                         {255, 0, 0}, {255, 0, 255},
                                         {255, 255, 255}};
-    const unsigned char steps[9] = {128, 255, 255, 255, 255, 255, 255, 255, 0};
+    const unsigned steps[9] = {128, 255, 255, 255, 255, 255, 255, 255, 0};
 
     for (rs.kernel = LL_KERNEL_BILINEAR;
          rs.kernel <= LL_KERNEL_TRIANGULATED; ++rs.kernel)

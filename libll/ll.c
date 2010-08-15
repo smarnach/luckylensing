@@ -598,7 +598,7 @@ ll_render_magpattern_greyscale(const float *magpat, char *buf, unsigned size)
 extern void
 ll_render_magpattern_gradient(const float *magpat, char *buf, unsigned size,
                               const unsigned char colors[][3],
-                              const unsigned char *steps)
+                              const unsigned *steps)
 {
     unsigned total_colors = 1;
     for (int segment = 0; steps[segment]; ++segment)
@@ -614,7 +614,7 @@ ll_render_magpattern_gradient(const float *magpat, char *buf, unsigned size,
         diff[0] = colors[segment+1][0] - colors[segment][0];
         diff[1] = colors[segment+1][1] - colors[segment][1];
         diff[2] = colors[segment+1][2] - colors[segment][2];
-        for (int i = 1; i <= steps[segment]; ++i)
+        for (unsigned i = 1; i <= steps[segment]; ++i)
         {
             all_colors[pos][0] = colors[segment][0] + i*diff[0]/steps[segment];
             all_colors[pos][1] = colors[segment][1] + i*diff[1]/steps[segment];
