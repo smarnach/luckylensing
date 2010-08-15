@@ -175,12 +175,12 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
             min = 2;
         if (tri_vertices[2][0] > tri_vertices[max][0])
             max = 2;
-        int mag_x0 = tri_vertices[min][0];
+        int mag_x0 = (int)(tri_vertices[min][0] + 1.0) - 1;
         if (mag_x0 >= (int)params->xpixels)
             continue;
-        if (mag_x0 < 0)
+        if (mag_x0 < -1)
         {
-            mag_x0 = 0;
+            mag_x0 = -1;
             single_pixel_optimization = false;
         }
         if (tri_vertices[max][0] < 0.0)
@@ -246,140 +246,192 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
             magpat[mag_y0*params->xpixels + mag_x0] += pixel_area;
             continue;
         }
+        double vertices[11][2];
+        for (int k = 0, lastk = 2; k < 3; lastk = k, ++k)
+        {
+            vertices[k][0] = tri_vertices[k][0];
+            vertices[k][1] = tri_vertices[k][1];
+        }
         for (int y = mag_y0; y <= mag_y1; ++y)
         {
-            double yi0 = y;
-            double yi1 = y + 1;
+            int vertex_indices[5][2];
+            vertex_indices[0][0] = 2; vertex_indices[0][1] = 0;
+            vertex_indices[1][0] = 0; vertex_indices[1][1] = 1;
+            vertex_indices[2][0] = 1; vertex_indices[2][1] = 2;
+            int valid_edges = 0x07;
+            int num_edges = 3;
 
-            for (int x = mag_x0; x <= mag_x1; ++x)
+            for (int k = 0; k < 2; ++k)
             {
-                double xi0 = x;
-                double xi1 = x + 1;
-
-                int num_edges = 4;
-                bool valid_edges[7] =
-                    {true, true, true, true, false, false, false};
-                bool valid_vertices[7] =
-                    {true, true, true, true, false, false, false};
-                struct Line {
-                    double normal[2];
-                    double dist;
-                } edges[7];
-                edges[0].normal[0] = -1.0; edges[0].normal[1] =  0.0; edges[0].dist = xi0;
-                edges[1].normal[0] =  1.0; edges[1].normal[1] =  0.0; edges[1].dist = -xi1;
-                edges[2].normal[0] =  0.0; edges[2].normal[1] = -1.0; edges[2].dist = yi0;
-                edges[3].normal[0] =  0.0; edges[3].normal[1] =  1.0; edges[3].dist = -yi1;
-                double vertices[7][2];
-                vertices[0][0] = xi0; vertices[0][1] = yi0;
-                vertices[1][0] = xi1; vertices[1][1] = yi0;
-                vertices[2][0] = xi0; vertices[2][1] = yi1;
-                vertices[3][0] = xi1; vertices[3][1] = yi1;
-                int vertex_indices[7][2];
-                vertex_indices[0][0] = 2; vertex_indices[0][1] = 0;
-                vertex_indices[1][0] = 1; vertex_indices[1][1] = 3;
-                vertex_indices[2][0] = 0; vertex_indices[2][1] = 1;
-                vertex_indices[3][0] = 3; vertex_indices[3][1] = 2;
-
-                int k = 0;
-                for (int lastk = 2; k < 3; lastk = k, ++k)
+                double yi = y + k;
+                int edge_idx = 3 + k;
+                int vertex_idx = 3 + 2*k;
+                double sgn = 1.0;
+                if (k)
+                    sgn = -1.0;
+                for (int v0 = 2, v1 = 0; v1 < 3; v0 = v1, ++v1)
                 {
-                    struct Line l;
-                    l.normal[0] = tri_vertices[k][1] - tri_vertices[lastk][1];
-                    l.normal[1] = tri_vertices[lastk][0] - tri_vertices[k][0];
-                    l.dist = (-l.normal[0] * tri_vertices[k][0]
-                              -l.normal[1] * tri_vertices[k][1]);
-
-                    double vertex_values[7];
-                    int min_invalid_vertex = 7;
-                    int min_invalid_edge = 7;
-                    for(int i = 0; i < 7; ++i)
+                    double a0 = sgn * (yi - vertices[v0][1]);
+                    double a1 = sgn * (yi - vertices[v1][1]);
+                    if (a0 < 0.0)
                     {
-                        if (valid_vertices[i])
-                            vertex_values[i] = l.normal[0]*vertices[i][0] +
-                                l.normal[1]*vertices[i][1] + l.dist;
-                        else
-                            if (i < min_invalid_vertex)
-                                min_invalid_vertex = i;
-                        if (!valid_edges[i] && i < min_invalid_edge)
-                            min_invalid_edge = i;
-                    }
-
-                    int num_cuts = 0;
-                    double new_vertex[2][2];
-                    for(int i = 0; i < 7; ++i)
-                    {
-                        if (!valid_edges[i])
-                            continue;
-                        int v0 = vertex_indices[i][0];
-                        int v1 = vertex_indices[i][1];
-                        double a0 = vertex_values[v0];
-                        double a1 = vertex_values[v1];
-                        if (a0 < 0.0)
+                        if (a1 >= 0.0)
                         {
-                            if (a1 >= 0.0)
-                            {
-                                double t = a0/(a0-a1);
-                                new_vertex[0][0] = vertices[v0][0] +
-                                    t*(vertices[v1][0] - vertices[v0][0]);
-                                new_vertex[0][1] = vertices[v0][1] +
-                                    t*(vertices[v1][1] - vertices[v0][1]);
-                                vertex_indices[min_invalid_edge][0] = v1;
-                                ++num_cuts;
-                            }
+                            double t = a0 / (a0-a1);
+                            vertices[vertex_idx][0] = vertices[v0][0] +
+                                t*(vertices[v1][0] - vertices[v0][0]);
+                            vertices[vertex_idx][1] = yi;
+                            vertex_indices[v1][1] = vertex_idx;
+                            vertex_indices[edge_idx][0] = vertex_idx;
+                            valid_edges |= 1 << edge_idx;
+                            ++num_edges;
+                        }
+                    } else {
+                        if (a1 < 0.0)
+                        {
+                            double t = a0 / (a0-a1);
+                            vertices[vertex_idx+1][0] = vertices[v0][0] +
+                                t*(vertices[v1][0] - vertices[v0][0]);
+                            vertices[vertex_idx+1][1] = yi;
+                            vertex_indices[v1][0] = vertex_idx+1;
+                            vertex_indices[edge_idx][1] = vertex_idx+1;
                         } else {
-                            if (a1 < 0.0)
-                            {
-                                double t = a0/(a0-a1);
-                                new_vertex[1][0] = vertices[v0][0] +
-                                    t*(vertices[v1][0] - vertices[v0][0]);
-                                new_vertex[1][1] = vertices[v0][1] +
-                                    t*(vertices[v1][1] - vertices[v0][1]);
-                                vertex_indices[i][0] = min_invalid_vertex;
-                                vertex_indices[min_invalid_edge][1] = min_invalid_vertex;
-                                valid_vertices[min_invalid_vertex] = true;
-                                ++num_cuts;
-                            } else {
-                                valid_edges[i] = false;
-                                --num_edges;
-                                valid_vertices[v1] = false;
-                                if (num_edges <= 1)
-                                    break;
-                            }
+                            valid_edges &= ~(1 << v1);
+                            --num_edges;
                         }
                     }
-                    if (num_edges <= 1)
-                        break;
-                    if (num_cuts)
+                }
+            }
+
+            bool hit = false;
+            int actions = 0;
+            for (int x = mag_x0; x <= mag_x1; ++x)
+            {
+                int vertex_indices2[7][2];
+                for (int i = 0; i < 5; ++i)
+                {
+                    vertex_indices2[i][0] = vertex_indices[i][0];
+                    vertex_indices2[i][1] = vertex_indices[i][1];
+                }
+                int valid_edges2 = valid_edges;
+                int num_edges2 = num_edges;
+
+                if (actions)
+                {
+                    int idx_offset = (x&1) << 1;
+                    for (int i = 0; i < 5; ++i)
                     {
-                        struct Line *new_l = edges + min_invalid_edge;
-                        new_l->normal[0] = l.normal[0];
-                        new_l->normal[1] = l.normal[1];
-                        new_l->dist = l.dist;
-                        vertices[vertex_indices[min_invalid_edge][0]][0] = new_vertex[0][0];
-                        vertices[vertex_indices[min_invalid_edge][0]][1] = new_vertex[0][1];
-                        vertices[vertex_indices[min_invalid_edge][1]][0] = new_vertex[1][0];
-                        vertices[vertex_indices[min_invalid_edge][1]][1] = new_vertex[1][1];
-                        valid_edges[min_invalid_edge] = true;
-                        ++num_edges;
+                        switch (actions>>(i<<1) & 3)
+                        {
+                        case 1:
+                        {
+                            int vertex_idx = 7 + idx_offset;
+                            vertex_indices2[i][1] = vertex_idx;
+                            vertex_indices2[5][0] = vertex_idx;
+                            valid_edges2 |= 1 << 5;
+                            ++num_edges2;
+                            break;
+                        }
+                        case 2:
+                        {
+                            int vertex_idx = 8 + idx_offset;
+                            vertex_indices2[i][0] = vertex_idx;
+                            vertex_indices2[5][1] = vertex_idx;
+                            break;
+                        }
+                        case 3:
+                        {
+                            valid_edges2 &= ~(1 << i);
+                            --num_edges2;
+                            valid_edges &= ~(1 << i);
+                            --num_edges;
+                            break;
+                        }
+                        }
                     }
                 }
-                if (k == 3)
+                double xi = x + 1;
+                int idx_offset = ((x&1) ^ 1) << 1;
+                actions = 0;
+                for(int i = 0; i < 5; ++i)
+                {
+                    if (!(valid_edges2 & 1<<i))
+                        continue;
+                    int v0 = vertex_indices2[i][0];
+                    int v1 = vertex_indices2[i][1];
+                    double a0 = vertices[v0][0] - xi;
+                    double a1 = vertices[v1][0] - xi;
+                    if (a0 < 0.0)
+                    {
+                        if (a1 >= 0.0)
+                        {
+                            actions |= 2 << (i<<1);
+                            int vertex_idx = 8 + idx_offset;
+                            double t = a0 / (a0-a1);
+                            vertices[vertex_idx][0] = xi;
+                            vertices[vertex_idx][1] = vertices[v0][1] +
+                                t*(vertices[v1][1] - vertices[v0][1]);
+                            vertex_indices2[i][1] = vertex_idx;
+                            vertex_indices2[6][0] = vertex_idx;
+                            valid_edges2 |= 1 << 6;
+                            ++num_edges2;
+                        } else {
+                            actions |= 3 << (i<<1);
+                        }
+                    } else {
+                        if (a1 < 0.0)
+                        {
+                            actions |= 1 << (i<<1);
+                            int vertex_idx = 7 + idx_offset;
+                            double t = a0 / (a0-a1);
+                            vertices[vertex_idx][0] = xi;
+                            vertices[vertex_idx][1] = vertices[v0][1] +
+                                t*(vertices[v1][1] - vertices[v0][1]);
+                            vertex_indices2[i][0] = vertex_idx;
+                            vertex_indices2[6][1] = vertex_idx;
+                        } else {
+                            valid_edges2 &= ~(1 << i);
+                            --num_edges2;
+                        }
+                    }
+                }
+                if (num_edges2 <= 1)
+                    if (hit)
+                        break;
+                    else
+                    {
+                        double min_x_d = mag_x1;
+                        for (int i = 0; i < 5; ++i)
+                        {
+                            if (!(valid_edges & 1<<i))
+                                continue;
+                            for (int k = 0; k < 2; ++k)
+                            {
+                                double tmp_x = vertices[vertex_indices[i][k]][0];
+                                if (tmp_x < min_x_d)
+                                    min_x_d = tmp_x;
+                            }
+                        }
+                        int min_x = (int)min_x_d - 1;
+                        if (x < min_x)
+                            x = min_x;
+                        continue;
+                    }
+                if (num_edges2 >= 3 && x >= 0)
                 {
                     double area = 0.0;
-                    int j = 0;
-                    while (!valid_vertices[j])
-                        ++j;
-                    double x0 = vertices[j][0];
-                    double y0 = vertices[j][1];
+                    double x0 = vertices[0][0];
+                    double y0 = vertices[0][1];
                     for(int i = 0; i < 7; ++i)
-                        if (valid_edges[i])
+                        if (valid_edges2 & 1<<i)
                         {
-                            int i0 = vertex_indices[i][0];
-                            int i1 = vertex_indices[i][1];
-                            area +=  (vertices[i0][0]-x0) * (vertices[i1][1]-y0)
+                            int i0 = vertex_indices2[i][0];
+                            int i1 = vertex_indices2[i][1];
+                            area += (vertices[i0][0]-x0) * (vertices[i1][1]-y0)
                                 - (vertices[i0][1]-y0) * (vertices[i1][0]-x0);
                         }
                     magpat[y*params->xpixels + x] += fabs(area) * magnification;
+                    hit = true;
                 }
             }
         }
