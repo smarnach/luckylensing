@@ -396,6 +396,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
                     }
                 }
                 if (num_edges2 <= 1)
+                {
                     if (hit)
                         break;
                     else
@@ -417,6 +418,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
                             x = min_x;
                         continue;
                     }
+                }
                 if (num_edges2 >= 3 && x >= 0)
                 {
                     double area = 0.0;
