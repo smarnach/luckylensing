@@ -146,7 +146,7 @@ static void __attribute__ ((hot))
 _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *magpat,
                           const struct ll_rect_t *rect)
 {
-    double tri_vertices[3][2];
+    double tri_vertices[4][2];
     double x0 = rect->x;
     double y0 = rect->y;
     double x1 = rect->x + rect->width;
@@ -154,6 +154,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
     ll_shoot_single_ray(params, x0, y0, tri_vertices[0], tri_vertices[0]+1);
     ll_shoot_single_ray(params, x0, y1, tri_vertices[1], tri_vertices[1]+1);
     ll_shoot_single_ray(params, x1, y0, tri_vertices[2], tri_vertices[2]+1);
+    ll_shoot_single_ray(params, x1, y1, tri_vertices[3], tri_vertices[3]+1);
 
     for (int triangle = 0; triangle < 2; ++triangle)
     {
@@ -161,7 +162,8 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
         {
             tri_vertices[0][0] = tri_vertices[2][0];
             tri_vertices[0][1] = tri_vertices[2][1];
-            ll_shoot_single_ray(params, x1, y1, tri_vertices[2], tri_vertices[2]+1);
+            tri_vertices[2][0] = tri_vertices[3][0];
+            tri_vertices[2][1] = tri_vertices[3][1];
         }
 
         // Get minimum and maximum x coordinate in the magpattern
