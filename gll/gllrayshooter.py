@@ -87,6 +87,7 @@ class GllRayshooter(rayshooter.Rayshooter):
         self.builder.get_object("kernel_bilinear").set_active(True)
 
     def set_params_from_ui(self):
+        self.imageview.grab_focus()
         params = self.params[0]
         lenses = []
         for l in self.lens_list:
