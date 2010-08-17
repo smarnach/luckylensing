@@ -76,7 +76,7 @@ struct ll_patches_t
 
 extern void
 ll_get_subpatches(const struct ll_magpattern_param_t *params,
-                  struct ll_patches_t *patches);
+                  struct ll_patches_t *patches, double *mag_coords);
 
 extern void
 ll_rayshoot_subpatches(const struct ll_rayshooter_t *rs, void *magpat,

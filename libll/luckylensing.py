@@ -298,7 +298,7 @@ class BasicRayshooter(_c.Structure):
         self.cancel_flag = True
 
     def get_subpatches(self, patches):
-        _get_subpatches(self.params, patches)
+        _get_subpatches(self.params, patches, None)
 
     def start_subpatches(self, magpat, patches, progress=Progress()):
         _rayshoot_subpatches(self, magpat, patches, progress)
@@ -328,7 +328,8 @@ _rayshoot_rect.argtypes = [_c.POINTER(MagPatternParams),
 _rayshoot_rect.restype = None
 
 _get_subpatches.argtypes = [_c.POINTER(MagPatternParams),
-                            _c.POINTER(Patches)]
+                            _c.POINTER(Patches),
+                            _c.POINTER(_c.c_double)]
 _get_subpatches.restype = None
 
 _rayshoot_subpatches.argtypes = [_c.POINTER(BasicRayshooter),
