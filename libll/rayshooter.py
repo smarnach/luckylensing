@@ -49,7 +49,7 @@ class Rayshooter(ll.BasicRayshooter):
         rays = sqrt(self.density) / self.refine_final
         xraysf = rays * params.xpixels * rect.width / params.region.width
         yraysf = rays * params.ypixels * rect.height / params.region.height
-        levels = max(0, int(log(min(xraysf, yraysf)/75)/log(self.refine)))
+        levels = max(1, int(log(min(xraysf, yraysf)/75)/log(self.refine)))
         xraysf /= self.refine**levels
         yraysf /= self.refine**levels
         xrays = int(ceil(xraysf))
