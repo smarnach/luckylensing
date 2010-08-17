@@ -9,7 +9,7 @@ import numpy
 import luckylensing as ll
 
 class Rayshooter(ll.BasicRayshooter):
-    def __init__(self, params):
+    def __init__(self, params=None):
         super(Rayshooter, self).__init__(params)
         self.density = 100
         self.count = None

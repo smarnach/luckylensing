@@ -282,7 +282,9 @@ class BasicRayshooter(_c.Structure):
                 ("refine_final", _c.c_int),
                 ("cancel_flag", _c.c_int)]
 
-    def __init__(self, params):
+    def __init__(self, params=None):
+        if params is None:
+            params = MagPatternParams()
         if type(params) is not MagPatternParams:
             params = MagPatternParams(*params)
         super(BasicRayshooter, self).__init__(_c.pointer(params),
