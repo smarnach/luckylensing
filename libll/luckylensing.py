@@ -241,7 +241,7 @@ class MagPatternParams(_c.Structure):
         """
         mag_x = _c.c_double()
         mag_y = _c.c_double()
-        b = bool(_shoot_single_ray(self, x, y, mag_x, mag_y))
+        b = _shoot_single_ray(self, x, y, mag_x, mag_y) == 0x0F
         return mag_x.value, mag_y.value, b
 
     def rayshoot_rect(self, magpat, rect, xrays, yrays):

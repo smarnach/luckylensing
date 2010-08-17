@@ -56,7 +56,7 @@ ll_init_rayshooter(struct ll_rayshooter_t *rs,
 extern void
 ll_cancel_rayshooter(struct ll_rayshooter_t *rs);
 
-extern bool
+extern int
 ll_shoot_single_ray(const struct ll_magpattern_param_t *params,
                     double x, double y, double *mag_x, double *mag_y);
 

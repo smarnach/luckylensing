@@ -35,7 +35,7 @@ ll_cancel_rayshooter(struct ll_rayshooter_t *rs)
     rs->cancel = true;
 }
 
-extern bool __attribute__ ((hot))
+extern int __attribute__ ((hot))
 ll_shoot_single_ray(const struct ll_magpattern_param_t *params,
                     double x, double y, double *mag_x, double *mag_y)
 {
@@ -52,8 +52,8 @@ ll_shoot_single_ray(const struct ll_magpattern_param_t *params,
     }
     *mag_x = (x_deflected - params->region.x) * params->pixels_per_width;
     *mag_y = (y_deflected - params->region.y) * params->pixels_per_height;
-    return (0 <= *mag_x && *mag_x < params->xpixels &&
-            0 <= *mag_y && *mag_y < params->ypixels);
+    return (((0 <= *mag_x)     ) | ((*mag_x < params->xpixels) << 1) |
+            ((0 <= *mag_y) << 2) | ((*mag_y < params->ypixels) << 3));
 }
 
 extern void
@@ -68,7 +68,7 @@ ll_rayshoot_rect(const struct ll_magpattern_param_t *params, int *magpat,
             if (ll_shoot_single_ray(params,
                                     rect->x + i*width_per_xrays,
                                     rect->y + j*height_per_yrays,
-                                    &mag_x, &mag_y))
+                                    &mag_x, &mag_y) == 0x0F)
                 ++magpat[(int)mag_y*params->xpixels + (int)mag_x];
 }
 
@@ -81,10 +81,10 @@ _ll_rayshoot_bilinear(const struct ll_magpattern_param_t *params, int *magpat,
     double y0 = rect->y;
     double x1 = rect->x + rect->width;
     double y1 = rect->y + rect->height;
-    bool ul = ll_shoot_single_ray(params, x0, y0, &ul_x, &ul_y);
-    bool ur = ll_shoot_single_ray(params, x1, y0, &ur_x, &ur_y);
-    bool ll = ll_shoot_single_ray(params, x0, y1, &ll_x, &ll_y);
-    bool lr = ll_shoot_single_ray(params, x1, y1, &lr_x, &lr_y);
+    int ul = ll_shoot_single_ray(params, x0, y0, &ul_x, &ul_y);
+    int ur = ll_shoot_single_ray(params, x1, y0, &ur_x, &ur_y);
+    int ll = ll_shoot_single_ray(params, x0, y1, &ll_x, &ll_y);
+    int lr = ll_shoot_single_ray(params, x1, y1, &lr_x, &lr_y);
     double inv_refine = 1.0/refine;
     double ldown_x = (ll_x - ul_x) * inv_refine;
     double ldown_y = (ll_y - ul_y) * inv_refine;
@@ -96,7 +96,7 @@ _ll_rayshoot_bilinear(const struct ll_magpattern_param_t *params, int *magpat,
     double update_y = (rdown_y - ldown_y) * inv_refine;
     double sx = ul_x;
     double sy = ul_y;
-    if (ul && ur && ll && lr)
+    if ((ul & ur & ll & lr) == 0x0F)
         for (int j = 0; j < refine; ++j)
         {
             double x = sx;
@@ -488,12 +488,9 @@ ll_get_subpatches(const struct ll_magpattern_param_t *params,
         for (int i = -1; i <= xrays+1; ++i, ++m)
         {
             double mag_x, mag_y;
-            ll_shoot_single_ray(params,
-                                patches->rect.x + i*patches->width_per_xrays,
-                                patches->rect.y + j*patches->height_per_yrays,
-                                &mag_x, &mag_y);
-            hit[m] = (((0 <= mag_x)     ) | ((mag_x < xpixels) << 1) |
-                      ((0 <= mag_y) << 2) | ((mag_y < ypixels) << 3));
+            hit[m] = ll_shoot_single_ray(
+                params, patches->rect.x + i*patches->width_per_xrays,
+                patches->rect.y + j*patches->height_per_yrays, &mag_x, &mag_y);
         }
     patches->num_patches = 0;
     char* hit_patches = patches->hit;
@@ -504,7 +501,7 @@ ll_get_subpatches(const struct ll_magpattern_param_t *params,
                               hit[m-1] | hit[m] | hit[m+1] | hit[m+2] |
                               hit[m+xrays+2] | hit[m+xrays+3] |
                               hit[m+xrays+4] | hit[m+xrays+5] |
-                              hit[m+2*xrays+6] | hit[m+2*xrays+7]) == 15;
+                              hit[m+2*xrays+6] | hit[m+2*xrays+7]) == 0x0F;
             if (hit_patches[n])
                 ++patches->num_patches;
         }
@@ -590,10 +587,9 @@ ll_ray_hit_pattern(const struct ll_magpattern_param_t *params, char *buf,
     for (unsigned j = 0; j < params->ypixels; ++j)
         for (unsigned i = 0; i < params->xpixels; ++i)
             buf[j*params->xpixels + i] = 255 *
-                ll_shoot_single_ray(params,
-                                    rect->x + i*width_per_xrays,
-                                    rect->y + j*height_per_yrays,
-                                    &mag_x, &mag_y);
+                (ll_shoot_single_ray(
+                    params, rect->x + i*width_per_xrays,
+                    rect->y + j*height_per_yrays, &mag_x, &mag_y) == 0x0F);
 }
 
 extern void
