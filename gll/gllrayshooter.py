@@ -14,6 +14,7 @@ class GllRayshooter(rayshooter.Rayshooter):
         params = ll.MagPatternParams()
         super(GllRayshooter, self).__init__(params)
         self.imageview = gtkimageview.ImageView()
+        self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
         self.scrollwin = gtkimageview.ImageScrollWin(self.imageview)
         self.scrollwin.show_all()
         self.dragger = self.imageview.get_tool()
