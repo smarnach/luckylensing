@@ -84,8 +84,8 @@ class GllRayshooter(rayshooter.Rayshooter):
         self.builder.get_object("region_y0").set_value(-.3)
         self.builder.get_object("region_x1").set_value( .5)
         self.builder.get_object("region_y1").set_value( .3)
-        self.builder.get_object("density").set_value(50)
-        self.builder.get_object("kernel_bilinear").set_active(True)
+        self.builder.get_object("density").set_value(100)
+        self.builder.get_object("kernel_triangulated").set_active(True)
 
     def set_params_from_ui(self):
         self.imageview.grab_focus()
