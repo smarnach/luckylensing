@@ -1,7 +1,5 @@
 #include "ll.h"
-#include <values.h>
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 extern void
@@ -74,7 +72,7 @@ ll_rayshoot_rect(const struct ll_magpattern_param_t *params, int *magpat,
 
 static void __attribute__ ((hot))
 _ll_rayshoot_bilinear(const struct ll_magpattern_param_t *params, int *magpat,
-                      double coords[4][2], char hit, int refine)
+                      double coords[4][2], bool hit_all, int refine)
 {
     double inv_refine = 1.0/refine;
     double ldown_x = (coords[2][0] - coords[0][0]) * inv_refine;
@@ -87,7 +85,7 @@ _ll_rayshoot_bilinear(const struct ll_magpattern_param_t *params, int *magpat,
     double update_y = (rdown_y - ldown_y) * inv_refine;
     double sx = coords[0][0];
     double sy = coords[0][1];
-    if (hit & 2)
+    if (hit_all)
         for (int j = 0; j < refine; ++j)
         {
             double x = sx;
@@ -423,90 +421,100 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
 }
 
 static void
+_ll_rayshoot_level1(const struct ll_rayshooter_t *rs, void *magpat,
+                    const struct ll_rect_t *rect, int xrays, int yrays)
+{
+    double *mag_coords = malloc((xrays+1)*(yrays+1) * 2*sizeof(double));
+    int *hit = malloc((xrays+1)*(yrays+1) * sizeof(int));
+    double width_per_xrays = rect->width / xrays;
+    double height_per_yrays = rect->height / yrays;
+    for (int j = 0, m = 0; j <= yrays; ++j)
+        for (int i = 0; i <= xrays; ++i, ++m)
+            hit[m] = ll_shoot_single_ray(rs->params,
+                                         rect->x + i*width_per_xrays,
+                                         rect->y + j*height_per_yrays,
+                                         mag_coords + (m<<1),
+                                         mag_coords + (m<<1) + 1);
+    int xrays2 = 2*xrays + 2;
+    double rect_area = width_per_xrays * height_per_yrays;
+    for (int j = 0, m = 0; j < yrays; ++j, ++m)
+        for (int i = 0; i < xrays; ++i, ++m)
+            if ((hit[m] | hit[m+1] | hit[m+xrays+1] | hit[m+xrays+2]) == 0x0F)
+            {
+                int n = m << 1;
+                double local_coords[4][2] =
+                    {{mag_coords[n], mag_coords[n+1]},
+                     {mag_coords[n+2], mag_coords[n+3]},
+                     {mag_coords[n+xrays2], mag_coords[n+xrays2+1]},
+                     {mag_coords[n+xrays2+2], mag_coords[n+xrays2+3]}};
+                switch (rs->kernel)
+                {
+                case LL_KERNEL_SIMPLE:
+                {
+                    double x = rect->x + i*width_per_xrays;
+                    double y = rect->y + j*height_per_yrays;
+                    struct ll_rect_t subrect
+                        = {x, y, width_per_xrays, height_per_yrays};
+                    ll_rayshoot_rect(rs->params, (int*)magpat, &subrect,
+                                     rs->refine_final, rs->refine_final);
+                    break;
+                }
+                case LL_KERNEL_BILINEAR:
+                {
+                    bool hit_all = (hit[m] & hit[m+1] & hit[m+xrays+1] &
+                                    hit[m+xrays+2]) == 0x0F;
+                    _ll_rayshoot_bilinear(rs->params, (int*)magpat,
+                                          local_coords, hit_all,
+                                          rs->refine_final);
+                    break;
+                }
+                case LL_KERNEL_TRIANGULATED:
+                    _ll_rayshoot_triangulated(rs->params, (float*)magpat,
+                                              rect_area, local_coords);
+                    break;
+                }
+            }
+    free(hit);
+    free(mag_coords);
+}
+
+static void
 _ll_rayshoot_recursively(const struct ll_rayshooter_t *rs, void *magpat,
                          const struct ll_rect_t *rect, int xrays, int yrays,
                          unsigned level, double *progress)
 {
     if (rs->cancel)
         return;
-    struct ll_patches_t patches =
-        { *rect, xrays, yrays, level, rect->width/xrays, rect->height/yrays,
-          .hit = malloc(xrays*yrays * sizeof(char)), .num_patches = 0};
     if (level > 1)
     {
-        ll_get_subpatches(rs->params, &patches, 0);
+        struct ll_patches_t patches =
+            { *rect, xrays, yrays, level, rect->width/xrays, rect->height/yrays,
+              .hit = malloc(xrays*yrays * sizeof(char)), .num_patches = 0};
+        ll_get_subpatches(rs->params, &patches);
         ll_rayshoot_subpatches(rs, magpat, &patches, progress);
+        free(patches.hit);
     }
     else
-    {
-        double *mag_coords = malloc((xrays+3)*(yrays+3) * 2*sizeof(double));
-        ll_get_subpatches(rs->params, &patches, mag_coords);
-        for (int j = 0, m = 2*xrays+8, n = 0; j < yrays; ++j, m += 6)
-            for (int i = 0; i < xrays; ++i, m += 2, ++n)
-                if (patches.hit[n])
-                {
-                    double local_coords[4][2] =
-                        {{mag_coords[m], mag_coords[m+1]},
-                         {mag_coords[m+2], mag_coords[m+3]},
-                         {mag_coords[m+2*xrays+6], mag_coords[m+2*xrays+7]},
-                         {mag_coords[m+2*xrays+8], mag_coords[m+2*xrays+9]}};
-                    switch (rs->kernel)
-                    {
-                    case LL_KERNEL_SIMPLE:
-                    {
-                        double x = rect->x + i*patches.width_per_xrays;
-                        double y = rect->y + j*patches.height_per_yrays;
-                        struct ll_rect_t subrect
-                            = {x, y, patches.width_per_xrays,
-                               patches.height_per_yrays};
-                        ll_rayshoot_rect(rs->params, (int*)magpat, &subrect,
-                                         rs->refine_final, rs->refine_final);
-                        break;
-                    }
-                    case LL_KERNEL_BILINEAR:
-                        _ll_rayshoot_bilinear(rs->params, (int*)magpat,
-                                              local_coords, patches.hit[n],
-                                              rs->refine_final);
-                        break;
-                    case LL_KERNEL_TRIANGULATED:
-                    {
-                        double rect_area = patches.width_per_xrays *
-                            patches.height_per_yrays;
-                        _ll_rayshoot_triangulated(rs->params, (float*)magpat,
-                                                  rect_area, local_coords);
-                        break;
-                    }
-                    }
-                }
-        free(mag_coords);
-    }
-    free(patches.hit);
+        _ll_rayshoot_level1(rs, magpat, rect, xrays, yrays);
 }
 
 extern void
 ll_get_subpatches(const struct ll_magpattern_param_t *params,
-                  struct ll_patches_t *patches, double *mag_coords)
+                  struct ll_patches_t *patches)
 {
     int xrays = patches->xrays;
     int yrays = patches->yrays;
     int *hit = malloc((xrays+3)*(yrays+3) * sizeof(int));
     for (int j = -1, m = 0; j <= yrays+1; ++j)
         for (int i = -1; i <= xrays+1; ++i, ++m)
-            if (mag_coords)
-                hit[m] = ll_shoot_single_ray(
-                    params,
-                    patches->rect.x + i*patches->width_per_xrays,
-                    patches->rect.y + j*patches->height_per_yrays,
-                    mag_coords + (m<<1), mag_coords + (m<<1) + 1);
-            else
-            {
-                double mag_x, mag_y;
-                hit[m] = ll_shoot_single_ray(
-                    params,
-                    patches->rect.x + i*patches->width_per_xrays,
-                    patches->rect.y + j*patches->height_per_yrays,
-                    &mag_x, &mag_y);
-            }
+        {
+            double mag_x, mag_y;
+            hit[m] = ll_shoot_single_ray(
+                params,
+                patches->rect.x + i*patches->width_per_xrays,
+                patches->rect.y + j*patches->height_per_yrays,
+                &mag_x, &mag_y);
+        }
     patches->num_patches = 0;
     char* hit_patches = patches->hit;
     for (int j = 0, m = xrays+4, n = 0; j < yrays; ++j, m += 3)
@@ -517,8 +525,6 @@ ll_get_subpatches(const struct ll_magpattern_param_t *params,
                               hit[m+xrays+2] | hit[m+xrays+3] |
                               hit[m+xrays+4] | hit[m+xrays+5] |
                               hit[m+2*xrays+6] | hit[m+2*xrays+7]) == 0x0F;
-            hit_patches[n] |= ((hit[m] & hit[m+1] & hit[m+xrays+3] &
-                                hit[m+xrays+4]) == 0x0F) << 1;
             if (hit_patches[n])
                 ++patches->num_patches;
         }

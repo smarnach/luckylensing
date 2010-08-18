@@ -17,8 +17,6 @@ libll
  * Introduce consistent variable naming indicating whether lens plane,
    source plane or magnification pattern coordinates are used
 
- * Triangulated ray shooting needs optimisation (this a tough one).
-
 luckylensing.py
 ===============
 
@@ -32,8 +30,6 @@ User interface
 
  * Introduce more sophisticated "data flow" layer
 
-    * Add "zoom history"
-
     * Add save and load (including FITS output)
 
  * Introduce support for multiple UI tools
@@ -41,17 +37,3 @@ User interface
  * Make source image viewer a separate UI tool
 
  * Add some kind of statistics output (xrays, yrays, levels, time)
-
- * Make +/- buttons for lens list work
-
-Obsolete TODO entries
-=====================
-
- * A  case where the heuristics without overshoot fail:
-
-       xpixels = ypixels = 1024
-       density = 100
-       region.x =  0.35231628417968747
-       region.y = -0.026422119140624992
-       region.width = region.height = 0.027683258056640625
-       "standard" lens configuration
