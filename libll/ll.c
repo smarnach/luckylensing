@@ -649,32 +649,59 @@ ll_source_images(const struct ll_magpattern_param_t *params, char *buf,
         }
 }
 
-extern void
-ll_render_magpattern_greyscale(const float *magpat, char *buf, unsigned size)
+static void
+_ll_get_magpattern_minmax(const float *magpat, unsigned size, float min,
+                          float max, double *logmin, double* logmax)
 {
-    float max_count = 0.0;
-    float min_count = __FLT_MAX__;
+    if (min < 0.0 || max < 0.0 || min == max)
+    {
+        min = __FLT_MAX__;
+        max = 0.0;
+        for(unsigned i = 0; i < size; ++i)
+        {
+            if (magpat[i] < min)
+                min = magpat[i];
+            if (magpat[i] > max)
+                max = magpat[i];
+        }
+    }
+    *logmin = log(min+1e-10);
+    *logmax = log(max+1e-10);
+}
+
+extern void
+ll_render_magpattern_greyscale(const float *magpat, char *buf, unsigned size,
+                               float min, float max)
+{
+    double logmin, logmax;
+    _ll_get_magpattern_minmax(magpat, size, min, max, &logmin, &logmax);
+    double logdiff = logmax - logmin;
+    if (logdiff == 0.0)
+        return;
+    double factor = 255 / logdiff;
     for(unsigned i = 0; i < size; ++i)
     {
-        if (magpat[i] > max_count)
-            max_count = magpat[i];
-        if (magpat[i] < min_count)
-            min_count = magpat[i];
+        double log_mag = log(magpat[i]+1e-10) - logmin;
+        if (log_mag <= 0.0)
+            buf[i] = 0;
+        else if (log_mag >= logdiff)
+            buf[i] = 255;
+        else
+            buf[i] = log_mag*factor;
     }
-    if (max_count == min_count)
-        return;
-    double logmax = log(max_count+1e-10);
-    double logmin = log(min_count+1e-10);
-    double factor = 255/(logmax-logmin);
-    for(unsigned i = 0; i < size; ++i)
-        buf[i] = (log(magpat[i]+1e-10)-logmin)*factor;
 }
 
 extern void
 ll_render_magpattern_gradient(const float *magpat, char *buf, unsigned size,
+                              float min, float max,
                               const unsigned char colors[][3],
                               const unsigned *steps)
 {
+    double logmin, logmax;
+    _ll_get_magpattern_minmax(magpat, size, min, max, &logmin, &logmax);
+    double logdiff = logmax - logmin;
+    if (logdiff == 0.0)
+        return;
     unsigned total_colors = 1;
     for (int segment = 0; steps[segment]; ++segment)
         total_colors += steps[segment];
@@ -697,23 +724,17 @@ ll_render_magpattern_gradient(const float *magpat, char *buf, unsigned size,
             ++pos;
         }
     }
-    float max_count = 0.0;
-    float min_count = __FLT_MAX__;
+    double factor = (total_colors-1) / logdiff;
     for(unsigned i = 0; i < size; ++i)
     {
-        if (magpat[i] > max_count)
-            max_count = magpat[i];
-        if (magpat[i] < min_count)
-            min_count = magpat[i];
-    }
-    if (max_count == min_count)
-        return;
-    double logmax = log(max_count+1e-10);
-    double logmin = log(min_count+1e-10);
-    double factor = (total_colors-1)/(logmax-logmin);
-    for(unsigned i = 0; i < size; ++i)
-    {
-        unsigned color = (log(magpat[i]+1e-10)-logmin)*factor;
+        unsigned color;
+        double log_mag = log(magpat[i]+1e-10) - logmin;
+        if (log_mag <= 0.0)
+            color = 0;
+        else if (log_mag >= logdiff)
+            color = total_colors - 1;
+        else
+            color = log_mag*factor;
         buf[3*i] = all_colors[color][0];
         buf[3*i + 1] = all_colors[color][1];
         buf[3*i + 2] = all_colors[color][2];

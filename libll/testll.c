@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
         printf("Converting to an image...\n");
         t = clock();
-        ll_render_magpattern_gradient(magpat, buf, N, colors, steps);
+        ll_render_magpattern_gradient(magpat, buf, N, -1.0, -1.0, colors, steps);
         printf("finished in %g seconds.\n\n", (double)(clock()-t)/CLOCKS_PER_SEC);
     }
 

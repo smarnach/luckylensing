@@ -369,16 +369,23 @@ _source_images.restype = None
 
 _render_magpattern_greyscale.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
                                          _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
-                                         _c.c_uint]
+                                         _c.c_uint,
+                                         _c.c_float,
+                                         _c.c_float]
 _render_magpattern_greyscale.restype = None
 
-def render_magpattern_greyscale(magpat, buf = None):
+def render_magpattern_greyscale(magpat, min_mag = -1.0, max_mag = -1.0,
+                                buf = None):
     """Render the magnification pattern using a logarithmic greyscale gradient.
 
-    magpat -- a contiguous C array of float with the magpattern counts
-    buf    -- a contiguous C array of char which the image will be
-              rendered into; if None is given, the function will allocate
-              a suitable buffer
+    magpat  -- a contiguous C array of float with the magpattern counts
+    min_mag,
+    max_mag -- The magnifications corresponding to black and white,
+               respectively.  If either of these parameters is negative,
+               the minimum and maximum values in the pattern are used.
+    buf     -- a contiguous C array of char which the image will be
+               rendered into; if None is given, the function will allocate
+               a suitable buffer
 
     Both parameters are assumed to be numpy arrays of the same size
     (meaning there size attributes coincide).  They do not need to
@@ -391,27 +398,34 @@ def render_magpattern_greyscale(magpat, buf = None):
         buf = _np.empty(magpat.shape, _np.uint8)
     else:
         assert buf.size == magpat.size
-    _render_magpattern_greyscale(magpat, buf, magpat.size)
+    _render_magpattern_greyscale(magpat, buf, magpat.size, min_mag, max_mag)
     return buf
 
 _render_magpattern_gradient.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
                                         _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
                                         _c.c_uint,
+                                        _c.c_float,
+                                        _c.c_float,
                                         _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
                                         _ndpointer(_np.uint, flags="C_CONTIGUOUS")]
 _render_magpattern_gradient.restype = None
 
-def render_magpattern_gradient(magpat, colors, steps, buf = None):
+def render_magpattern_gradient(magpat, colors, steps, min_mag = -1.0,
+                               max_mag = -1.0, buf = None):
     """Render the magnification pattern logarithmically with the given gradient.
 
-    magpat -- a contiguous C array of float with the magpattern counts
-    colors -- a sequence of RGB triples describing colors in the gradient
-    steps  -- the number of steps to use between the color with the same
-              index and the next one.  The length of this needs to be one
-              less than the number of colors.
-    buf    -- a contiguous C array of char which the image will be
-              rendered into; if None is given, the function will allocate
-              a suitable buffer
+    magpat  -- a contiguous C array of float with the magpattern counts
+    colors  -- a sequence of RGB triples describing colors in the gradient
+    steps   -- the number of steps to use between the color with the same
+               index and the next one.  The length of this needs to be one
+               less than the number of colors
+    min_mag,
+    max_mag -- The magnifications corresponding to the ends of the
+               gradient.  If either of these parameters is negative, the
+               minimum and maximum values in the pattern are used.
+    buf     -- a contiguous C array of char which the image will be
+               rendered into; if None is given, the function will allocate
+               a suitable buffer
 
     The function returns the buffer with the image data.  If you
     provided this buffer, the return value can be ignored.
@@ -424,7 +438,8 @@ def render_magpattern_gradient(magpat, colors, steps, buf = None):
     assert len(colors[0]) == 3
     colors_arr = _np.array(colors, dtype=_np.uint8)
     steps_arr = _np.array(list(steps) + [0], dtype=_np.uint)
-    _render_magpattern_gradient(magpat, buf, magpat.size, colors_arr, steps_arr)
+    _render_magpattern_gradient(magpat, buf, magpat.size, min_mag, max_mag,
+                                colors_arr, steps_arr)
     return buf
 
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),
