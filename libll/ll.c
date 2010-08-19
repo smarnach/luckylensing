@@ -181,7 +181,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
             min = 2;
         if (tri_vertices[2][1] > tri_vertices[max][1])
             max = 2;
-        int mag_y0 = tri_vertices[min][1];
+        int mag_y0 = (int)(tri_vertices[min][1] + 1.0) - 1;
         if (mag_y0 >= (int)params->ypixels)
             continue;
         if (mag_y0 < 0)
