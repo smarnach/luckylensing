@@ -18,9 +18,9 @@ class GllApp(object):
         self.statusbar = self.builder.get_object("statusbar")
         self.progressbar = self.builder.get_object("progressbar")
 
-        self.magpattern = GllRayshooter(self)
-        self.hpaned.pack1(self.magpattern.main_widget(), resize=True)
-        self.hpaned.pack2(self.magpattern.config_widget(), resize=False)
+        self.rayshooter = GllRayshooter(self)
+        self.hpaned.pack1(self.rayshooter.main_widget(), resize=True)
+        self.hpaned.pack2(self.rayshooter.config_widget(), resize=False)
         self.thread = None
         if not pyconsole:
             self.builder.get_object("toolbutton_console").hide()
@@ -28,18 +28,18 @@ class GllApp(object):
     def generate_pattern(self, *args):
         if self.thread and self.thread.isAlive():
             return
-        self.thread = threading.Thread(target=self.magpattern.start)
-        self.init_progressbar(self.magpattern)
+        self.thread = threading.Thread(target=self.rayshooter.run)
+        self.init_progressbar(self.rayshooter)
         self.thread.start()
 
     def back(self, *args):
-        self.magpattern.back()
+        self.rayshooter.back()
 
     def forward(self, *args):
-        self.magpattern.forward()
+        self.rayshooter.forward()
 
     def stop(self, *args):
-        self.magpattern.cancel()
+        self.rayshooter.cancel()
 
     def init_progressbar(self, comp):
         self.progressbar.set_property("show-text", True)
@@ -68,7 +68,7 @@ class GllApp(object):
         window.show_all()
 
     def quit_app(self, *args):
-        self.magpattern.cancel()
+        self.rayshooter.cancel()
         gtk.main_quit()
 
 gobject.threads_init()

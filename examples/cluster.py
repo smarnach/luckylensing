@@ -28,6 +28,6 @@ for i in frames:
     lenses = np.hstack((cos(alpha) * coords[:,:1] + sin(alpha) * coords[:,1:2],
                         coords[:,2:], masses))
     p.lenses = ll.Lenses(lenses)
-    rs.start()
+    rs.run()
     buf = ll.render_magpattern_gradient(rs.count, colors, steps, 1.0, 100.0)
     save_png(buf, "magpats/cluster-%04i.png" % i)

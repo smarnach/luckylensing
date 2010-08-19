@@ -300,13 +300,13 @@ class BasicRayshooter(_c.Structure):
     def get_subpatches(self, patches):
         _get_subpatches(self.params, patches)
 
-    def start_subpatches(self, magpat, patches, progress=Progress()):
+    def run_subpatches(self, magpat, patches, progress=Progress()):
         _rayshoot_subpatches(self, magpat, patches, progress)
 
     def finalise_subpatches(self, magpat, patches):
         _finalise_subpatches(self, magpat, patches)
 
-    def start(self, magpat, rect, xrays, yrays, levels, progress=Progress()):
+    def run(self, magpat, rect, xrays, yrays, levels, progress=Progress()):
         """Start the actual ray shooting.
         """
         self.cancel_flag = False

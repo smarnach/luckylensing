@@ -59,7 +59,7 @@ class Rayshooter(ll.BasicRayshooter):
 
         return rect, xrays, yrays, levels + 2
 
-    def start(self, num_threads=2):
+    def run(self, num_threads=2):
         self.cancel_flag = False
         shape = self.params[0].ypixels, self.params[0].xpixels
         self.count = numpy.zeros(shape, numpy.float32)
@@ -103,12 +103,12 @@ class Rayshooter(ll.BasicRayshooter):
                                   y_values[j+1] - y_values[j])
                 queue.put((subrect, x_indices[i], x_indices[i+1],
                            y_indices[j], y_indices[j+1]))
-        threads = [threading.Thread(target=self._start_queue,
+        threads = [threading.Thread(target=self._run_queue,
                                     args=(queue, counts[j], patches, hit, j))
                    for j in range(1, num_threads)]
         for t in threads:
             t.start()
-        self._start_queue(queue, counts[0], patches, hit, 0)
+        self._run_queue(queue, counts[0], patches, hit, 0)
         for t in threads:
             t.join()
         for c in counts[1:]:
@@ -116,13 +116,13 @@ class Rayshooter(ll.BasicRayshooter):
         print time()-start_time
         self.progress = []
 
-    def _start_queue(self, queue, count, patches, hit, index):
+    def _run_queue(self, queue, count, patches, hit, index):
         try:
             while True:
                 rect, i0, i1, j0, j1 = queue.get(False)
                 subhit = numpy.ascontiguousarray(hit[j0:j1, i0:i1])
                 subpatches = ll.Patches(rect, patches.level, subhit)
                 subpatches.num_patches = patches.num_patches
-                self.start_subpatches(count, subpatches, self.progress[index])
+                self.run_subpatches(count, subpatches, self.progress[index])
         except Empty:
             self.finalise_subpatches(count, patches)

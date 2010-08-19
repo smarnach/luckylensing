@@ -149,9 +149,9 @@ class GllRayshooter(rayshooter.Rayshooter):
         gobject.idle_add(self.imageview.set_tool, self.dragger)
         gobject.idle_add(self.imageview.set_pixbuf, self.pixbuf)
 
-    def start(self):
+    def run(self, num_threads=2):
         self.set_params_from_ui()
-        super(GllRayshooter, self).start()
+        super(GllRayshooter, self).run(num_threads)
         if self.cancel_flag:
             return
         self.history_pos += 1
