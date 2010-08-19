@@ -8,11 +8,14 @@ import numpy
 import luckylensing as ll
 import rayshooter
 
-class GllRayshooter(rayshooter.Rayshooter):
-    def __init__(self, app):
-        self.app = app
-        params = ll.MagPatternParams()
-        super(GllRayshooter, self).__init__(params)
+class GllRayshooter(gobject.GObject):
+    __gsignals__ = {
+        "run-pipeline": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ()),
+    }
+
+    def __init__(self):
+        super(GllRayshooter, self).__init__()
+        self.rayshooter = rayshooter.Rayshooter()
         self.imageview = gtkimageview.ImageView()
         self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
         self.scrollwin = gtkimageview.ImageScrollWin(self.imageview)
@@ -37,14 +40,14 @@ class GllRayshooter(rayshooter.Rayshooter):
         widget.grab_focus()
         if event.button == 1:
             if event.type == gtk.gdk._2BUTTON_PRESS:
-                self.app.generate_pattern()
+                self.emit("run-pipeline")
         elif event.button == 2:
             draw_rect = self.imageview.get_draw_rect()
             zoom = self.imageview.get_zoom()
             viewport = self.imageview.get_viewport()
             source_x = (event.x - draw_rect.x) / zoom + viewport.x
             source_y = (event.y - draw_rect.y) / zoom + viewport.y
-            params = self.params[0]
+            params = self.rayshooter.params[0]
             source_r = .005 * params.xpixels / params.region.width
             self.show_source_images(source_x, source_y, source_r);
         if event.button == 3:
@@ -60,7 +63,7 @@ class GllRayshooter(rayshooter.Rayshooter):
 
     def update_selection(self, selector):
         rect = selector.get_selection()
-        params = self.params[0]
+        params = self.rayshooter.params[0]
         region = params.region
         width = max(rect.width, rect.height*params.xpixels/params.ypixels)
         x = rect.x + (rect.width - width)/2
@@ -89,7 +92,7 @@ class GllRayshooter(rayshooter.Rayshooter):
 
     def set_params_from_ui(self):
         self.imageview.grab_focus()
-        params = self.params[0]
+        params = self.rayshooter.params[0]
         lenses = []
         for l in self.lens_list:
             if l[0]:
@@ -103,18 +106,18 @@ class GllRayshooter(rayshooter.Rayshooter):
         params.region.width = x1 - params.region.x
         y1 = self.builder.get_object("region_y1").get_value()
         params.region.height = y1 - params.region.y
-        self.density = self.builder.get_object("density").get_value()
+        self.rayshooter.density = self.builder.get_object("density").get_value()
         if self.builder.get_object("kernel_simple").get_active():
-            self.kernel = ll.KERNEL_SIMPLE
+            self.rayshooter.kernel = ll.KERNEL_SIMPLE
         elif self.builder.get_object("kernel_bilinear").get_active():
-            self.kernel = ll.KERNEL_BILINEAR
+            self.rayshooter.kernel = ll.KERNEL_BILINEAR
         elif self.builder.get_object("kernel_triangulated").get_active():
-            self.kernel = ll.KERNEL_TRIANGULATED
+            self.rayshooter.kernel = ll.KERNEL_TRIANGULATED
         self.history_params = (map(tuple, self.lens_list),
                                params.xpixels, params.ypixels,
                                (params.region.x, params.region.y,
                                 params.region.width, params.region.height),
-                               self.density, self.kernel)
+                               self.rayshooter.density, self.rayshooter.kernel)
 
     def main_widget(self):
         return self.scrollwin
@@ -143,7 +146,7 @@ class GllRayshooter(rayshooter.Rayshooter):
         colors = [(0, 0, 0), (0, 0, 255), (32, 0, 255),
                   (255, 0, 0), (255, 255, 0), (255, 255, 255)]
         steps = [255, 32, 255, 255, 255]
-        buf = ll.render_magpattern_gradient(self.count, colors, steps)
+        buf = ll.render_magpattern_gradient(self.rayshooter.count, colors, steps)
         self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf,
                                                     gtk.gdk.COLORSPACE_RGB, 8)
         gobject.idle_add(self.imageview.set_tool, self.dragger)
@@ -151,18 +154,24 @@ class GllRayshooter(rayshooter.Rayshooter):
 
     def run(self, num_threads=2):
         self.set_params_from_ui()
-        super(GllRayshooter, self).run(num_threads)
-        if self.cancel_flag:
+        self.rayshooter.run(num_threads)
+        if self.rayshooter.cancel_flag:
             return
         self.history_pos += 1
         del self.history[self.history_pos:]
-        self.history.append((self.history_params, numpy.array(self.count)))
+        self.history.append((self.history_params, numpy.array(self.rayshooter.count)))
         self._update_pixbuf()
+
+    def cancel(self):
+        self.rayshooter.cancel()
+
+    def get_progress(self):
+        return self.rayshooter.get_progress()
 
     def _restore_from_history(self):
         history_params = self.history[self.history_pos][0]
-        self.count = self.history[self.history_pos][1]
-        params = self.params[0]
+        self.rayshooter.count = self.history[self.history_pos][1]
+        params = self.rayshooter.params[0]
         lenses = []
         self.lens_list.clear()
         for l in history_params[0]:
@@ -173,8 +182,8 @@ class GllRayshooter(rayshooter.Rayshooter):
         params.xpixels = history_params[1]
         params.ypixels = history_params[2]
         params.region = ll.Rect(*history_params[3])
-        self.density = history_params[4]
-        self.kernel = history_params[5]
+        self.rayshooter.density = history_params[4]
+        self.rayshooter.kernel = history_params[5]
 
         self.builder.get_object("xpixels").set_value(params.xpixels)
         self.builder.get_object("ypixels").set_value(params.ypixels)
@@ -184,12 +193,12 @@ class GllRayshooter(rayshooter.Rayshooter):
         self.builder.get_object("region_x1").set_value(x1)
         y1 = params.region.y + params.region.height
         self.builder.get_object("region_y1").set_value(y1)
-        self.builder.get_object("density").set_value(self.density)
-        if self.kernel == ll.KERNEL_SIMPLE:
+        self.builder.get_object("density").set_value(self.rayshooter.density)
+        if self.rayshooter.kernel == ll.KERNEL_SIMPLE:
             self.builder.get_object("kernel_simple").set_active(True)
-        elif self.kernel == ll.KERNEL_BILINEAR:
+        elif self.rayshooter.kernel == ll.KERNEL_BILINEAR:
             self.builder.get_object("kernel_bilinear").set_active(True)
-        elif self.kernel == ll.KERNEL_TRIANGULATED:
+        elif self.rayshooter.kernel == ll.KERNEL_TRIANGULATED:
             self.builder.get_object("kernel_triangulated").set_active(True)
         self._update_pixbuf()
 
@@ -204,9 +213,9 @@ class GllRayshooter(rayshooter.Rayshooter):
             self._restore_from_history()
 
     def show_hit_pattern(self):
-        params = self.params[0]
+        params = self.rayshooter.params[0]
         buf = numpy.empty((params.xpixels, params.ypixels, 1), numpy.uint8)
-        rect = self.get_shooting_params()[0]
+        rect = self.rayshooter.get_shooting_params()[0]
         params.ray_hit_pattern(buf, rect)
         self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
                                                     gtk.gdk.COLORSPACE_RGB, 8)
@@ -214,12 +223,14 @@ class GllRayshooter(rayshooter.Rayshooter):
         self.imageview.set_pixbuf(self.pixbuf)
 
     def show_source_images(self, source_x, source_y, source_r):
-        params = self.params[0]
+        params = self.rayshooter.params[0]
         buf = numpy.zeros((params.xpixels, params.ypixels, 1), numpy.uint8)
-        rect = self.get_shooting_params()[0]
+        rect = self.rayshooter.get_shooting_params()[0]
         params.source_images(buf, rect, params.xpixels, params.ypixels, 2,
                              source_x, source_y, source_r)
         self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf.repeat(3, axis=2),
                                                     gtk.gdk.COLORSPACE_RGB, 8)
         self.imageview.set_tool(self.dragger)
         self.imageview.set_pixbuf(self.pixbuf)
+
+gobject.type_register(GllRayshooter)

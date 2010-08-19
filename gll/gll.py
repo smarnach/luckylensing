@@ -18,7 +18,8 @@ class GllApp(object):
         self.statusbar = self.builder.get_object("statusbar")
         self.progressbar = self.builder.get_object("progressbar")
 
-        self.rayshooter = GllRayshooter(self)
+        self.rayshooter = GllRayshooter()
+        self.rayshooter.connect("run-pipeline", self.generate_pattern)
         self.hpaned.pack1(self.rayshooter.main_widget(), resize=True)
         self.hpaned.pack2(self.rayshooter.config_widget(), resize=False)
         self.thread = None
