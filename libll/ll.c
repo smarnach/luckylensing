@@ -283,7 +283,6 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
                 }
             }
 
-            bool hit = false;
             int actions = 0;
             for (int x = mag_x0; x <= mag_x1; ++x)
             {
@@ -377,27 +376,24 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
                 }
                 if (num_edges2 <= 1)
                 {
-                    if (hit)
+                    if (num_edges <= 1)
                         break;
-                    else
+                    double min_x_d = mag_x1;
+                    for (int i = 0; i < 5; ++i)
                     {
-                        double min_x_d = mag_x1;
-                        for (int i = 0; i < 5; ++i)
+                        if (!(valid_edges & 1<<i))
+                            continue;
+                        for (int k = 0; k < 2; ++k)
                         {
-                            if (!(valid_edges & 1<<i))
-                                continue;
-                            for (int k = 0; k < 2; ++k)
-                            {
-                                double tmp_x = vertices[vertex_indices[i][k]][0];
-                                if (tmp_x < min_x_d)
-                                    min_x_d = tmp_x;
-                            }
+                            double tmp_x = vertices[vertex_indices[i][k]][0];
+                            if (tmp_x < min_x_d)
+                                min_x_d = tmp_x;
                         }
-                        int min_x = (int)min_x_d - 1;
-                        if (x < min_x)
-                            x = min_x;
-                        continue;
                     }
+                    int min_x = (int)min_x_d - 1;
+                    if (x < min_x)
+                        x = min_x;
+                    continue;
                 }
                 if (num_edges2 >= 3 && x >= 0)
                 {
@@ -413,7 +409,6 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
                                 - (vertices[i0][1]-y0) * (vertices[i1][0]-x0);
                         }
                     magpat[y*params->xpixels + x] += fabs(area) * magnification;
-                    hit = true;
                 }
             }
         }
