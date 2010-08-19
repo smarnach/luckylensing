@@ -137,12 +137,10 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
 {
     for (int triangle = 0; triangle < 2; ++triangle)
     {
-        if (triangle == 1)
+        if (triangle)
         {
-            tri_vertices[0][0] = tri_vertices[2][0];
-            tri_vertices[0][1] = tri_vertices[2][1];
-            tri_vertices[2][0] = tri_vertices[3][0];
-            tri_vertices[2][1] = tri_vertices[3][1];
+            tri_vertices[0][0] = tri_vertices[3][0];
+            tri_vertices[0][1] = tri_vertices[3][1];
         }
 
         // Get minimum and maximum x coordinate in the magpattern
@@ -199,7 +197,6 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
             mag_y1 = params->ypixels - 1;
             single_pixel_optimization = false;
         }
-
         double pixel_area = 0.5 * rect_area *
             params->pixels_per_width * params->pixels_per_height;
         double magnification =  pixel_area /
@@ -207,16 +204,6 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
              (tri_vertices[2][1]-tri_vertices[0][1]) -
              (tri_vertices[1][1]-tri_vertices[0][1]) *
              (tri_vertices[2][0]-tri_vertices[0][0]));
-        if (magnification < 0.0)
-        {
-            magnification *= -1.0;
-            double x = tri_vertices[1][0];
-            double y = tri_vertices[1][1];
-            tri_vertices[1][0] = tri_vertices[2][0];
-            tri_vertices[1][1] = tri_vertices[2][1];
-            tri_vertices[2][0] = x;
-            tri_vertices[2][1] = y;
-        }
 
         // Render the triangle
         if (single_pixel_optimization && mag_x0 == mag_x1 && mag_y0 == mag_y1)
@@ -408,7 +395,7 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
                             area += (vertices[i0][0]-x0) * (vertices[i1][1]-y0)
                                 - (vertices[i0][1]-y0) * (vertices[i1][0]-x0);
                         }
-                    magpat[y*params->xpixels + x] += fabs(area) * magnification;
+                    magpat[y*params->xpixels + x] += area * magnification;
                 }
             }
         }
