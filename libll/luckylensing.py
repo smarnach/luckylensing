@@ -387,15 +387,15 @@ _render_magpattern_greyscale.argtypes = [_ndpointer(_np.float32, flags="C_CONTIG
                                          _c.c_float]
 _render_magpattern_greyscale.restype = None
 
-def render_magpattern_greyscale(magpat, min_mag = -1.0, max_mag = -1.0,
-                                buf = None):
+def render_magpattern_greyscale(magpat, min_mag=None, max_mag=None,
+                                buf=None):
     """Render the magnification pattern using a logarithmic greyscale gradient.
 
     magpat  -- a contiguous C array of float with the magpattern counts
     min_mag,
     max_mag -- The magnifications corresponding to black and white,
-               respectively.  If either of these parameters is negative,
-               the minimum and maximum values in the pattern are used.
+               respectively.  If either of these parameters is None, the
+               minimum and maximum values in the pattern are used.
     buf     -- a contiguous C array of char which the image will be
                rendered into; if None is given, the function will allocate
                a suitable buffer
@@ -411,6 +411,10 @@ def render_magpattern_greyscale(magpat, min_mag = -1.0, max_mag = -1.0,
         buf = _np.empty(magpat.shape, _np.uint8)
     else:
         assert buf.size == magpat.size
+    if min_mag is None:
+        min_mag = -1.0
+    if max_mag is None:
+        max_mag = -1.0
     _render_magpattern_greyscale(magpat, buf, magpat.size, min_mag, max_mag)
     return buf
 
@@ -423,8 +427,8 @@ _render_magpattern_gradient.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGU
                                         _ndpointer(_np.uint, flags="C_CONTIGUOUS")]
 _render_magpattern_gradient.restype = None
 
-def render_magpattern_gradient(magpat, colors, steps, min_mag = -1.0,
-                               max_mag = -1.0, buf = None):
+def render_magpattern_gradient(magpat, colors, steps, min_mag=None,
+                               max_mag=None, buf=None):
     """Render the magnification pattern logarithmically with the given gradient.
 
     magpat  -- a contiguous C array of float with the magpattern counts
@@ -434,7 +438,7 @@ def render_magpattern_gradient(magpat, colors, steps, min_mag = -1.0,
                less than the number of colors
     min_mag,
     max_mag -- The magnifications corresponding to the ends of the
-               gradient.  If either of these parameters is negative, the
+               gradient.  If either of these parameters is None, the
                minimum and maximum values in the pattern are used.
     buf     -- a contiguous C array of char which the image will be
                rendered into; if None is given, the function will allocate
@@ -447,6 +451,10 @@ def render_magpattern_gradient(magpat, colors, steps, min_mag = -1.0,
         buf = _np.empty(magpat.shape + (3,), _np.uint8)
     else:
         assert buf.size == 3 * magpat.size
+    if min_mag is None:
+        min_mag = -1.0
+    if max_mag is None:
+        max_mag = -1.0
     assert len(colors) - 1 == len(steps)
     assert len(colors[0]) == 3
     colors_arr = _np.array(colors, dtype=_np.uint8)
