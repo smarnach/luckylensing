@@ -6,7 +6,7 @@ class Processor(object):
         self.history = []
 
     def get_input_keys(self, data):
-        return []
+        raise NotImplementedError
 
     def needs_update(self, data, data_serials, cached_serial):
         newest_input = -1
