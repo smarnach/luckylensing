@@ -1,5 +1,3 @@
-from itertools import izip, repeat
-
 class Processor(object):
     def __init__(self):
         super(Processor, self).__init__()
@@ -11,7 +9,7 @@ class Processor(object):
     def needs_update(self, data, data_serials, cached_serial):
         newest_input = -1
         for key in self.get_input_keys(data):
-            if data.has_key(key) and data_serials[key] > newest_input:
+            if key in data and data_serials[key] > newest_input:
                 newest_input = data_serials[key]
         return cached_serial < newest_input
 
@@ -26,7 +24,7 @@ class Processor(object):
         else:
             out_serial, output = self.history[-1]
         data.update(output)
-        data_serials.update(izip(output.keys(), repeat(out_serial)))
+        data_serials.update(dict.fromkeys(output, out_serial))
 
     def run(self, data):
         return {}

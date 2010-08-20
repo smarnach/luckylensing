@@ -77,9 +77,9 @@ class Rayshooter(ll.BasicRayshooter, Processor):
             self.params[0] = ll.MagPatternParams(data["lenses"], region,
                                                  xpixels, ypixels)
             for key in ["refine", "refine_final", "density", "num_threads"]:
-                if data.has_key(key):
+                if key in data:
                     setattr(self, key, data[key])
-            if data.has_key("kernel"):
+            if "kernel" in data:
                 kernel = data["kernel"]
                 if type(kernel) is str:
                     if "simple" in kernel.lower():
