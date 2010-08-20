@@ -95,7 +95,7 @@ class Lenses(_c.Structure):
         """
         if type(lens_list) is Lenses:
             super(Lenses, self).__init__(lens_list.num_lenses, lens_list.lens)
-        elif type(lens_list) == _np.ndarray:
+        elif type(lens_list) is _np.ndarray:
             super(Lenses, self).__init__(
                 len(lens_list), lens_list.ctypes.data_as(_c.POINTER(Lens)))
         else:
