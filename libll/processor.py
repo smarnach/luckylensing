@@ -8,9 +8,6 @@ class Processor(object):
     def get_input_keys(self, data):
         return []
 
-    def get_output_keys(self, data):
-        return []
-
     def needs_update(self, data, data_serials, cached_serial):
         newest_input = -1
         for key in self.get_input_keys(data):

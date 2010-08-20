@@ -23,9 +23,6 @@ class Rayshooter(ll.BasicRayshooter, Processor):
                 "xpixels", "ypixels", "kernel", "refine", "refine_final",
                 "density", "num_threads"]
 
-    def get_output_keys(self, data):
-        return ["shooting_rect", "xrays", "yrays", "levels", "magpat"]
-
     def get_progress(self):
         return sum(p.value for p in self.progress)
 

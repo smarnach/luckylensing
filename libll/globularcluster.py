@@ -17,12 +17,6 @@ class GlobularCluster(Processor):
         return ["num_stars", "random_seed", "log_mass", "log_mass_stddev",
                 "angle", "region_radius"]
 
-    def get_output_keys(self, data):
-        if data.get("region_radius"):
-            return ["lenses", "region_x0", "region_x1",
-                    "region_y0", "region_y1"]
-        return ["lenses"]
-
     def run(self, data):
         for key in self.get_input_keys(data):
             if data.has_key(key):
