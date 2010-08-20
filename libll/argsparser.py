@@ -10,12 +10,15 @@ class ArgsParser(Processor):
             key, value = arg.split("=", 1)
             if len(key) >= 2 and key[:2] == "--":
                 key = key[2:]
-            try:
-                value = int(value)
-            except ValueError:
+            if len(value) > 6 and value[:5] == "expr(" and value[-1:] == ")":
+                value = eval(value[5:-1])
+            else:
                 try:
-                    value = float(value)
+                    value = int(value)
                 except ValueError:
-                    pass
+                    try:
+                        value = float(value)
+                    except ValueError:
+                        pass
             output[key.replace("-", "_")] = value
         return output
