@@ -76,10 +76,22 @@ class Rayshooter(ll.BasicRayshooter, Processor):
             ypixels = data.get("ypixels", 1024)
             self.params[0] = ll.MagPatternParams(data["lenses"], region,
                                                  xpixels, ypixels)
-            for key in ["kernel", "refine", "refine_final",
-                        "density", "num_threads"]:
+            for key in ["refine", "refine_final", "density", "num_threads"]:
                 if data.has_key(key):
                     setattr(self, key, data[key])
+            if data.has_key("kernel"):
+                kernel = data["kernel"]
+                if type(kernel) is str:
+                    if "simple" in kernel.lower():
+                        self.kernel = ll.KERNEL_SIMPLE
+                    elif "bilinear" in kernel.lower():
+                        self.kernel = ll.KERNEL_BILINEAR
+                    elif "triangulated" in kernel.lower():
+                        self.kernel = ll.KERNEL_TRIANGULATED
+                    else:
+                        raise ValueError("Cannot parse kernel: " + kernel)
+                else:
+                    self.kernel = kernel
         self.cancel_flag = False
         shape = self.params[0].ypixels, self.params[0].xpixels
         self.count = numpy.zeros(shape, numpy.float32)
