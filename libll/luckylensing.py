@@ -76,18 +76,31 @@ class Lenses(_c.Structure):
                 ("lens", _c.POINTER(Lens))]
 
     def __init__(self, lens_list):
-        """Initialise the C array from a Python sequence of sequences.
+        """Initialise the C array from lens_list.
 
-        Each element of the sequence lens_list shall be a sequence of
-        three floats, containing the coordinates and mass of the
-        respective lens.  For example
+        The parameter might be another Lenses instance, a NumPy array
+        or a Python sequence of sequences.
 
-        Lenses([(0,0,1), (1.2, 0, .0004)])
+        If lens_list is a NumPy array, it must be C contiguuous.  Keep
+        a reference to the data to make sure it is not garbage
+        collected.
 
-        will create an array of the two given lenses
+        If lens_list is a Python sequence, each element shall be a
+        sequence of three floats, containing the coordinates and mass
+        of the respective lens.  For example
+
+        Lenses([(0., 0., 1.), (1.2, 0., .0004)])
+
+        will create an array of the two given lenses.
         """
-        l = len(lens_list)
-        super(Lenses, self).__init__(l, (Lens*l)(*map(tuple, lens_list)))
+        if type(lens_list) is Lenses:
+            super(Lenses, self).__init__(lens_list.num_lenses, lens_list.lens)
+        elif type(lens_list) == _np.ndarray:
+            super(Lenses, self).__init__(
+                len(lens_list), lens_list.ctypes.data_as(_c.POINTER(Lens)))
+        else:
+            l = len(lens_list)
+            super(Lenses, self).__init__(l, (Lens*l)(*map(tuple, lens_list)))
 
 class Rect(_c.Structure):
 
