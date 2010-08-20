@@ -11,7 +11,7 @@ class GlobularCluster(Processor):
         self.log_mass = -7.0
         self.log_mass_stddev = 0.1
         self.angle = 0.0
-        self.region_radius = None
+        self.region_radius = 1.0
 
     def get_input_keys(self, data):
         return ["num_stars", "random_seed", "log_mass", "log_mass_stddev",
@@ -30,10 +30,10 @@ class GlobularCluster(Processor):
         lenses = numpy.hstack((cos(self.angle) * coords[:,:1] +
                                sin(self.angle) * coords[:,1:2],
                                coords[:,2:], masses))
-        outputs = {"lenses": numpy.ascontiguousarray(lenses)}
+        output = {"lenses": numpy.ascontiguousarray(lenses)}
         if self.region_radius:
-            outputs["region_x0"] = -self.region_radius
-            outputs["region_y0"] = -self.region_radius
-            outputs["region_x1"] = +self.region_radius
-            outputs["region_y1"] = +self.region_radius
-        return outputs
+            output["region_x0"] = -self.region_radius
+            output["region_y0"] = -self.region_radius
+            output["region_x1"] = +self.region_radius
+            output["region_y1"] = +self.region_radius
+        return output
