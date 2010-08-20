@@ -7,13 +7,23 @@ import threading
 from Queue import Queue, Empty
 import numpy
 import luckylensing as ll
+from pipeline import Processor
 
-class Rayshooter(ll.BasicRayshooter):
+class Rayshooter(ll.BasicRayshooter, Processor):
     def __init__(self, params=None):
         super(Rayshooter, self).__init__(params)
         self.density = 100
+        self.num_threads = 1
         self.count = None
         self.progress = []
+
+    def get_input_keys(self, data):
+        return ["lenses", "region_x0", "region_x1", "region_y0", "region_y1",
+                "xpixels", "ypixels", "kernel", "refine", "refine_final",
+                "density", "num_threads"]
+
+    def get_output_keys(self, data):
+        return ["shooting_rect", "xrays", "yrays", "levels", "magpat"]
 
     def get_progress(self):
         return sum(p.value for p in self.progress)
@@ -59,15 +69,41 @@ class Rayshooter(ll.BasicRayshooter):
 
         return rect, xrays, yrays, levels + 2
 
-    def run(self, num_threads=2):
+    def run(self, data=None):
+        if data:
+            region = (data["region_x0"], data["region_y0"],
+                      data["region_x1"] - data["region_x0"],
+                      data["region_y1"] - data["region_y0"])
+            xpixels = data.get("xpixels", 1024)
+            ypixels = data.get("ypixels", 1024)
+            self.params[0] = ll.MagPatternParams(data["lenses"], region,
+                                                 xpixels, ypixels)
+            for key in ["kernel", "refine", "refine_final",
+                        "density", "num_threads"]:
+                if data.has_key(key):
+                    setattr(self, key, data[key])
         self.cancel_flag = False
         shape = self.params[0].ypixels, self.params[0].xpixels
         self.count = numpy.zeros(shape, numpy.float32)
         rect, xrays, yrays, levels = self.get_shooting_params()
         print xrays, yrays
         print levels
-
         start_time = time()
+        self.progress = [ll.Progress(0.0) for j in range(self.num_threads)]
+        if self.num_threads > 1:
+            self._run_threaded(rect, xrays, yrays, levels)
+        else:
+            super(Rayshooter, self).run(self.count,
+                                        rect, xrays, yrays, levels,
+                                        progress=self.progress[0])
+        print time()-start_time
+        self.progress = []
+        if data:
+            return {"shooting_rect": rect, "xrays": xrays, "yrays": yrays,
+                    "levels": levels, "magpat": self.count}
+
+    def _run_threaded(self, rect, xrays, yrays, levels):
+        num_threads = self.num_threads
         hit = numpy.empty((yrays, xrays), numpy.uint8)
         y_indices = [j*yrays//num_threads for j in range(num_threads + 1)]
         y_values =  [rect.y + j*(rect.height/yrays) for j in y_indices]
@@ -89,7 +125,6 @@ class Rayshooter(ll.BasicRayshooter):
         for t in threads:
             t.join()
         patches.num_patches = sum(p.num_patches for p in subpatches)
-        self.progress = [ll.Progress(0.0) for j in range(num_threads)]
         subdomains = self.refine
         x_indices = [i*xrays//subdomains for i in range(subdomains + 1)]
         x_values =  [rect.x + i*(rect.width/xrays) for i in x_indices]
@@ -113,8 +148,6 @@ class Rayshooter(ll.BasicRayshooter):
             t.join()
         for c in counts[1:]:
             self.count += c
-        print time()-start_time
-        self.progress = []
 
     def _run_queue(self, queue, count, patches, hit, index):
         try:

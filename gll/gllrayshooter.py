@@ -16,6 +16,7 @@ class GllRayshooter(gobject.GObject):
     def __init__(self):
         super(GllRayshooter, self).__init__()
         self.rayshooter = rayshooter.Rayshooter()
+        self.rayshooter.num_threads = 2
         self.imageview = gtkimageview.ImageView()
         self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
         self.scrollwin = gtkimageview.ImageScrollWin(self.imageview)
@@ -152,9 +153,9 @@ class GllRayshooter(gobject.GObject):
         gobject.idle_add(self.imageview.set_tool, self.dragger)
         gobject.idle_add(self.imageview.set_pixbuf, self.pixbuf)
 
-    def run(self, num_threads=2):
+    def run(self):
         self.set_params_from_ui()
-        self.rayshooter.run(num_threads)
+        self.rayshooter.run()
         if self.rayshooter.cancel_flag:
             return
         self.history_pos += 1

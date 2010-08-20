@@ -18,6 +18,7 @@ p = ll.MagPatternParams([], (-.3, -.225, .6, .45), 1024, 768)
 rs = Rayshooter(p)
 rs.kernel = ll.KERNEL_TRIANGULATED
 rs.density = 625
+rs.num_threads = 2
 
 if len(sys.argv) > 1:
     frames = get_ints_from_files(sys.argv[1:])
