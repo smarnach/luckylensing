@@ -19,7 +19,7 @@ class GlobularCluster(Processor):
 
     def run(self, data):
         for key in self.get_input_keys(data):
-            if data.has_key(key):
+            if key in data:
                 setattr(self, key, data[key])
         numpy.random.seed(self.random_seed)
         coords = numpy.random.multivariate_normal([0., 0., 0.],
@@ -32,6 +32,10 @@ class GlobularCluster(Processor):
                                coords[:,2:], masses))
         output = {"lenses": numpy.ascontiguousarray(lenses)}
         if self.region_radius:
+            if "region_radius" not in data:
+                for k in ["region_x0", "region_x1", "region_y0", "region_y1"]:
+                    if k in data:
+                        return output
             output["region_x0"] = -self.region_radius
             output["region_y0"] = -self.region_radius
             output["region_x1"] = +self.region_radius
