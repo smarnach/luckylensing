@@ -1,8 +1,8 @@
 from subprocess import Popen, PIPE
 from os import unlink
 
-colors = [(0, 0, 0), (0, 0, 255), (32, 0, 255),
-          (255, 0, 0), (255, 255, 0), (255, 255, 255)]
+colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
+          (195, 16, 16), (249, 249, 70), (255, 255, 255)]
 steps = [255, 32, 255, 255, 255]
 
 def save_png(buf, filename):

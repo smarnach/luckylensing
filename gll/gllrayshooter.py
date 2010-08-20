@@ -144,8 +144,8 @@ class GllRayshooter(gobject.GObject):
             lens_list.remove(lens_list.get_iter(row_path))
 
     def _update_pixbuf(self):
-        colors = [(0, 0, 0), (0, 0, 255), (32, 0, 255),
-                  (255, 0, 0), (255, 255, 0), (255, 255, 255)]
+        colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
+                  (195, 16, 16), (249, 249, 70), (255, 255, 255)]
         steps = [255, 32, 255, 255, 255]
         buf = ll.render_magpattern_gradient(self.rayshooter.count, colors, steps)
         self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf,
