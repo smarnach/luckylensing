@@ -5,7 +5,7 @@ sys.path.append("../libll")
 
 import luckylensing as ll
 from rayshooter import Rayshooter
-from exampletools import save_png, colors, steps
+from ImageWriter import save_img, colors, steps
 
 for i in range(101):
     x = 0.85 + i*0.003
@@ -15,4 +15,4 @@ for i in range(101):
     rs.num_threads = 2
     rs.run()
     buf = ll.render_magpattern_gradient(rs.count, colors, steps, 3.0, 3000.0)
-    save_png(buf, "magpats/planet-%03i.png" % i)
+    save_img(buf, "magpats/planet-%03i.png" % i)
