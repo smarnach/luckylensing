@@ -7,11 +7,12 @@ import threading
 from Queue import Queue, Empty
 import numpy
 import luckylensing as ll
-from pipeline import Processor
+from processor import Processor
 
 class Rayshooter(ll.BasicRayshooter, Processor):
     def __init__(self, params=None):
-        super(Rayshooter, self).__init__(params)
+        ll.BasicRayshooter.__init__(self, params)
+        Processor.__init__(self)
         self.density = 100
         self.num_threads = 1
         self.count = None
@@ -93,9 +94,8 @@ class Rayshooter(ll.BasicRayshooter, Processor):
         if self.num_threads > 1:
             self._run_threaded(rect, xrays, yrays, levels)
         else:
-            super(Rayshooter, self).run(self.count,
-                                        rect, xrays, yrays, levels,
-                                        progress=self.progress[0])
+            ll.BasicRayshooter.run(self, self.count, rect, xrays, yrays,
+                                   levels, progress=self.progress[0])
         print time()-start_time
         self.progress = []
         if data:

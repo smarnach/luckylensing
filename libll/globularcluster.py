@@ -1,10 +1,11 @@
 import numpy
 from math import pi, sin, cos
-from pipeline import Processor
+from processor import Processor
 from luckylensing import Lenses
 
 class GlobularCluster(Processor):
     def __init__(self):
+        super(GlobularCluster, self).__init__()
         self.num_stars = 1000
         self.random_seed = 42
         self.log_mass = -7.0
