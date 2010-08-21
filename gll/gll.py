@@ -21,55 +21,102 @@ class GllApp(object):
         if not pyconsole:
             self.builder.get_object("toolbutton_console").hide()
 
-        self.plugin = GllRayshooter()
-        self.plugin.connect("run-pipeline", self.run_pipeline)
-        self.plugin.connect("cancel-pipeline", self.cancel_pipeline)
-        self.plugin.connect("history-back", self.history_back)
-        self.plugin.connect("history-forward", self.history_forward)
-        self.hpaned.pack1(self.plugin.main_widget, resize=True)
-        self.hpaned.pack2(self.plugin.config_widget, resize=False)
-
         self.running = threading.Lock()
+        self.history = []
+        self.history_pos = -1
+        self.serial = 0
+        self.active_plugin = None
+        self.plugins = []
+        self.add_plugin(GllRayshooter())
+
+    def add_plugin(self, plugin):
+        self.plugins.append(plugin)
+        plugin.connect("run-pipeline", self.run_pipeline)
+        plugin.connect("cancel-pipeline", self.cancel_pipeline)
+        plugin.connect("history-back", self.history_back)
+        plugin.connect("history-forward", self.history_forward)
+        self.activate_plugin(plugin)
+
+    def activate_plugin(self, plugin):
+        if self.active_plugin:
+            self.hpaned.remove(self.active_plugin.main_widget)
+            self.hpaned.remove(self.active_plugin.config_widget)
+        self.hpaned.pack1(plugin.main_widget, resize=True)
+        self.hpaned.pack2(plugin.config_widget, resize=False)
+        self.active_plugin = plugin
+
+    def pipeline_thread(self):
+        data = {}
+        data_serials = {}
+        self.serial += 1
+        history_entry = []
+        for plugin in self.plugins:
+            self.active_processor = plugin.processor
+            config = plugin.get_config()
+            history_entry.append((plugin, config))
+            data.update(config)
+            data_serials.update(dict.fromkeys(config, self.serial))
+            plugin.processor.update(data, data_serials, self.serial)
+            if self.cancel_flag:
+                break
+            gobject.idle_add(plugin.update, data)
+            while gobject.main_context_default().iteration(False):
+                pass
+        del self.active_processor
+        if not self.cancel_flag:
+            if self.history_pos < len(self.history) - 1:
+                del self.history[self.history_pos+1:]
+                serials = [s for s, entry in self.history] + [self.serial]
+                for plugin, config in self.history[self.history_pos][1]:
+                    plugin.processor.restrict_history(serials)
+            self.history.append((self.serial, history_entry))
+            self.history_pos += 1
+        self.running.release()
 
     def run_pipeline(self, *args):
         if not self.running.acquire(False):
             return
         self.cancel_flag = False
-        data = {}
-        for plugin in [self.plugin]:
-            self.current_processor = plugin.processor
-            data.update(plugin.get_config())
-            thread = threading.Thread(target=plugin.processor.update,
-                                      args=(data,))
-            self.init_progressbar()
-            thread.start()
-            while thread.isAlive():
-                gobject.main_context_default().iteration(False)
-                sleep(0.02)
-            if self.cancel_flag:
-                break
-            plugin.update(data)
-        del self.current_processor
-        self.running.release()
-
-    def history_back(self, *args):
-        pass
-
-    def history_forward(self, *args):
-        pass
-
-    def cancel_pipeline(self, *args):
-        proc = self.__dict__.get("current_processor")
-        if proc:
-            self.current_processor.cancel()
-        self.cancel_flag = True
-
-    def init_progressbar(self):
         self.progressbar.set_property("show-text", True)
         gobject.timeout_add(100, self.update_progressbar)
+        threading.Thread(target=self.pipeline_thread).start()
+
+    def restore(self):
+        data = {}
+        serial, history_entry = self.history[self.history_pos]
+        self.plugins = []
+        active_plugin_found = False
+        for plugin, config in history_entry:
+            self.plugins.append(plugin)
+            if plugin is self.active_plugin:
+                active_plugin_found = True
+            plugin.set_config(config)
+            data.update(config)
+            plugin.processor.restore(data, serial)
+            plugin.update(data)
+        if not active_plugin_found:
+            self.activate_plugin(self.plugins[0])
+
+    def history_back(self, *args):
+        if self.history_pos <= 0:
+            return
+        self.history_pos -= 1
+        self.restore()
+
+    def history_forward(self, *args):
+        if self.history_pos >= len(self.history) - 1:
+            return
+        self.history_pos += 1
+        self.restore()
+
+    def cancel_pipeline(self, *args):
+        proc = self.__dict__.get("active_processor")
+        if proc:
+            self.active_processor.cancel()
+        self.cancel_flag = True
 
     def update_progressbar(self):
-        proc = self.__dict__.get("current_processor")
+        proc = self.__dict__.get("active_processor")
         if proc:
             self.progressbar.set_fraction(min(proc.get_progress(), 1.0))
             return True

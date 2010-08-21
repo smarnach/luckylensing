@@ -38,11 +38,9 @@ class GllRayshooter(GllPlugin):
     def get_config(self):
         d = {"num_threads": 2}
         self.imageview.grab_focus()
-        lenses = []
-        for l in self.lens_list:
-            if l[0]:
-                lenses.append(tuple(l)[1:])
-        d["lenses"] = ll.Lenses(lenses)
+        all_lenses = map(tuple, self.lens_list)
+        d["all_lenses"] = all_lenses
+        d["lenses"] = ll.Lenses([lens[1:] for lens in all_lenses if lens[0]])
         d["xpixels"] = int(self.builder.get_object("xpixels").get_value())
         d["ypixels"] = int(self.builder.get_object("ypixels").get_value())
         if self.imageview.get_tool() is self.selector:
@@ -70,11 +68,11 @@ class GllRayshooter(GllPlugin):
         return d
 
     def set_config(self, config):
-        if config.get("lenses") is not None:
-            lenses = []
+        all_lenses = config.get("all_lenses")
+        if all_lenses is not None:
             self.lens_list.clear()
-            for l in config["lenses"]:
-                self.lens_list.append(l)
+            for lens in all_lenses:
+                self.lens_list.append(lens)
         self.builder.get_object("xpixels").set_value(config["xpixels"])
         self.builder.get_object("ypixels").set_value(config["ypixels"])
         for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:

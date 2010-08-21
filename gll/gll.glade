@@ -294,10 +294,4 @@
       </object>
     </child>
   </object>
-  <object class="GtkAction" id="generate_pattern">
-    <property name="label">Generate magnification pattern</property>
-    <property name="short_label">Pattern</property>
-    <property name="icon_name">application-x-executable</property>
-    <signal name="activate" handler="generate_pattern"/>
-  </object>
 </interface>
