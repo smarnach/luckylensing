@@ -160,7 +160,7 @@
                 <property name="label" translatable="yes">Run</property>
                 <property name="icon_name">system-run</property>
                 <accelerator key="r" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
-                <signal name="clicked" handler="generate_pattern"/>
+                <signal name="clicked" handler="run_pipeline"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -173,7 +173,7 @@
                 <property name="label" translatable="yes">Stop</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-stop</property>
-                <signal name="clicked" handler="stop"/>
+                <signal name="clicked" handler="cancel_pipeline"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -196,7 +196,7 @@
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-go-back</property>
                 <accelerator key="Left" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
-                <signal name="clicked" handler="back"/>
+                <signal name="clicked" handler="history_back"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -210,7 +210,7 @@
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-go-forward</property>
                 <accelerator key="Right" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
-                <signal name="clicked" handler="forward"/>
+                <signal name="clicked" handler="history_forward"/>
               </object>
               <packing>
                 <property name="expand">False</property>

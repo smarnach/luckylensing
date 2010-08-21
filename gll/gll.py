@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-import gobject
 import threading
+from time import sleep
+import gobject
 import gtk
 from gllrayshooter import GllRayshooter
 try:
@@ -17,43 +18,65 @@ class GllApp(object):
         self.hpaned = self.builder.get_object("hpaned")
         self.statusbar = self.builder.get_object("statusbar")
         self.progressbar = self.builder.get_object("progressbar")
-
-        self.rayshooter = GllRayshooter()
-        self.rayshooter.connect("run-pipeline", self.generate_pattern)
-        self.hpaned.pack1(self.rayshooter.main_widget(), resize=True)
-        self.hpaned.pack2(self.rayshooter.config_widget(), resize=False)
-        self.thread = None
         if not pyconsole:
             self.builder.get_object("toolbutton_console").hide()
 
-    def generate_pattern(self, *args):
-        if self.thread and self.thread.isAlive():
+        self.plugin = GllRayshooter()
+        self.plugin.connect("run-pipeline", self.run_pipeline)
+        self.plugin.connect("cancel-pipeline", self.cancel_pipeline)
+        self.plugin.connect("history-back", self.history_back)
+        self.plugin.connect("history-forward", self.history_forward)
+        self.hpaned.pack1(self.plugin.main_widget, resize=True)
+        self.hpaned.pack2(self.plugin.config_widget, resize=False)
+
+        self.running = threading.Lock()
+
+    def run_pipeline(self, *args):
+        if not self.running.acquire(False):
             return
-        self.thread = threading.Thread(target=self.rayshooter.run)
-        self.init_progressbar(self.rayshooter)
-        self.thread.start()
+        self.cancel_flag = False
+        data = {}
+        for plugin in [self.plugin]:
+            self.current_processor = plugin.processor
+            data.update(plugin.get_config())
+            thread = threading.Thread(target=plugin.processor.update,
+                                      args=(data,))
+            self.init_progressbar()
+            thread.start()
+            while thread.isAlive():
+                gobject.main_context_default().iteration(False)
+                sleep(0.02)
+            if self.cancel_flag:
+                break
+            plugin.update(data)
+        del self.current_processor
+        self.running.release()
 
-    def back(self, *args):
-        self.rayshooter.back()
+    def history_back(self, *args):
+        pass
 
-    def forward(self, *args):
-        self.rayshooter.forward()
+    def history_forward(self, *args):
+        pass
 
-    def stop(self, *args):
-        self.rayshooter.cancel()
+    def cancel_pipeline(self, *args):
+        proc = self.__dict__.get("current_processor")
+        if proc:
+            self.current_processor.cancel()
+        self.cancel_flag = True
 
-    def init_progressbar(self, comp):
+    def init_progressbar(self):
         self.progressbar.set_property("show-text", True)
-        gobject.timeout_add(100, self.update_progressbar, comp)
+        gobject.timeout_add(100, self.update_progressbar)
 
-    def update_progressbar(self, comp):
-        if self.thread.isAlive():
-            self.progressbar.set_fraction(min(comp.get_progress(), 1.0))
+    def update_progressbar(self):
+        proc = self.__dict__.get("current_processor")
+        if proc:
+            self.progressbar.set_fraction(min(proc.get_progress(), 1.0))
+            return True
         else:
             self.progressbar.set_property("show-text", False)
             self.progressbar.set_fraction(0.0)
             return False
-        return True
 
     def show_console(self, *args):
         if not pyconsole:
@@ -69,7 +92,7 @@ class GllApp(object):
         window.show_all()
 
     def quit_app(self, *args):
-        self.rayshooter.cancel()
+        self.cancel_pipeline()
         gtk.main_quit()
 
 gobject.threads_init()
