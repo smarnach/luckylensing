@@ -101,11 +101,13 @@ ll_source_images(const struct ll_magpattern_param_t *params, char *buf,
                  int refine, double source_x, double source_y, double source_r);
 
 extern void
-ll_render_magpattern_greyscale(const float *magpat, char *buf, unsigned size,
+ll_render_magpattern_greyscale(const float *magpat, char *buf,
+                               unsigned xpixels, unsigned ypixels,
                                float min, float max);
 
 extern void
-ll_render_magpattern_gradient(const float *magpat, char *buf, unsigned size,
+ll_render_magpattern_gradient(const float *magpat, char *buf,
+                              unsigned xpixels, unsigned ypixels,
                               float min, float max,
                               const unsigned char colors[][3],
                               const unsigned *steps);

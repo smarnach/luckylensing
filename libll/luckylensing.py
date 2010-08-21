@@ -383,6 +383,7 @@ _source_images.restype = None
 _render_magpattern_greyscale.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
                                          _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
                                          _c.c_uint,
+                                         _c.c_uint,
                                          _c.c_float,
                                          _c.c_float]
 _render_magpattern_greyscale.restype = None
@@ -415,11 +416,13 @@ def render_magpattern_greyscale(magpat, min_mag=None, max_mag=None,
         min_mag = -1.0
     if max_mag is None:
         max_mag = -1.0
-    _render_magpattern_greyscale(magpat, buf, magpat.size, min_mag, max_mag)
+    _render_magpattern_greyscale(magpat, buf, magpat.shape[1], magpat.shape[0],
+                                 min_mag, max_mag)
     return buf
 
 _render_magpattern_gradient.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
                                         _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+                                        _c.c_uint,
                                         _c.c_uint,
                                         _c.c_float,
                                         _c.c_float,
@@ -459,8 +462,8 @@ def render_magpattern_gradient(magpat, colors, steps, min_mag=None,
     assert len(colors[0]) == 3
     colors_arr = _np.array(colors, dtype=_np.uint8)
     steps_arr = _np.array(list(steps) + [0], dtype=_np.uint)
-    _render_magpattern_gradient(magpat, buf, magpat.size, min_mag, max_mag,
-                                colors_arr, steps_arr)
+    _render_magpattern_gradient(magpat, buf, magpat.shape[1], magpat.shape[0],
+                                min_mag, max_mag, colors_arr, steps_arr)
     return buf
 
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),
