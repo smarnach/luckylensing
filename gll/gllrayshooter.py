@@ -40,7 +40,7 @@ class GllRayshooter(GllPlugin):
         self.imageview.grab_focus()
         all_lenses = map(tuple, self.lens_list)
         d["all_lenses"] = all_lenses
-        d["lenses"] = ll.Lenses([lens[1:] for lens in all_lenses if lens[0]])
+        d["lenses"] = [lens[1:] for lens in all_lenses if lens[0]]
         d["xpixels"] = int(self.builder.get_object("xpixels").get_value())
         d["ypixels"] = int(self.builder.get_object("ypixels").get_value())
         if self.imageview.get_tool() is self.selector:

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import threading
-from time import sleep
 import gobject
 import gtk
 from gllrayshooter import GllRayshooter
@@ -49,13 +48,9 @@ class GllApp(object):
         data = {}
         data_serials = {}
         self.serial += 1
-        history_entry = []
         for plugin in self.plugins:
             self.active_processor = plugin.processor
-            config = plugin.get_config()
-            history_entry.append((plugin, config))
-            data.update(config)
-            data_serials.update(dict.fromkeys(config, self.serial))
+            plugin.update_config(data, data_serials, self.serial)
             plugin.processor.update(data, data_serials, self.serial)
             if self.cancel_flag:
                 break
@@ -66,10 +61,11 @@ class GllApp(object):
         if not self.cancel_flag:
             if self.history_pos < len(self.history) - 1:
                 del self.history[self.history_pos+1:]
-                serials = [s for s, entry in self.history] + [self.serial]
-                for plugin, config in self.history[self.history_pos][1]:
+                serials = [s for s, plugin in self.history] + [self.serial]
+                for plugin in self.history[self.history_pos][1]:
                     plugin.processor.restrict_history(serials)
-            self.history.append((self.serial, history_entry))
+                    plugin.restrict_history(serials)
+            self.history.append((self.serial, self.plugins))
             self.history_pos += 1
         self.running.release()
 
@@ -83,17 +79,15 @@ class GllApp(object):
 
     def restore(self):
         data = {}
-        serial, history_entry = self.history[self.history_pos]
-        self.plugins = []
+        serial, plugins = self.history[self.history_pos]
         active_plugin_found = False
-        for plugin, config in history_entry:
-            self.plugins.append(plugin)
+        for plugin in plugins:
             if plugin is self.active_plugin:
                 active_plugin_found = True
-            plugin.set_config(config)
-            data.update(config)
+            plugin.restore_config(data, serial)
             plugin.processor.restore(data, serial)
             plugin.update(data)
+        self.plugins = plugins
         if not active_plugin_found:
             self.activate_plugin(self.plugins[0])
 
