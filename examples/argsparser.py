@@ -8,9 +8,9 @@ class ArgsParser(Processor):
         output = {}
         for arg in data["args"]:
             key, value = arg.split("=", 1)
-            if len(key) >= 2 and key[:2] == "--":
+            if key.startswith("--"):
                 key = key[2:]
-            if len(value) > 6 and value[:5] == "expr(" and value[-1:] == ")":
+            if value.startswith("eval(") and value.endswith(")"):
                 value = eval(value[5:-1])
             else:
                 try:
