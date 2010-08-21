@@ -31,6 +31,7 @@ class GllRayshooter(GllPlugin):
                          "region_y1":  .3,
                          "density": 100,
                          "kernel": ll.KERNEL_TRIANGULATED})
+        self.region = None
         self.processor = Rayshooter()
         self.main_widget = self.scrollwin
         self.config_widget = self.builder.get_object("config")
@@ -43,17 +44,17 @@ class GllRayshooter(GllPlugin):
         d["lenses"] = [lens[1:] for lens in all_lenses if lens[0]]
         d["xpixels"] = int(self.builder.get_object("xpixels").get_value())
         d["ypixels"] = int(self.builder.get_object("ypixels").get_value())
-        if self.imageview.get_tool() is self.selector:
+        if self.region and self.imageview.get_tool() is self.selector:
             rect = self.selector.get_selection()
             width = max(rect.width, rect.height*d["xpixels"]/d["ypixels"])
             x = rect.x + (rect.width - width)/2
-            xfactor = self.region.width/d["xpixels"]
-            d["region_x0"] = self.region.x + x * xfactor
+            xfactor = (self.region["x1"]-self.region["x0"])/d["xpixels"]
+            d["region_x0"] = self.region["x0"] + x * xfactor
             d["region_x1"] = d["region_x0"] + width * xfactor
             height = max(rect.height, rect.width*d["ypixels"]/d["xpixels"])
             y = rect.y + (rect.height - height)/2
-            yfactor = self.region.height/d["ypixels"]
-            d["region_y0"] = self.region.y + y * yfactor
+            yfactor = (self.region["y1"]-self.region["y0"])/d["ypixels"]
+            d["region_y0"] = self.region["y0"] + y * yfactor
             d["region_y1"] =d["region_y0"]  + height * yfactor
         else:
             for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
@@ -94,11 +95,10 @@ class GllRayshooter(GllPlugin):
                                                     gtk.gdk.COLORSPACE_RGB, 8)
         self.imageview.set_tool(self.dragger)
         self.imageview.set_pixbuf(self.pixbuf)
+        self.region = {}
         for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
             self.builder.get_object(key).set_value(data[key])
-        self.region = ll.Rect(data["region_x0"], data["region_y0"],
-                              data["region_x1"] - data["region_x0"],
-                              data["region_y1"] - data["region_y0"])
+            self.region[key[7:]] = data[key]
 
     def toggle_lens(self, cell, path):
         self.lens_list[path][0] ^= True
