@@ -2,6 +2,7 @@
 import threading
 import gobject
 import gtk
+from gllplugin import GllPlugin
 from gllrayshooter import GllRayshooter
 try:
     import pyconsole
@@ -15,40 +16,75 @@ class GllApp(object):
         self.builder.connect_signals(self)
 
         self.hpaned = self.builder.get_object("hpaned")
+        self.vpaned = self.builder.get_object("vpaned")
         self.statusbar = self.builder.get_object("statusbar")
         self.progressbar = self.builder.get_object("progressbar")
         if not pyconsole:
             self.builder.get_object("toolbutton_console").hide()
+        self.init_plugins()
 
         self.running = threading.Lock()
+        self.active_processor = None
         self.history = []
         self.history_pos = -1
         self.serial = 0
-        self.active_plugin = None
-        self.plugins = []
         self.add_plugin(GllRayshooter())
 
+    def init_plugins(self):
+        self.plugins = gtk.ListStore(bool, str, GllPlugin)
+        treeview = gtk.TreeView(self.plugins)
+        column = gtk.TreeViewColumn("Enabled")
+        renderer = gtk.CellRendererToggle()
+        renderer.connect("toggled", self.toggle_plugin)
+        column.pack_start(renderer)
+        column.add_attribute(renderer, 'active', 0)
+        treeview.append_column(column)
+        column = gtk.TreeViewColumn("Name")
+        renderer = gtk.CellRendererText()
+        renderer.connect("edited", self.edit_plugin_name)
+        column.pack_start(renderer, True)
+        column.add_attribute(renderer, 'text', 1)
+        treeview.append_column(column)
+        treeview.set_headers_visible(False)
+        treeview.get_selection().connect("changed",
+                                         self.selected_plugin_changed)
+        treeview.show_all()
+        self.builder.get_object("pipeline_frame").add(treeview)
+        self.selected_plugin = None
+
     def add_plugin(self, plugin):
-        self.plugins.append(plugin)
+        self.plugins.append((True, "name", plugin))
         plugin.connect("run-pipeline", self.run_pipeline)
         plugin.connect("cancel-pipeline", self.cancel_pipeline)
         plugin.connect("history-back", self.history_back)
         plugin.connect("history-forward", self.history_forward)
-        self.activate_plugin(plugin)
+        self.select_plugin(plugin)
 
-    def activate_plugin(self, plugin):
-        if self.active_plugin:
-            self.hpaned.remove(self.active_plugin.main_widget)
-            self.hpaned.remove(self.active_plugin.config_widget)
-        self.hpaned.pack1(plugin.main_widget, resize=True)
-        self.hpaned.pack2(plugin.config_widget, resize=False)
-        self.active_plugin = plugin
+    def select_plugin(self, plugin):
+        if plugin.main_widget:
+            child = self.hpaned.get_child1()
+            if child:
+                self.hpaned.remove(child)
+            self.hpaned.pack1(plugin.main_widget, resize=True)
+        if plugin.config_widget:
+            child = self.vpaned.get_child2()
+            if child:
+                self.vpaned.remove(child)
+            self.vpaned.pack2(plugin.config_widget, resize=True)
+        self.selected_plugin = plugin
+
+    def selected_plugin_changed(self, selection):
+        list, it = selection.get_selected()
+        if it is not None:
+            self.select_plugin(list[it][2])
 
     def pipeline_thread(self):
         data = {}
         data_serials = {}
         self.serial += 1
-        for plugin in self.plugins:
+        for active, name, plugin in self.plugins:
+            if not active:
+                continue
             self.active_processor = plugin.processor
             plugin.update_config(data, data_serials, self.serial)
             plugin.processor.update(data, data_serials, self.serial)
@@ -57,7 +93,7 @@ class GllApp(object):
             gobject.idle_add(plugin.update, data)
             while gobject.main_context_default().iteration(False):
                 pass
-        del self.active_processor
+        self.active_processor = None
         if not self.cancel_flag:
             if self.history_pos < len(self.history) - 1:
                 del self.history[self.history_pos+1:]
@@ -65,7 +101,7 @@ class GllApp(object):
                 for plugin in self.history[self.history_pos][1]:
                     plugin.processor.restrict_history(serials)
                     plugin.restrict_history(serials)
-            self.history.append((self.serial, self.plugins))
+            self.history.append((self.serial, map(tuple, self.plugins)))
             self.history_pos += 1
         self.running.release()
 
@@ -80,16 +116,17 @@ class GllApp(object):
     def restore(self):
         data = {}
         serial, plugins = self.history[self.history_pos]
-        active_plugin_found = False
-        for plugin in plugins:
-            if plugin is self.active_plugin:
-                active_plugin_found = True
+        selected_plugin_found = False
+        self.plugins.clear()
+        for active, name, plugin in plugins:
+            self.plugins.append((active, name, plugin))
+            if plugin is self.selected_plugin:
+                selected_plugin_found = True
             plugin.restore_config(data, serial)
             plugin.processor.restore(data, serial)
             plugin.update(data)
-        self.plugins = plugins
-        if not active_plugin_found:
-            self.activate_plugin(self.plugins[0])
+        if not selected_plugin_found:
+            self.select_plugin(plugin=self.plugins[0][2])
 
     def history_back(self, *args):
         if self.history_pos <= 0:
@@ -104,13 +141,13 @@ class GllApp(object):
         self.restore()
 
     def cancel_pipeline(self, *args):
-        proc = self.__dict__.get("active_processor")
+        proc = self.active_processor
         if proc:
-            self.active_processor.cancel()
+            proc.cancel()
         self.cancel_flag = True
 
     def update_progressbar(self):
-        proc = self.__dict__.get("active_processor")
+        proc = self.active_processor
         if proc:
             self.progressbar.set_fraction(min(proc.get_progress(), 1.0))
             return True
@@ -118,6 +155,12 @@ class GllApp(object):
             self.progressbar.set_property("show-text", False)
             self.progressbar.set_fraction(0.0)
             return False
+
+    def toggle_plugin(self, cell, path):
+        self.plugins[path][0] ^= True
+
+    def edit_plugin_name(self, cell, path, new_text):
+        self.plugins[path][1] = new_text
 
     def show_console(self, *args):
         if not pyconsole:
