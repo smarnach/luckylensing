@@ -8,6 +8,8 @@ class GllConvolution(GllPlugin):
     def __init__(self):
         super(GllConvolution, self).__init__(Convolution())
         self.imageview = gtkimageview.ImageView()
+        self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
+        self.imageview.connect("button-press-event", self.imageview_clicked)
         scrollwin = gtkimageview.ImageScrollWin(self.imageview)
         scrollwin.show_all()
         self.main_widget = scrollwin
@@ -27,3 +29,6 @@ class GllConvolution(GllPlugin):
         data["min_mag"] = min_mag
         data["max_mag"] = max_mag
         data["convolved_magpat_pixbuf"] = pixbuf
+
+    def imageview_clicked(self, widget, event, data=None):
+        widget.grab_focus()
