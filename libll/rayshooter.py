@@ -38,19 +38,25 @@ class Rayshooter(ll.BasicRayshooter, Processor):
         """
         params = self.params[0]
         lens = [params.lenses.lens[i] for i in range(params.lenses.num_lenses)]
-        rect = ll.Rect()
-        x0 = min(l.x - sqrt(l.mass) for l in lens)
-        d = sum(l.mass/(x0 - l.x) for l in lens)
-        rect.x = min(x0, params.region.x + d)
-        y0 = min(l.y - sqrt(l.mass) for l in lens)
-        d = sum(l.mass/(y0 - l.y) for l in lens)
-        rect.y = min(y0, params.region.y + d)
-        x1 = max(l.x + sqrt(l.mass) for l in lens)
-        d = sum(l.mass/(x1 - l.x) for l in lens)
-        rect.width = max(x1, params.region.x + params.region.width + d) - rect.x
-        y1 = max(l.y + sqrt(l.mass) for l in lens)
-        d = sum(l.mass/(y1 - l.y) for l in lens)
-        rect.height = max(y1, params.region.y + params.region.height + d) - rect.y
+        if lens:
+            rect = ll.Rect()
+            x0 = min(l.x - sqrt(l.mass) for l in lens)
+            d = sum(l.mass/(x0 - l.x) for l in lens)
+            rect.x = min(x0, params.region.x + d)
+            y0 = min(l.y - sqrt(l.mass) for l in lens)
+            d = sum(l.mass/(y0 - l.y) for l in lens)
+            rect.y = min(y0, params.region.y + d)
+            x1 = max(l.x + sqrt(l.mass) for l in lens)
+            d = sum(l.mass/(x1 - l.x) for l in lens)
+            rect.width = max(x1, params.region.x +
+                             params.region.width + d) - rect.x
+            y1 = max(l.y + sqrt(l.mass) for l in lens)
+            d = sum(l.mass/(y1 - l.y) for l in lens)
+            rect.height = max(y1, params.region.y +
+                              params.region.height + d) - rect.y
+        else:
+            rect = ll.Rect(params.region.x, params.region.y,
+                           params.region.width, params.region.height)
 
         # Determine number of rays needed to achieve the ray density
         # specified by self.density (assuming magnification = 1)
