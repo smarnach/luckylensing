@@ -4,6 +4,8 @@ import gobject
 import gtk
 from gllplugin import GllPlugin
 from gllrayshooter import GllRayshooter
+from globularcluster import GlobularCluster
+from glllenses import GllLenses
 try:
     import pyconsole
 except:
@@ -28,6 +30,8 @@ class GllApp(object):
         self.history = []
         self.history_pos = -1
         self.serial = 0
+        self.add_plugin(GllPlugin(GlobularCluster()))
+        self.add_plugin(GllLenses())
         self.add_plugin(GllRayshooter())
 
     def init_plugins(self):
