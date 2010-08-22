@@ -34,7 +34,6 @@ class GllRayshooter(GllPlugin):
 
     def get_config(self):
         d = {}
-        self.imageview.grab_focus()
         d["xpixels"] = int(self.builder.get_object("xpixels").get_value())
         d["ypixels"] = int(self.builder.get_object("ypixels").get_value())
         exp_reg = self.builder.get_object("export_region").get_active()

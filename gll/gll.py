@@ -40,14 +40,13 @@ class GllApp(object):
         self.serial = 0
         self.add_plugin(GllPlugin(GlobularCluster()))
         self.add_plugin(GllLenses())
-        rs = GllRayshooter()
-        self.add_plugin(rs)
+        it = self.add_plugin(GllRayshooter())
+        self.add_plugin(GllSourcePath())
         self.add_plugin(GllPlugin(GaussianSource()))
         self.add_plugin(GllPlugin(FlatSource()))
-        self.add_plugin(GllSourcePath())
         self.add_plugin(GllConvolution())
         self.add_plugin(GllLightCurve())
-        self.select_plugin(rs)
+        self.selection.select_iter(it)
 
     def init_plugins(self):
         self.plugins = gtk.ListStore(bool, str, GllPlugin, int)
@@ -65,41 +64,39 @@ class GllApp(object):
         column.add_attribute(renderer, 'text', 1)
         treeview.append_column(column)
         treeview.set_headers_visible(False)
-        treeview.get_selection().connect("changed",
-                                         self.selected_plugin_changed)
+        self.selection = treeview.get_selection()
+        self.selection.connect("changed", self.selected_plugin_changed)
         treeview.show_all()
         self.builder.get_object("pipeline_frame").add(treeview)
-        self.selected_plugin = None
+        self.treeview = treeview
 
     def add_plugin(self, plugin):
         if hasattr(plugin, "name"):
             name = plugin.name
         else:
             name = plugin.processor.__class__.__name__
-        self.plugins.append((True, name, plugin, -1))
+        it = self.plugins.append((True, name, plugin, -1))
+        self.selection.select_iter(it)
         plugin.connect("run-pipeline", self.run_pipeline)
         plugin.connect("cancel-pipeline", self.cancel_pipeline)
         plugin.connect("history-back", self.history_back)
         plugin.connect("history-forward", self.history_forward)
-        self.select_plugin(plugin)
-
-    def select_plugin(self, plugin):
-        if plugin.main_widget:
-            child = self.hpaned.get_child1()
-            if child:
-                self.hpaned.remove(child)
-            self.hpaned.pack1(plugin.main_widget, resize=True)
-        if plugin.config_widget:
-            child = self.vpaned.get_child2()
-            if child:
-                self.vpaned.remove(child)
-            self.vpaned.pack2(plugin.config_widget, resize=True)
-        self.selected_plugin = plugin
+        return it
 
     def selected_plugin_changed(self, selection):
-        list, it = selection.get_selected()
+        plugins, it = selection.get_selected()
         if it is not None:
-            self.select_plugin(list[it][2])
+            plugin = plugins[it][2]
+            if plugin.main_widget:
+                child = self.hpaned.get_child1()
+                if child:
+                    self.hpaned.remove(child)
+                self.hpaned.pack1(plugin.main_widget, resize=True)
+            if plugin.config_widget:
+                child = self.vpaned.get_child2()
+                if child:
+                    self.vpaned.remove(child)
+                self.vpaned.pack2(plugin.config_widget, resize=True)
 
     def pipeline_thread(self):
         data = {}
@@ -128,6 +125,7 @@ class GllApp(object):
         if not self.running.acquire(False):
             return
         self.cancel_flag = False
+        self.treeview.grab_focus()
         self.progressbar.set_property("show-text", True)
         self.progressbar_active = True
         self.progressbar.set_fraction(0.0)
@@ -153,19 +151,21 @@ class GllApp(object):
 
     def restore_from_history(self):
         data = {}
-        selected_plugin_found = False
-        self.plugins.clear()
+        plugins, it = self.selection.get_selected()
+        if it:
+            selected_plugin = plugins[it][2]
+        else:
+            selected_plugin = None
+        plugins.clear()
         for active, name, plugin, serial in self.history[self.history_pos]:
-            self.plugins.append((active, name, plugin, serial))
-            if plugin is self.selected_plugin:
-                selected_plugin_found = True
+            it = plugins.append((active, name, plugin, serial))
+            if plugin is selected_plugin:
+                self.selection.select_iter(it)
             if active:
                 plugin.restore_config(data, serial)
                 if plugin.processor:
                     plugin.processor.restore(data, serial)
                 plugin.update(data)
-        if not selected_plugin_found:
-            self.select_plugin(plugin=self.plugins[0][2])
 
     def history_back(self, *args):
         if self.history_pos <= 0:
