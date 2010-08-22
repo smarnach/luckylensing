@@ -732,14 +732,14 @@ ll_render_magpattern_gradient(const float *magpat, char *buf,
 
 extern void
 ll_light_curve(const struct ll_magpattern_param_t *params, const float *magpat,
-               double *curve, unsigned num_points,
+               float *curve, unsigned samples,
                double x0, double y0, double x1, double y1)
 {
     double mag_x = (x0 - params->region.x) * params->pixels_per_width;
     double mag_y = (y0 - params->region.y) * params->pixels_per_height;
-    double dx = (x1 - x0) * params->pixels_per_width / (num_points - 1);
-    double dy = (y1 - y0) * params->pixels_per_height / (num_points - 1);
-    for (unsigned i = 0; i < num_points; ++i)
+    double dx = (x1 - x0) * params->pixels_per_width / (samples - 1);
+    double dy = (y1 - y0) * params->pixels_per_height / (samples - 1);
+    for (unsigned i = 0; i < samples; ++i)
     {
         int ix = mag_x;
         int iy = mag_y;

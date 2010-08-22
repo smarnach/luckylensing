@@ -114,7 +114,7 @@ ll_render_magpattern_gradient(const float *magpat, char *buf,
 
 extern void
 ll_light_curve(const struct ll_magpattern_param_t *params, const float *magpat,
-               double *curve, unsigned num_points,
+               float *curve, unsigned samples,
                double x0, double y0, double x1, double y1);
 
 #endif

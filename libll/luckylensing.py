@@ -268,8 +268,8 @@ class MagPatternParams(_c.Structure):
         _source_images(self, buf, rect, xrays, yarays, refine,
                       source_x, source_y, source_r)
 
-    def light_curve(self, magpat, curve, num_points, x0, y0, x1, y1):
-        _light_curve(self, magpat, curve, num_points, x0, y0, x1, y1)
+    def light_curve(self, magpat, curve, x0, y0, x1, y1):
+        _light_curve(self, magpat, curve, curve.size, x0, y0, x1, y1)
 
 Progress = _c.c_double
 """Type for the progress argument of some methods of BasicRayshooter.
@@ -468,7 +468,7 @@ def render_magpattern_gradient(magpat, colors, steps, min_mag=None,
 
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),
                          _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
-                         _ndpointer(_np.double, flags="C_CONTIGUOUS"),
+                         _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
                          _c.c_uint,
                          _c.c_double,
                          _c.c_double,
