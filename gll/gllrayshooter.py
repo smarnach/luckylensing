@@ -93,6 +93,7 @@ class GllRayshooter(GllPlugin):
         pixbuf = gtk.gdk.pixbuf_new_from_array(buf, gtk.gdk.COLORSPACE_RGB, 8)
         self.imageview.set_tool(self.dragger)
         self.imageview.set_pixbuf(pixbuf)
+        data["magpat_pixbuf"] = pixbuf
         self.region = {}
         for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
             self.builder.get_object(key).set_value(data[key])

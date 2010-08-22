@@ -10,9 +10,10 @@ from gllplugin import GllPlugin
 from globularcluster import GlobularCluster
 from glllenses import GllLenses
 from gllrayshooter import GllRayshooter
-from sourcestar import GaussianSource
-from sourcestar import FlatSource
+from sourcestar import GaussianSource, FlatSource
+from gllsourcepath import GllSourcePath
 from gllconvolution import GllConvolution
+from glllightcurve import GllLightCurve
 try:
     import pyconsole
 except:
@@ -39,10 +40,14 @@ class GllApp(object):
         self.serial = 0
         self.add_plugin(GllPlugin(GlobularCluster()))
         self.add_plugin(GllLenses())
-        self.add_plugin(GllRayshooter())
+        rs = GllRayshooter()
+        self.add_plugin(rs)
         self.add_plugin(GllPlugin(GaussianSource()))
         self.add_plugin(GllPlugin(FlatSource()))
+        self.add_plugin(GllSourcePath())
         self.add_plugin(GllConvolution())
+        self.add_plugin(GllLightCurve())
+        self.select_plugin(rs)
 
     def init_plugins(self):
         self.plugins = gtk.ListStore(bool, str, GllPlugin, int)
@@ -125,6 +130,7 @@ class GllApp(object):
         self.cancel_flag = False
         self.progressbar.set_property("show-text", True)
         self.progressbar_active = True
+        self.progressbar.set_fraction(0.0)
         gobject.timeout_add(100, self.update_progressbar)
         threading.Thread(target=self.pipeline_thread).start()
 

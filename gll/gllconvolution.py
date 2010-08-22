@@ -18,7 +18,12 @@ class GllConvolution(GllPlugin):
         steps = [255, 32, 255, 255, 255]
         magpat = data["magpat"]
         convolved_magpat = data["convolved_magpat"]
+        min_mag = magpat.min()
+        max_mag = magpat.max()
         buf = ll.render_magpattern_gradient(convolved_magpat, colors, steps,
-                                            magpat.min(), magpat.max())
+                                            min_mag, max_mag)
         pixbuf = gtk.gdk.pixbuf_new_from_array(buf, gtk.gdk.COLORSPACE_RGB, 8)
         self.imageview.set_pixbuf(pixbuf)
+        data["min_mag"] = min_mag
+        data["max_mag"] = max_mag
+        data["convolved_magpat_pixbuf"] = pixbuf
