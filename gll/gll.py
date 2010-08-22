@@ -7,9 +7,12 @@ import threading
 import gobject
 import gtk
 from gllplugin import GllPlugin
-from gllrayshooter import GllRayshooter
 from globularcluster import GlobularCluster
 from glllenses import GllLenses
+from gllrayshooter import GllRayshooter
+from sourcestar import GaussianSource
+from sourcestar import FlatSource
+from gllconvolution import GllConvolution
 try:
     import pyconsole
 except:
@@ -37,6 +40,9 @@ class GllApp(object):
         self.add_plugin(GllPlugin(GlobularCluster()))
         self.add_plugin(GllLenses())
         self.add_plugin(GllRayshooter())
+        self.add_plugin(GllPlugin(GaussianSource()))
+        self.add_plugin(GllPlugin(FlatSource()))
+        self.add_plugin(GllConvolution())
 
     def init_plugins(self):
         self.plugins = gtk.ListStore(bool, str, GllPlugin, int)
