@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+import sys
+sys.path.append("../libll")
+
 import threading
 import gobject
 import gtk

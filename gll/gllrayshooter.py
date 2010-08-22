@@ -1,6 +1,3 @@
-import sys
-sys.path.append("../libll")
-
 import gtk
 import gtkimageview
 import luckylensing as ll

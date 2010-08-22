@@ -1,6 +1,3 @@
-import sys
-sys.path.append("../libll")
-
 from subprocess import Popen, PIPE
 from processor import Processor
 from luckylensing import render_magpattern_gradient

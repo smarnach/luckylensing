@@ -1,8 +1,4 @@
-import sys
-sys.path.append("../libll")
-
 import gtk
-import luckylensing as ll
 from gllplugin import GllPlugin
 
 class GllLenses(GllPlugin):
