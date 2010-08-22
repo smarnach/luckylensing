@@ -106,10 +106,7 @@ class GllApp(object):
         self.active_processor = None
         self.progressbar_active = False
         if not self.cancel_flag:
-            if self.history_pos < len(self.history) - 1:
-                self.truncate_history()
-            self.history.append(map(tuple, self.plugins))
-            self.history_pos += 1
+            self.save_to_history()
         self.running.release()
 
     def run_pipeline(self, *args):
@@ -121,19 +118,24 @@ class GllApp(object):
         gobject.timeout_add(100, self.update_progressbar)
         threading.Thread(target=self.pipeline_thread).start()
 
-    def truncate_history(self):
-        del self.history[self.history_pos+1:]
-        for active, name, plugin, serial in self.history[self.history_pos]:
-            serials = []
-            for plugins in self.history:
-                for entry in plugins:
-                    if entry[2] is plugin:
-                        serials.append(entry[3])
-            if plugin.processor:
-                plugin.processor.restrict_history(serials)
-            plugin.restrict_history(serials)
+    def save_to_history(self):
+        truncate = self.history_pos < len(self.history) - 1
+        if truncate:
+            del self.history[self.history_pos+1:]
+        self.history.append(map(tuple, self.plugins))
+        if truncate:
+            for active, name, plugin, serial in self.history[self.history_pos]:
+                serials = []
+                for plugins in self.history:
+                    for entry in plugins:
+                        if entry[2] is plugin:
+                            serials.append(entry[3])
+                if plugin.processor:
+                    plugin.processor.restrict_history(serials)
+                plugin.restrict_history(serials)
+        self.history_pos += 1
 
-    def restore(self):
+    def restore_from_history(self):
         data = {}
         selected_plugin_found = False
         self.plugins.clear()
@@ -153,13 +155,13 @@ class GllApp(object):
         if self.history_pos <= 0:
             return
         self.history_pos -= 1
-        self.restore()
+        self.restore_from_history()
 
     def history_forward(self, *args):
         if self.history_pos >= len(self.history) - 1:
             return
         self.history_pos += 1
-        self.restore()
+        self.restore_from_history()
 
     def cancel_pipeline(self, *args):
         proc = self.active_processor
@@ -170,7 +172,8 @@ class GllApp(object):
     def update_progressbar(self):
         proc = self.active_processor
         if proc:
-            self.progressbar.set_fraction(min(proc.get_progress(), 1.0))
+            fraction = min(max(proc.get_progress(), 0.0), 1.0)
+            self.progressbar.set_fraction(fraction)
         if self.progressbar_active:
             return True
         self.progressbar.set_property("show-text", False)
