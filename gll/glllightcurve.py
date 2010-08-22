@@ -23,7 +23,7 @@ class GllLightCurve(GllPlugin):
         max_mag = data.get("curve_max_mag", curve.max())
         self.points = [(int(i*(xpixels-1)/(samples-1)),
                         int((ypixels-1)*(1.0-mag/max_mag)))
-                       for i, mag in enumerate(curve)]
+                       for i, mag in enumerate(curve) if mag]
         self.drawing_area.set_size_request(xpixels, ypixels)
         self.drawing_area.queue_draw_area(0, 0, xpixels, ypixels)
 

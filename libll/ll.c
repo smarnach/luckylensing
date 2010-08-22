@@ -743,13 +743,18 @@ ll_light_curve(const struct ll_magpattern_param_t *params, const float *magpat,
     {
         int ix = mag_x;
         int iy = mag_y;
-        int index = iy*params->xpixels + ix;
-        double frac_x = mag_x - ix;
-        double frac_y = mag_y - iy;
-        curve[i] = (1.0 - frac_x) * (1.0 - frac_y) * magpat[index]
-            + frac_x * (1.0 - frac_y) * magpat[index+1]
-            + (1.0 - frac_x) * frac_y * magpat[index+params->xpixels]
-            + frac_x * frac_y * magpat[index+params->xpixels+1];
+        if (ix < 0 || ix >= params->xpixels || iy < 0 || iy >= params->ypixels)
+            curve[i] = 0.0;
+        else
+        {
+            int index = iy*params->xpixels + ix;
+            double frac_x = mag_x - ix;
+            double frac_y = mag_y - iy;
+            curve[i] = (1.0 - frac_x) * (1.0 - frac_y) * magpat[index]
+                + frac_x * (1.0 - frac_y) * magpat[index+1]
+                + (1.0 - frac_x) * frac_y * magpat[index+params->xpixels]
+                + frac_x * frac_y * magpat[index+params->xpixels+1];
+        }
         mag_x += dx;
         mag_y += dy;
     }
