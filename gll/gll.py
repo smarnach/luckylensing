@@ -53,7 +53,11 @@ class GllApp(object):
         self.selected_plugin = None
 
     def add_plugin(self, plugin):
-        self.plugins.append((True, "name", plugin))
+        if hasattr(plugin, "name"):
+            name = plugin.name
+        else:
+            name = plugin.processor.__class__.__name__
+        self.plugins.append((True, name, plugin))
         plugin.connect("run-pipeline", self.run_pipeline)
         plugin.connect("cancel-pipeline", self.cancel_pipeline)
         plugin.connect("history-back", self.history_back)
@@ -87,19 +91,22 @@ class GllApp(object):
                 continue
             self.active_processor = plugin.processor
             plugin.update_config(data, data_serials, self.serial)
-            plugin.processor.update(data, data_serials, self.serial)
+            if plugin.processor:
+                plugin.processor.update(data, data_serials, self.serial)
             if self.cancel_flag:
                 break
             gobject.idle_add(plugin.update, data)
             while gobject.main_context_default().iteration(False):
                 pass
         self.active_processor = None
+        self.progressbar_active = False
         if not self.cancel_flag:
             if self.history_pos < len(self.history) - 1:
                 del self.history[self.history_pos+1:]
                 serials = [s for s, plugin in self.history] + [self.serial]
                 for plugin in self.history[self.history_pos][1]:
-                    plugin.processor.restrict_history(serials)
+                    if plugin.processor:
+                        plugin.processor.restrict_history(serials)
                     plugin.restrict_history(serials)
             self.history.append((self.serial, map(tuple, self.plugins)))
             self.history_pos += 1
@@ -110,6 +117,7 @@ class GllApp(object):
             return
         self.cancel_flag = False
         self.progressbar.set_property("show-text", True)
+        self.progressbar_active = True
         gobject.timeout_add(100, self.update_progressbar)
         threading.Thread(target=self.pipeline_thread).start()
 
@@ -122,9 +130,11 @@ class GllApp(object):
             self.plugins.append((active, name, plugin))
             if plugin is self.selected_plugin:
                 selected_plugin_found = True
-            plugin.restore_config(data, serial)
-            plugin.processor.restore(data, serial)
-            plugin.update(data)
+            if active:
+                plugin.restore_config(data, serial)
+                if plugin.processor:
+                    plugin.processor.restore(data, serial)
+                plugin.update(data)
         if not selected_plugin_found:
             self.select_plugin(plugin=self.plugins[0][2])
 
@@ -150,11 +160,11 @@ class GllApp(object):
         proc = self.active_processor
         if proc:
             self.progressbar.set_fraction(min(proc.get_progress(), 1.0))
+        if self.progressbar_active:
             return True
-        else:
-            self.progressbar.set_property("show-text", False)
-            self.progressbar.set_fraction(0.0)
-            return False
+        self.progressbar.set_property("show-text", False)
+        self.progressbar.set_fraction(0.0)
+        return False
 
     def toggle_plugin(self, cell, path):
         self.plugins[path][0] ^= True
