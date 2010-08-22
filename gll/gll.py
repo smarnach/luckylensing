@@ -35,7 +35,7 @@ class GllApp(object):
         self.add_plugin(GllRayshooter())
 
     def init_plugins(self):
-        self.plugins = gtk.ListStore(bool, str, GllPlugin)
+        self.plugins = gtk.ListStore(bool, str, GllPlugin, int)
         treeview = gtk.TreeView(self.plugins)
         column = gtk.TreeViewColumn("Enabled")
         renderer = gtk.CellRendererToggle()
@@ -61,7 +61,7 @@ class GllApp(object):
             name = plugin.name
         else:
             name = plugin.processor.__class__.__name__
-        self.plugins.append((True, name, plugin))
+        self.plugins.append((True, name, plugin, -1))
         plugin.connect("run-pipeline", self.run_pipeline)
         plugin.connect("cancel-pipeline", self.cancel_pipeline)
         plugin.connect("history-back", self.history_back)
@@ -89,16 +89,17 @@ class GllApp(object):
     def pipeline_thread(self):
         data = {}
         data_serials = {}
-        self.serial += 1
-        for active, name, plugin in self.plugins:
+        for i, (active, name, plugin, last_serial) in enumerate(self.plugins):
             if not active:
                 continue
+            self.serial += 1
             self.active_processor = plugin.processor
-            plugin.update_config(data, data_serials, self.serial)
+            plugin.update_config(data, data_serials, self.serial, last_serial)
             if plugin.processor:
                 plugin.processor.update(data, data_serials, self.serial)
             if self.cancel_flag:
                 break
+            self.plugins[i][3] = self.serial
             gobject.idle_add(plugin.update, data)
             while gobject.main_context_default().iteration(False):
                 pass
@@ -106,13 +107,8 @@ class GllApp(object):
         self.progressbar_active = False
         if not self.cancel_flag:
             if self.history_pos < len(self.history) - 1:
-                del self.history[self.history_pos+1:]
-                serials = [s for s, plugin in self.history] + [self.serial]
-                for plugin in self.history[self.history_pos][1]:
-                    if plugin.processor:
-                        plugin.processor.restrict_history(serials)
-                    plugin.restrict_history(serials)
-            self.history.append((self.serial, map(tuple, self.plugins)))
+                self.truncate_history()
+            self.history.append(map(tuple, self.plugins))
             self.history_pos += 1
         self.running.release()
 
@@ -125,13 +121,24 @@ class GllApp(object):
         gobject.timeout_add(100, self.update_progressbar)
         threading.Thread(target=self.pipeline_thread).start()
 
+    def truncate_history(self):
+        del self.history[self.history_pos+1:]
+        for active, name, plugin, serial in self.history[self.history_pos]:
+            serials = []
+            for plugins in self.history:
+                for entry in plugins:
+                    if entry[2] is plugin:
+                        serials.append(entry[3])
+            if plugin.processor:
+                plugin.processor.restrict_history(serials)
+            plugin.restrict_history(serials)
+
     def restore(self):
         data = {}
-        serial, plugins = self.history[self.history_pos]
         selected_plugin_found = False
         self.plugins.clear()
-        for active, name, plugin in plugins:
-            self.plugins.append((active, name, plugin))
+        for active, name, plugin, serial in self.history[self.history_pos]:
+            self.plugins.append((active, name, plugin, serial))
             if plugin is self.selected_plugin:
                 selected_plugin_found = True
             if active:
