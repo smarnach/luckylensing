@@ -9,14 +9,15 @@ class GllRayshooter(GllPlugin):
         super(GllRayshooter, self).__init__(Rayshooter())
         self.imageview = gtkimageview.ImageView()
         self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
-        self.scrollwin = gtkimageview.ImageScrollWin(self.imageview)
-        self.scrollwin.show_all()
+        self.main_widget = gtkimageview.ImageScrollWin(self.imageview)
+        self.main_widget.show_all()
         self.dragger = self.imageview.get_tool()
         self.selector = gtkimageview.ImageToolSelector(self.imageview)
         self.imageview.connect("button-press-event", self.imageview_clicked)
         self.builder = gtk.Builder()
         self.builder.add_from_file("gllrayshooter.glade")
         self.builder.connect_signals(self)
+        self.config_widget = self.builder.get_object("config")
         self.set_config({"xpixels": 1024,
                          "ypixels": 1024,
                          "density": 100,
@@ -30,8 +31,6 @@ class GllRayshooter(GllPlugin):
         self.region = None
         self.xpixels = None
         self.ypixels = None
-        self.main_widget = self.scrollwin
-        self.config_widget = self.builder.get_object("config")
 
     def get_config(self):
         d = {}
@@ -91,10 +90,9 @@ class GllRayshooter(GllPlugin):
                   (195, 16, 16), (249, 249, 70), (255, 255, 255)]
         steps = [255, 32, 255, 255, 255]
         buf = ll.render_magpattern_gradient(data["magpat"], colors, steps)
-        self.pixbuf = gtk.gdk.pixbuf_new_from_array(buf,
-                                                    gtk.gdk.COLORSPACE_RGB, 8)
+        pixbuf = gtk.gdk.pixbuf_new_from_array(buf, gtk.gdk.COLORSPACE_RGB, 8)
         self.imageview.set_tool(self.dragger)
-        self.imageview.set_pixbuf(self.pixbuf)
+        self.imageview.set_pixbuf(pixbuf)
         self.region = {}
         for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
             self.builder.get_object(key).set_value(data[key])
