@@ -7,9 +7,9 @@ class GllPlugin(gobject.GObject):
         "history-back": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ()),
         "history-forward": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ())}
 
-    def __init__(self):
+    def __init__(self, processor=None):
         super(GllPlugin, self).__init__()
-        self.processor = None
+        self.processor = processor
         self.main_widget = None
         self.config_widget = None
         self.history = {}

@@ -9,7 +9,7 @@ from gllplugin import GllPlugin
 
 class GllRayshooter(GllPlugin):
     def __init__(self):
-        super(GllRayshooter, self).__init__()
+        super(GllRayshooter, self).__init__(Rayshooter())
         self.imageview = gtkimageview.ImageView()
         self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
         self.scrollwin = gtkimageview.ImageScrollWin(self.imageview)
@@ -34,7 +34,6 @@ class GllRayshooter(GllPlugin):
         self.region = None
         self.xpixels = None
         self.ypixels = None
-        self.processor = Rayshooter()
         self.main_widget = self.scrollwin
         self.config_widget = self.builder.get_object("config")
 
