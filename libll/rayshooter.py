@@ -116,15 +116,15 @@ class Rayshooter(ll.BasicRayshooter, Processor):
 
     def _run_threaded(self, rect, xrays, yrays, levels):
         num_threads = self.num_threads
-        hit = numpy.empty((yrays, xrays), numpy.uint8)
+        patches = ll.Patches(rect, levels - 1, xrays, yrays)
         y_indices = [j*yrays//num_threads for j in range(num_threads + 1)]
         y_values =  [rect.y + j*(rect.height/yrays) for j in y_indices]
         subpatches = []
         for j in range(num_threads):
             subrect = ll.Rect(rect.x, y_values[j], rect.width,
                               y_values[j+1] - y_values[j])
-            subhit = hit[y_indices[j]:y_indices[j+1]]
-            subpatches.append(ll.Patches(subrect, levels - 1, subhit))
+            subhit = patches.hit_array[y_indices[j]:y_indices[j+1]]
+            subpatches.append(ll.Patches(subrect, levels - 1, hit=subhit))
         threads = [threading.Thread(target=self.get_subpatches,
                                     args=(subpatches[j],))
                    for j in range(1, num_threads)]
@@ -133,7 +133,6 @@ class Rayshooter(ll.BasicRayshooter, Processor):
         self.get_subpatches(subpatches[0])
         counts = [self.count] + [numpy.zeros_like(self.count)
                                  for j in range(num_threads)]
-        patches = ll.Patches(rect, levels - 1, hit)
         for t in threads:
             t.join()
         patches.num_patches = sum(p.num_patches for p in subpatches)
@@ -151,22 +150,23 @@ class Rayshooter(ll.BasicRayshooter, Processor):
                 queue.put((subrect, x_indices[i], x_indices[i+1],
                            y_indices[j], y_indices[j+1]))
         threads = [threading.Thread(target=self._run_queue,
-                                    args=(queue, counts[j], patches, hit, j))
+                                    args=(queue, counts[j], patches, j))
                    for j in range(1, num_threads)]
         for t in threads:
             t.start()
-        self._run_queue(queue, counts[0], patches, hit, 0)
+        self._run_queue(queue, counts[0], patches, 0)
         for t in threads:
             t.join()
         for c in counts[1:]:
             self.count += c
 
-    def _run_queue(self, queue, count, patches, hit, index):
+    def _run_queue(self, queue, count, patches, index):
+        hit = patches.hit_array
         try:
             while True:
                 rect, i0, i1, j0, j1 = queue.get(False)
                 subhit = numpy.ascontiguousarray(hit[j0:j1, i0:i1])
-                subpatches = ll.Patches(rect, patches.level, subhit)
+                subpatches = ll.Patches(rect, patches.level, hit=subhit)
                 subpatches.num_patches = patches.num_patches
                 self.run_subpatches(count, subpatches, self.progress[index])
         except Empty:

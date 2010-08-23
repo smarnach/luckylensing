@@ -145,11 +145,15 @@ class Patches(_c.Structure):
                 ("hit", _c.POINTER(_c.c_char)),
                 ("num_patches", _c.c_uint)]
 
-    def __init__(self, rect, level, hit):
+    def __init__(self, rect, level, xrays=None, yrays=None, hit=None):
         """Create a patches object with the given rect and subpatch pattern."""
-        yrays, xrays = hit.shape
+        if hit is not None:
+            yrays, xrays = hit.shape
+        else:
+            hit = _np.empty((yrays, xrays), _np.uint8)
+        self.hit_array = hit
         super(Patches, self).__init__(rect, xrays, yrays, level,
-            hit=hit.ctypes.data_as(_c.POINTER(_c.c_char)), num_patches = 0)
+            hit=hit.ctypes.data_as(_c.POINTER(_c.c_char)), num_patches=0)
 
     # The following methods try to always keep the quotients
     # width_per_xrays and height_per_yrays consistent.  These ratios
