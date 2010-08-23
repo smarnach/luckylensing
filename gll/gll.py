@@ -7,10 +7,10 @@ import threading
 import gobject
 import gtk
 from gllplugin import GllPlugin
-from globularcluster import GlobularCluster
+from gllglobularcluster import GllGlobularCluster
 from glllenses import GllLenses
 from gllrayshooter import GllRayshooter
-from sourcestar import GaussianSource, FlatSource
+from gllsourcestar import GllGaussianSource, GllFlatSource
 from gllsourcepath import GllSourcePath
 from gllconvolution import GllConvolution
 from glllightcurve import GllLightCurve
@@ -38,12 +38,12 @@ class GllApp(object):
         self.history = []
         self.history_pos = -1
         self.serial = 0
-        self.add_plugin(GllPlugin(GlobularCluster()))
+        self.add_plugin(GllGlobularCluster())
         self.add_plugin(GllLenses())
         it = self.add_plugin(GllRayshooter())
         self.add_plugin(GllSourcePath())
-        self.add_plugin(GllPlugin(GaussianSource()))
-        self.add_plugin(GllPlugin(FlatSource()))
+        self.add_plugin(GllGaussianSource())
+        self.add_plugin(GllFlatSource())
         self.add_plugin(GllConvolution())
         self.add_plugin(GllLightCurve())
         self.selection.select_iter(it)
