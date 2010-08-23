@@ -12,7 +12,7 @@ class Rayshooter(ll.BasicRayshooter, Processor):
         Processor.__init__(self)
         self.density = 100
         self.num_threads = 1
-        self.count = None
+        self.magpat = None
         self.progress = []
 
     def get_input_keys(self, data):
@@ -97,7 +97,7 @@ class Rayshooter(ll.BasicRayshooter, Processor):
                     self.kernel = kernel
         self.cancel_flag = False
         shape = self.params[0].ypixels, self.params[0].xpixels
-        self.count = numpy.zeros(shape, numpy.float32)
+        self.magpat = numpy.zeros(shape, numpy.float32)
         rect, xrays, yrays, levels = self.get_shooting_params()
         print xrays, yrays
         print levels
@@ -106,13 +106,13 @@ class Rayshooter(ll.BasicRayshooter, Processor):
         if self.num_threads > 1:
             self._run_threaded(rect, xrays, yrays, levels)
         else:
-            ll.BasicRayshooter.run(self, self.count, rect, xrays, yrays,
+            ll.BasicRayshooter.run(self, self.magpat, rect, xrays, yrays,
                                    levels, progress=self.progress[0])
         print time()-start_time
         self.progress = []
         if data:
             return {"shooting_rect": rect, "xrays": xrays, "yrays": yrays,
-                    "levels": levels, "magpat": self.count}
+                    "levels": levels, "magpat": self.magpat}
 
     def _run_threaded(self, rect, xrays, yrays, levels):
         num_threads = self.num_threads
@@ -131,8 +131,8 @@ class Rayshooter(ll.BasicRayshooter, Processor):
         for t in threads:
             t.start()
         self.get_subpatches(subpatches[0])
-        counts = [self.count] + [numpy.zeros_like(self.count)
-                                 for j in range(num_threads)]
+        magpats = [self.magpat] + [numpy.zeros_like(self.magpat)
+                                   for j in range(num_threads)]
         for t in threads:
             t.join()
         patches.num_patches = sum(p.num_patches for p in subpatches)
@@ -150,16 +150,16 @@ class Rayshooter(ll.BasicRayshooter, Processor):
                 queue.put((subrect, x_indices[i], x_indices[i+1],
                            y_indices[j], y_indices[j+1]))
         threads = [threading.Thread(target=self._run_queue,
-                                    args=(queue, counts[j], patches, j))
+                                    args=(queue, magpats[j], patches, j))
                    for j in range(1, num_threads)]
         for t in threads:
             t.start()
-        self._run_queue(queue, counts[0], patches, 0)
+        self._run_queue(queue, magpats[0], patches, 0)
         for t in threads:
             t.join()
-        self.finalise_subpatches(counts, patches)
+        self.finalise_subpatches(magpats, patches)
 
-    def _run_queue(self, queue, count, patches, index):
+    def _run_queue(self, queue, magpat, patches, index):
         hit = patches.hit_array
         try:
             while True:
@@ -167,6 +167,6 @@ class Rayshooter(ll.BasicRayshooter, Processor):
                 subhit = numpy.ascontiguousarray(hit[j0:j1, i0:i1])
                 subpatches = ll.Patches(rect, patches.level, hit=subhit)
                 subpatches.num_patches = patches.num_patches
-                self.run_subpatches(count, subpatches, self.progress[index])
+                self.run_subpatches(magpat, subpatches, self.progress[index])
         except Empty:
             pass

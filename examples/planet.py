@@ -14,5 +14,5 @@ for i in range(101):
     rs = Rayshooter(p)
     rs.num_threads = 2
     rs.run()
-    buf = ll.render_magpattern_gradient(rs.count, colors, steps, 3.0, 3000.0)
+    buf = ll.render_magpattern_gradient(rs.magpat, colors, steps, 3.0, 3000.0)
     save_img(buf, "magpats/planet-%03i.png" % i)
