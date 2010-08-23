@@ -498,7 +498,7 @@ ll_get_subpatches(const struct ll_magpattern_param_t *params,
                 &mag_x, &mag_y);
         }
     patches->num_patches = 0;
-    char* hit_patches = patches->hit;
+    unsigned char* hit_patches = patches->hit;
     for (int j = 0, m = xrays+4, n = 0; j < yrays; ++j, m += 3)
         for (int i = 0; i < xrays; ++i, ++m, ++n)
         {
@@ -583,8 +583,8 @@ ll_rayshoot(const struct ll_rayshooter_t *rs, void *magpat,
 }
 
 extern void
-ll_ray_hit_pattern(const struct ll_magpattern_param_t *params, char *buf,
-                   const struct ll_rect_t *rect)
+ll_ray_hit_pattern(const struct ll_magpattern_param_t *params,
+                   unsigned char *buf, const struct ll_rect_t *rect)
 {
     double width_per_xrays = rect->width / params->xpixels;
     double height_per_yrays = rect->height / params->ypixels;
@@ -598,7 +598,7 @@ ll_ray_hit_pattern(const struct ll_magpattern_param_t *params, char *buf,
 }
 
 extern void
-ll_source_images(const struct ll_magpattern_param_t *params, char *buf,
+ll_source_images(const struct ll_magpattern_param_t *params, unsigned char *buf,
                  const struct ll_rect_t *rect, int xrays, int yrays,
                  int refine, double source_x, double source_y, double source_r)
 {
@@ -652,7 +652,7 @@ _ll_get_magpattern_minmax(const float *magpat, unsigned size, float min,
 }
 
 extern void
-ll_render_magpattern_greyscale(const float *magpat, char *buf,
+ll_render_magpattern_greyscale(const float *magpat, unsigned char *buf,
                                unsigned xpixels, unsigned ypixels,
                                float min, float max)
 {
@@ -677,7 +677,7 @@ ll_render_magpattern_greyscale(const float *magpat, char *buf,
 }
 
 extern void
-ll_render_magpattern_gradient(const float *magpat, char *buf,
+ll_render_magpattern_gradient(const float *magpat, unsigned char *buf,
                               unsigned xpixels, unsigned ypixels,
                               float min, float max,
                               const unsigned char colors[][3],
@@ -692,7 +692,7 @@ ll_render_magpattern_gradient(const float *magpat, char *buf,
     unsigned total_colors = 1;
     for (int segment = 0; steps[segment]; ++segment)
         total_colors += steps[segment];
-    char (*all_colors)[3] = malloc(3 * total_colors * sizeof(char));
+    unsigned char (*all_colors)[3] = malloc(3 * total_colors * sizeof(char));
     all_colors[0][0] = colors[0][0];
     all_colors[0][1] = colors[0][1];
     all_colors[0][2] = colors[0][2];
@@ -743,7 +743,8 @@ ll_light_curve(const struct ll_magpattern_param_t *params, const float *magpat,
     {
         int ix = mag_x;
         int iy = mag_y;
-        if (ix < 0 || ix >= params->xpixels || iy < 0 || iy >= params->ypixels)
+        if (ix < 0 || ix >= (int)params->xpixels ||
+            iy < 0 || iy >= (int)params->ypixels)
             curve[i] = 0.0;
         else
         {

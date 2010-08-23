@@ -70,7 +70,7 @@ struct ll_patches_t
     int xrays, yrays;
     unsigned level;
     double width_per_xrays, height_per_yrays;
-    char* hit;
+    unsigned char* hit;
     unsigned num_patches;
 };
 
@@ -92,21 +92,21 @@ ll_rayshoot(const struct ll_rayshooter_t *rs, void *magpat,
             unsigned levels, double *progress);
 
 extern void
-ll_ray_hit_pattern(const struct ll_magpattern_param_t *params, char *buf,
-                   const struct ll_rect_t *rect);
+ll_ray_hit_pattern(const struct ll_magpattern_param_t *params, unsigned
+                   char *buf, const struct ll_rect_t *rect);
 
 extern void
-ll_source_images(const struct ll_magpattern_param_t *params, char *buf,
+ll_source_images(const struct ll_magpattern_param_t *params, unsigned char *buf,
                  const struct ll_rect_t *rect, int xrays, int yrays,
                  int refine, double source_x, double source_y, double source_r);
 
 extern void
-ll_render_magpattern_greyscale(const float *magpat, char *buf,
+ll_render_magpattern_greyscale(const float *magpat, unsigned char *buf,
                                unsigned xpixels, unsigned ypixels,
                                float min, float max);
 
 extern void
-ll_render_magpattern_gradient(const float *magpat, char *buf,
+ll_render_magpattern_gradient(const float *magpat, unsigned char *buf,
                               unsigned xpixels, unsigned ypixels,
                               float min, float max,
                               const unsigned char colors[][3],

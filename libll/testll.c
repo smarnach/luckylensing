@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     ll_init_rayshooter(&rs, &params);
     double progress;
     float *magpat = calloc(N, sizeof(float));
-    char *buf = calloc(3*N, sizeof(char));
+    unsigned char *buf = calloc(3*N, sizeof(char));
     const unsigned char colors[9][3] = {{0, 0, 0}, {64, 0, 128}, {0, 0, 255},
                                         {0, 255, 255}, {0, 255, 0}, {255, 255, 0},
                                         {255, 0, 0}, {255, 0, 255},
