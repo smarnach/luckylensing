@@ -321,6 +321,17 @@ class BasicRayshooter(_c.Structure):
         _rayshoot_subpatches(self, magpat, patches, progress)
 
     def finalise_subpatches(self, magpat, patches):
+        if type(magpat) is list:
+            for m in magpat:
+                if self.kernel == KERNEL_TRIANGULATED:
+                    m.dtype = _np.float32
+                else:
+                    m.dtype = _np.int
+            for m in magpat[1:]:
+                magpat[0] += m
+            for m in magpat:
+                m.dtype = _np.float32
+            magpat = magpat[0]
         _finalise_subpatches(self, magpat, patches)
 
     def run(self, magpat, rect, xrays, yrays, levels, progress=Progress()):

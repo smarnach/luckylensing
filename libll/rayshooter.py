@@ -157,8 +157,7 @@ class Rayshooter(ll.BasicRayshooter, Processor):
         self._run_queue(queue, counts[0], patches, 0)
         for t in threads:
             t.join()
-        for c in counts[1:]:
-            self.count += c
+        self.finalise_subpatches(counts, patches)
 
     def _run_queue(self, queue, count, patches, index):
         hit = patches.hit_array
@@ -170,4 +169,4 @@ class Rayshooter(ll.BasicRayshooter, Processor):
                 subpatches.num_patches = patches.num_patches
                 self.run_subpatches(count, subpatches, self.progress[index])
         except Empty:
-            self.finalise_subpatches(count, patches)
+            pass
