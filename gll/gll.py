@@ -25,9 +25,9 @@ class GllApp(object):
         self.builder.add_from_file("gll.glade")
         self.builder.connect_signals(self)
 
-        self.hpaned = self.builder.get_object("hpaned")
-        self.vpaned = self.builder.get_object("vpaned")
-        self.statusbar = self.builder.get_object("statusbar")
+        self.main_box = self.builder.get_object("main_box")
+        self.config_box = self.builder.get_object("config_box")
+        self.config_label = self.builder.get_object("config_label")
         self.progressbar = self.builder.get_object("progressbar")
         if not pyconsole:
             self.builder.get_object("toolbutton_console").hide()
@@ -67,7 +67,7 @@ class GllApp(object):
         self.selection = treeview.get_selection()
         self.selection.connect("changed", self.selected_plugin_changed)
         treeview.show_all()
-        self.builder.get_object("pipeline_frame").add(treeview)
+        self.builder.get_object("pipeline_window").add(treeview)
         self.treeview = treeview
 
     def add_plugin(self, plugin):
@@ -85,18 +85,22 @@ class GllApp(object):
 
     def selected_plugin_changed(self, selection):
         plugins, it = selection.get_selected()
+        child = self.config_box.get_child()
+        if child:
+            self.config_box.remove(child)
         if it is not None:
             plugin = plugins[it][2]
+            name = plugins[it][1]
             if plugin.main_widget:
-                child = self.hpaned.get_child1()
+                child = self.main_box.get_child()
                 if child:
-                    self.hpaned.remove(child)
-                self.hpaned.pack1(plugin.main_widget, resize=True)
+                    self.main_box.remove(child)
+                self.main_box.add(plugin.main_widget)
+            self.config_label.set_text(name)
             if plugin.config_widget:
-                child = self.vpaned.get_child2()
-                if child:
-                    self.vpaned.remove(child)
-                self.vpaned.pack2(plugin.config_widget, resize=True)
+                self.config_box.add(plugin.config_widget)
+        else:
+            self.config_label.set_text("")
 
     def pipeline_thread(self):
         data = {}

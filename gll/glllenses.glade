@@ -81,296 +81,281 @@
       </row>
     </data>
   </object>
-  <object class="GtkFrame" id="config">
+  <object class="GtkVBox" id="config">
     <property name="visible">True</property>
     <property name="border_width">4</property>
-    <property name="label_xalign">0</property>
-    <property name="shadow_type">in</property>
+    <property name="orientation">vertical</property>
     <child>
-      <object class="GtkVBox" id="vbox">
+      <object class="GtkTable" id="table1">
         <property name="visible">True</property>
-        <property name="border_width">4</property>
-        <property name="orientation">vertical</property>
+        <property name="n_rows">5</property>
+        <property name="n_columns">2</property>
         <child>
-          <object class="GtkTable" id="table1">
+          <object class="GtkLabel" id="label_x0">
             <property name="visible">True</property>
-            <property name="n_rows">5</property>
-            <property name="n_columns">2</property>
-            <child>
-              <object class="GtkLabel" id="label_x0">
-                <property name="visible">True</property>
-                <property name="xalign">0</property>
-                <property name="label" translatable="yes">Left coordinate</property>
-              </object>
-              <packing>
-                <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-                <property name="y_options"></property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="label_y0">
-                <property name="visible">True</property>
-                <property name="xalign">0</property>
-                <property name="label" translatable="yes">Lower coordinate</property>
-              </object>
-              <packing>
-                <property name="top_attach">2</property>
-                <property name="bottom_attach">3</property>
-                <property name="y_options"></property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="label_x1">
-                <property name="visible">True</property>
-                <property name="xalign">0</property>
-                <property name="label" translatable="yes">Right coordinate</property>
-              </object>
-              <packing>
-                <property name="top_attach">3</property>
-                <property name="bottom_attach">4</property>
-                <property name="y_options"></property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="label_y1">
-                <property name="visible">True</property>
-                <property name="xalign">0</property>
-                <property name="label" translatable="yes">Upper coordinate</property>
-              </object>
-              <packing>
-                <property name="top_attach">4</property>
-                <property name="bottom_attach">5</property>
-                <property name="y_options"></property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="spinbutton_x0">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">&#x2022;</property>
-                <property name="adjustment">region_x0</property>
-                <property name="digits">4</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
-                <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-                <property name="y_options"></property>
-                <property name="y_padding">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="spinbutton_y0">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">&#x2022;</property>
-                <property name="adjustment">region_y0</property>
-                <property name="digits">4</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
-                <property name="top_attach">2</property>
-                <property name="bottom_attach">3</property>
-                <property name="y_options"></property>
-                <property name="y_padding">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="spinbutton_x1">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">&#x2022;</property>
-                <property name="adjustment">region_x1</property>
-                <property name="digits">4</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
-                <property name="top_attach">3</property>
-                <property name="bottom_attach">4</property>
-                <property name="y_options"></property>
-                <property name="y_padding">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="spinbutton_y1">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">&#x2022;</property>
-                <property name="adjustment">region_y1</property>
-                <property name="digits">4</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
-                <property name="top_attach">4</property>
-                <property name="bottom_attach">5</property>
-                <property name="y_options"></property>
-                <property name="y_padding">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="export_region">
-                <property name="label" translatable="yes">Ray shooting region</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="toggle_export_region"/>
-              </object>
-              <packing>
-                <property name="right_attach">2</property>
-                <property name="y_options"></property>
-              </packing>
-            </child>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Left coordinate</property>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="padding">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_y0">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Lower coordinate</property>
+          </object>
+          <packing>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_x1">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Right coordinate</property>
+          </object>
+          <packing>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_y1">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Upper coordinate</property>
+          </object>
+          <packing>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="spinbutton_x0">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">&#x2022;</property>
+            <property name="adjustment">region_x0</property>
+            <property name="digits">4</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+            <property name="y_options"></property>
+            <property name="y_padding">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="spinbutton_y0">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">&#x2022;</property>
+            <property name="adjustment">region_y0</property>
+            <property name="digits">4</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="y_options"></property>
+            <property name="y_padding">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="spinbutton_x1">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">&#x2022;</property>
+            <property name="adjustment">region_x1</property>
+            <property name="digits">4</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="y_options"></property>
+            <property name="y_padding">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="spinbutton_y1">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">&#x2022;</property>
+            <property name="adjustment">region_y1</property>
+            <property name="digits">4</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="y_options"></property>
+            <property name="y_padding">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="export_region">
+            <property name="label" translatable="yes">Ray shooting region</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="toggle_export_region"/>
+          </object>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">False</property>
+        <property name="padding">2</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkHBox" id="hbox1">
+        <property name="visible">True</property>
+        <child>
+          <object class="GtkLabel" id="label9">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Lenses</property>
+          </object>
+          <packing>
             <property name="position">0</property>
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="hbox1">
+          <object class="GtkButton" id="button1">
             <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="add_lens"/>
             <child>
-              <object class="GtkLabel" id="label9">
+              <object class="GtkImage" id="image1">
                 <property name="visible">True</property>
-                <property name="xalign">0</property>
-                <property name="label" translatable="yes">Lenses</property>
+                <property name="stock">gtk-add</property>
               </object>
-              <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="button1">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="clicked" handler="add_lens"/>
-                <child>
-                  <object class="GtkImage" id="image1">
-                    <property name="visible">True</property>
-                    <property name="stock">gtk-add</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="padding">8</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="button2">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="clicked" handler="delete_lens"/>
-                <child>
-                  <object class="GtkImage" id="image2">
-                    <property name="visible">True</property>
-                    <property name="stock">gtk-remove</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">2</property>
-              </packing>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="padding">4</property>
+            <property name="padding">8</property>
             <property name="position">1</property>
           </packing>
         </child>
         <child>
-          <object class="GtkTreeView" id="treeview">
-            <property name="width_request">300</property>
+          <object class="GtkButton" id="button2">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="model">lens_list</property>
-            <property name="headers_clickable">False</property>
-            <property name="reorderable">True</property>
-            <property name="search_column">0</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="delete_lens"/>
             <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumn4">
-                <child>
-                  <object class="GtkCellRendererToggle" id="cellrenderertoggle1">
-                    <signal name="toggled" handler="toggle_lens"/>
-                  </object>
-                  <attributes>
-                    <attribute name="active">0</attribute>
-                  </attributes>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                <property name="title">x</property>
-                <property name="expand">True</property>
-                <child>
-                  <object class="GtkCellRendererText" id="cellrenderertext1">
-                    <property name="editable">True</property>
-                    <signal name="edited" handler="edit_lens_cell1"/>
-                  </object>
-                  <attributes>
-                    <attribute name="text">1</attribute>
-                  </attributes>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumn2">
-                <property name="title">y</property>
-                <property name="expand">True</property>
-                <child>
-                  <object class="GtkCellRendererText" id="cellrenderertext2">
-                    <property name="editable">True</property>
-                    <signal name="edited" handler="edit_lens_cell2"/>
-                  </object>
-                  <attributes>
-                    <attribute name="text">2</attribute>
-                  </attributes>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumn3">
-                <property name="title">Mass</property>
-                <property name="expand">True</property>
-                <child>
-                  <object class="GtkCellRendererText" id="cellrenderertext3">
-                    <property name="editable">True</property>
-                    <signal name="edited" handler="edit_lens_cell3"/>
-                  </object>
-                  <attributes>
-                    <attribute name="text">3</attribute>
-                  </attributes>
-                </child>
+              <object class="GtkImage" id="image2">
+                <property name="visible">True</property>
+                <property name="stock">gtk-remove</property>
               </object>
             </child>
           </object>
           <packing>
+            <property name="expand">False</property>
             <property name="position">2</property>
           </packing>
         </child>
       </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">False</property>
+        <property name="padding">4</property>
+        <property name="position">1</property>
+      </packing>
     </child>
-    <child type="label">
-      <object class="GtkLabel" id="label1">
+    <child>
+      <object class="GtkTreeView" id="treeview">
+        <property name="width_request">300</property>
         <property name="visible">True</property>
-        <property name="label" translatable="yes">&lt;b&gt;Lenses&lt;/b&gt;</property>
-        <property name="use_markup">True</property>
+        <property name="can_focus">True</property>
+        <property name="model">lens_list</property>
+        <property name="headers_clickable">False</property>
+        <property name="reorderable">True</property>
+        <property name="search_column">0</property>
+        <child>
+          <object class="GtkTreeViewColumn" id="treeviewcolumn4">
+            <child>
+              <object class="GtkCellRendererToggle" id="cellrenderertoggle1">
+                <signal name="toggled" handler="toggle_lens"/>
+              </object>
+              <attributes>
+                <attribute name="active">0</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+            <property name="title">x</property>
+            <property name="expand">True</property>
+            <child>
+              <object class="GtkCellRendererText" id="cellrenderertext1">
+                <property name="editable">True</property>
+                <signal name="edited" handler="edit_lens_cell1"/>
+              </object>
+              <attributes>
+                <attribute name="text">1</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+            <property name="title">y</property>
+            <property name="expand">True</property>
+            <child>
+              <object class="GtkCellRendererText" id="cellrenderertext2">
+                <property name="editable">True</property>
+                <signal name="edited" handler="edit_lens_cell2"/>
+              </object>
+              <attributes>
+                <attribute name="text">2</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeViewColumn" id="treeviewcolumn3">
+            <property name="title">Mass</property>
+            <property name="expand">True</property>
+            <child>
+              <object class="GtkCellRendererText" id="cellrenderertext3">
+                <property name="editable">True</property>
+                <signal name="edited" handler="edit_lens_cell3"/>
+              </object>
+              <attributes>
+                <attribute name="text">3</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
       </object>
+      <packing>
+        <property name="position">2</property>
+      </packing>
     </child>
   </object>
 </interface>
