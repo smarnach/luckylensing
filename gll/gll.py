@@ -19,6 +19,15 @@ try:
 except:
     pyconsole = None
 
+all_plugins = {"Globular cluster": GllGlobularCluster,
+               "Lens list": GllLenses,
+               "Magnification pattern": GllRayshooter,
+               "Gaussian source profile": GllGaussianSource,
+               "Flat source profile": GllFlatSource,
+               "Source path": GllSourcePath,
+               "Convolution": GllConvolution,
+               "Light curve": GllLightCurve}
+
 class GllApp(object):
     def __init__(self):
         self.builder = gtk.Builder()
@@ -38,15 +47,6 @@ class GllApp(object):
         self.history = []
         self.history_pos = -1
         self.serial = 0
-        self.add_plugin(GllGlobularCluster())
-        self.add_plugin(GllLenses())
-        it = self.add_plugin(GllRayshooter())
-        self.add_plugin(GllSourcePath())
-        self.add_plugin(GllGaussianSource())
-        self.add_plugin(GllFlatSource())
-        self.add_plugin(GllConvolution())
-        self.add_plugin(GllLightCurve())
-        self.selection.select_iter(it)
 
     def init_plugins(self):
         self.plugins = gtk.ListStore(bool, str, GllPlugin, int)
@@ -64,24 +64,42 @@ class GllApp(object):
         column.add_attribute(renderer, 'text', 1)
         treeview.append_column(column)
         treeview.set_headers_visible(False)
+        treeview.set_reorderable(True)
         self.selection = treeview.get_selection()
         self.selection.connect("changed", self.selected_plugin_changed)
         treeview.show_all()
         self.builder.get_object("pipeline_window").add(treeview)
         self.treeview = treeview
+        addmenu = gtk.Menu()
+        for name in sorted(all_plugins.keys()):
+            item = gtk.MenuItem(name)
+            item.connect("activate", self.add_plugin, name)
+            addmenu.append(item)
+        addmenu.show_all()
+        addbutton = self.builder.get_object("addbutton")
+        addbutton.set_menu(addmenu)
+        self.arrowbutton = addbutton.get_child().get_children()[1]
+        addbutton.connect("clicked", self.popup_addmenu, True)
 
-    def add_plugin(self, plugin):
-        if hasattr(plugin, "name"):
-            name = plugin.name
-        else:
-            name = plugin.processor.__class__.__name__
+    def popup_addmenu(self, *args):
+        self.arrowbutton.set_active(True)
+
+    def add_plugin(self, menuitem, name):
+        plugin = all_plugins[name]()
         it = self.plugins.append((True, name, plugin, -1))
         self.selection.select_iter(it)
         plugin.connect("run-pipeline", self.run_pipeline)
         plugin.connect("cancel-pipeline", self.cancel_pipeline)
         plugin.connect("history-back", self.history_back)
         plugin.connect("history-forward", self.history_forward)
-        return it
+
+    def remove_plugin(self, *args):
+        plugins, it = self.selection.get_selected()
+        if it is not None:
+            if plugins.remove(it):
+                self.selection.select_iter(it)
+            elif len(plugins):
+                self.selection.select_path(len(plugins)-1)
 
     def selected_plugin_changed(self, selection):
         plugins, it = selection.get_selected()
@@ -170,6 +188,9 @@ class GllApp(object):
                 if plugin.processor:
                     plugin.processor.restore(data, serial)
                 plugin.update(data)
+        plugins, it = self.selection.get_selected()
+        if it is None:
+            self.selection.select_path(0)
 
     def history_back(self, *args):
         if self.history_pos <= 0:
