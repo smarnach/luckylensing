@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: latin-1 -*-
 
 import sys
 sys.path.append("../libll")
@@ -48,6 +49,7 @@ class GllApp(object):
         self.history = []
         self.history_pos = -1
         self.serial = 0
+        self.filename = None
 
     def init_plugins(self):
         self.plugins = gtk.ListStore(bool, str, GllPlugin, int)
@@ -98,15 +100,18 @@ class GllApp(object):
         plugin.connect("history-forward", self.history_forward)
         return plugin
 
+    def remove_plugin_widgets(self):
+        child = self.config_box.get_child()
+        if child:
+            self.config_box.remove(child)
+        child = self.main_box.get_child()
+        if child:
+            self.main_box.remove(child)
+
     def remove_plugin(self, *args):
         plugins, it = self.selection.get_selected()
         if it is not None:
-            child = self.main_box.get_child()
-            if child:
-                self.main_box.remove(child)
-            child = self.config_box.get_child()
-            if child:
-                self.config_box.remove(child)
+            self.remove_plugin_widgets()
             if plugins.remove(it):
                 self.selection.select_iter(it)
             elif len(plugins):
@@ -165,23 +170,37 @@ class GllApp(object):
         gobject.timeout_add(100, self.update_progressbar)
         threading.Thread(target=self.pipeline_thread).start()
 
-    def save_pipeline(self, *args):
+    def new_pipeline(self, *args):
+        if len(self.plugins):
+            message = gtk.MessageDialog(type=gtk.MESSAGE_QUESTION,
+                                        buttons=gtk.BUTTONS_YES_NO)
+            message.set_markup("Clear the current pipeline?")
+            response = message.run()
+            message.destroy()
+            if response == gtk.RESPONSE_NO:
+                return
+        self.remove_plugin_widgets()
+        self.plugins.clear()
+        self.filename = None
+
+    def save_pipeline(self, *args, **kwargs):
         if not len(self.plugins):
             return
-        dialog = gtk.FileChooserDialog(
-            "Save Pipeline", action=gtk.FILE_CHOOSER_ACTION_SAVE,
-            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-                     gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
-        dialog.set_do_overwrite_confirmation(True)
-        filt = gtk.FileFilter()
-        filt.set_name("GLL Pipeline Files")
-        filt.add_pattern("*.gll")
-        dialog.set_filter(filt)
-        response = dialog.run()
-        filename = dialog.get_filename()
-        dialog.destroy()
-        if response != gtk.RESPONSE_ACCEPT:
-            return
+        if not self.filename or kwargs.get("save_as"):
+            dialog = gtk.FileChooserDialog(
+                "Save Pipeline", action=gtk.FILE_CHOOSER_ACTION_SAVE,
+                buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+                         gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
+            dialog.set_do_overwrite_confirmation(True)
+            filt = gtk.FileFilter()
+            filt.set_name("GLL Pipeline Files")
+            filt.add_pattern("*.gll")
+            dialog.set_filter(filt)
+            response = dialog.run()
+            self.filename = dialog.get_filename()
+            dialog.destroy()
+            if response != gtk.RESPONSE_ACCEPT:
+                return
         plugins = []
         for active, name, plugin, last_serial in self.plugins:
             plugins.append((active, name, plugin.get_config()))
@@ -190,10 +209,13 @@ class GllApp(object):
             selected = 0
         else:
             selected = self.plugins.get_path(it)[0]
-        f = open(filename, "w")
+        f = open(self.filename, "w")
         pickle.dump(plugins, f)
         pickle.dump(selected, f)
         f.close()
+
+    def save_pipeline_as(self, *args):
+        self.save_pipeline(save_as=True)
 
     def open_pipeline(self, *args):
         dialog = gtk.FileChooserDialog(
@@ -216,10 +238,14 @@ class GllApp(object):
         if len(self.plugins):
             message = gtk.MessageDialog(type=gtk.MESSAGE_QUESTION,
                                         buttons=gtk.BUTTONS_YES_NO)
-            message.set_markup("Append to current pipeline?")
+            message.set_markup("Append file contents to the current pipeline?")
             if message.run() == gtk.RESPONSE_NO:
+                self.remove_plugin_widgets()
                 self.plugins.clear()
+                self.filename = filename
             message.destroy()
+        else:
+            self.filename = filename
         for active, name, config in plugins:
             plugin = self.add_plugin(name, active)
             plugin.set_config(config)
@@ -249,11 +275,15 @@ class GllApp(object):
             selected_plugin = plugins[it][2]
         else:
             selected_plugin = None
+        main_widget = self.main_box.get_child()
+        main_widget_found = False
         plugins.clear()
         for active, name, plugin, serial in self.history[self.history_pos]:
             it = plugins.append((active, name, plugin, serial))
             if plugin is selected_plugin:
                 self.selection.select_iter(it)
+            if plugin.main_widget is main_widget:
+                main_widget_found = True
             if active:
                 plugin.restore_config(data, serial)
                 if plugin.processor:
@@ -262,6 +292,8 @@ class GllApp(object):
         it = self.selection.get_selected()[1]
         if it is None:
             self.selection.select_path(0)
+        if not main_widget_found and main_widget:
+            self.main_box.remove(main_widget)
 
     def history_back(self, *args):
         if self.history_pos <= 0:
@@ -310,6 +342,15 @@ class GllApp(object):
         swin.add(console)
         window.set_default_size(500, 400)
         window.show_all()
+
+    def about(self, *args):
+        about = gtk.AboutDialog()
+        about.set_name("Gll")
+        about.set_comments("A graphical user interface for microlensing "
+                           "computations based on the Lucky Lensing Library")
+        about.set_copyright(u"© Sven Marnach, 2010")
+        about.run()
+        about.destroy()
 
     def quit_app(self, *args):
         self.cancel_pipeline()
