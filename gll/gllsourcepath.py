@@ -10,10 +10,10 @@ class GllSourcePath(GllPlugin):
         self.name = "SourcePath"
         self.main_widget = GllImageView(self.get_pixbuf)
         self.config_widget = GllConfigBox(
-            [("curve_x0", "Start x coordinate", (0.35, -1e10, 1e10, 0.01), 4),
-             ("curve_y0", "Start y coordinate", (-0.025, -1e10, 1e10, 0.01), 4),
-             ("curve_x1", "End x coordinate", (0.4, -1e10, 1e10, 0.01), 4),
-             ("curve_y1", "End y coordinate", (0.02, -1e10, 1e10, 0.01), 4),
+            [("curve_x0", "Start x coordinate", (-1.0, -1e10, 1e10, 0.01), 4),
+             ("curve_y0", "Start y coordinate", (0.0, -1e10, 1e10, 0.01), 4),
+             ("curve_x1", "End x coordinate", (1.0, -1e10, 1e10, 0.01), 4),
+             ("curve_y1", "End y coordinate", (0.0, -1e10, 1e10, 0.01), 4),
              ("curve_samples", "Number of samples", (256, 0, 1000000, 16), 0)])
         for key in ["curve_x0", "curve_y0", "curve_x1", "curve_y1"]:
             self.config_widget.adjustments[key].connect(

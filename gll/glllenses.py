@@ -13,10 +13,10 @@ class GllLenses(GllPlugin):
         self.lens_selection.set_mode(gtk.SELECTION_MULTIPLE)
         self.config_widget = self.builder.get_object("config")
         self.set_config({"export_region": True,
-                         "region_x0": -.1,
-                         "region_y0": -.3,
-                         "region_x1":  .5,
-                         "region_y1":  .3})
+                         "region_x0": -1.,
+                         "region_y0": -1.,
+                         "region_x1":  1.,
+                         "region_y1":  1.})
 
     def get_config(self):
         d = {}

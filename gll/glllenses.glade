@@ -67,18 +67,6 @@
         <col id="2">0</col>
         <col id="3">1</col>
       </row>
-      <row>
-        <col id="0">True</col>
-        <col id="1">1.2</col>
-        <col id="2">0</col>
-        <col id="3">0.00040000000000000002</col>
-      </row>
-      <row>
-        <col id="0">True</col>
-        <col id="1">1.2</col>
-        <col id="2">0.025000000000000001</col>
-        <col id="3">2.5000000000000001e-05</col>
-      </row>
     </data>
   </object>
   <object class="GtkVBox" id="config">

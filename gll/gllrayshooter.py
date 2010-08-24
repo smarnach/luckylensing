@@ -20,7 +20,7 @@ class GllRayshooter(GllPlugin):
                          "ypixels": 1024,
                          "density": 100,
                          "num_threads": 2,
-                         "kernel": ll.KERNEL_TRIANGULATED,
+                         "kernel": ll.KERNEL_BILINEAR,
                          "export_region": False,
                          "region_x0": -1.,
                          "region_y0": -1.,
