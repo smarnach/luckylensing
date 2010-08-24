@@ -1,18 +1,13 @@
 import gtk
-import gtkimageview
 from lightcurve import LightCurve
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
+from gllimageview import GllImageView
 
 class GllLightCurve(GllPlugin):
     def __init__(self):
         super(GllLightCurve, self).__init__(LightCurve())
-        self.imageview = gtkimageview.ImageView()
-        self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
-        self.imageview.connect("button-press-event", self.imageview_clicked)
-        scrollwin = gtkimageview.ImageScrollWin(self.imageview)
-        scrollwin.show_all()
-        self.main_widget = scrollwin
+        self.main_widget = GllImageView(self.get_pixbuf)
         self.export_max = gtk.CheckButton("Set upper magnification")
         self.export_max.connect("toggled", self.toggle_export_max)
         self.config_widget = GllConfigBox(
@@ -35,27 +30,27 @@ class GllLightCurve(GllPlugin):
             self.config_widget.set_config(config)
 
     def update(self, data):
-        xpixels = data["xpixels"]
-        ypixels = data["ypixels"]
+        self.xpixels = data["xpixels"]
+        self.ypixels = data["ypixels"]
         curve = data["light_curve"]
         samples = len(curve)
-        max_mag = data.get("curve_max_mag", curve.max())
-        points = [(int(i*(xpixels-1)/(samples-1)),
-                   int((ypixels-1)*(1.0-mag/max_mag)))
-                  for i, mag in enumerate(curve) if mag]
-        pixmap = gtk.gdk.Pixmap(None, xpixels, ypixels, 24)
-        gc = self.imageview.style.bg_gc[gtk.STATE_NORMAL]
-        pixmap.draw_rectangle(gc, True, 0, 0, xpixels, ypixels)
-        gc = self.imageview.style.fg_gc[gtk.STATE_NORMAL]
-        pixmap.draw_lines(gc, points)
-        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False,
-                                8, xpixels, ypixels)
-        pixbuf.get_from_drawable(pixmap, pixmap.get_colormap(),
-                                 0, 0, 0, 0, xpixels, ypixels)
-        self.imageview.set_pixbuf(pixbuf)
+        max_mag = data.get("curve_max_mag", curve.max()*1.2)
+        self.points = [(int(i*(self.xpixels-1)/(samples-1)),
+                        int((self.ypixels-1)*(1.0-mag/max_mag)))
+                       for i, mag in enumerate(curve) if mag]
+        self.main_widget.mark_dirty()
 
-    def imageview_clicked(self, widget, event, data=None):
-        widget.grab_focus()
+    def get_pixbuf(self):
+        pixmap = gtk.gdk.Pixmap(None, self.xpixels, self.ypixels, 24)
+        gc = self.main_widget.style.bg_gc[gtk.STATE_NORMAL]
+        pixmap.draw_rectangle(gc, True, 0, 0, self.xpixels, self.ypixels)
+        gc = self.main_widget.style.fg_gc[gtk.STATE_NORMAL]
+        pixmap.draw_lines(gc, self.points)
+        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False,
+                                8, self.xpixels, self.ypixels)
+        pixbuf.get_from_drawable(pixmap, pixmap.get_colormap(),
+                                 0, 0, 0, 0, self.xpixels, self.ypixels)
+        return pixbuf
 
     def toggle_export_max(self, *args):
         state = self.export_max.get_active()

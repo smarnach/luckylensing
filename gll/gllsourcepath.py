@@ -1,19 +1,14 @@
 import gtk
-import gtkimageview
 from lightcurve import LightCurve
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
+from gllimageview import GllImageView
 
 class GllSourcePath(GllPlugin):
     def __init__(self):
         super(GllSourcePath, self).__init__()
         self.name = "SourcePath"
-        self.imageview = gtkimageview.ImageView()
-        self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
-        self.imageview.connect("button-press-event", self.imageview_clicked)
-        scrollwin = gtkimageview.ImageScrollWin(self.imageview)
-        scrollwin.show_all()
-        self.main_widget = scrollwin
+        self.main_widget = GllImageView(self.get_pixbuf)
         self.config_widget = GllConfigBox(
             [("curve_x0", "Start x coordinate", (0.35, -1e10, 1e10, 0.01), 4),
              ("curve_y0", "Start y coordinate", (-0.025, -1e10, 1e10, 0.01), 4),
@@ -28,27 +23,30 @@ class GllSourcePath(GllPlugin):
         self.config_widget.set_config(config)
 
     def update(self, data):
-        xpixels = data["xpixels"]
-        ypixels = data["ypixels"]
+        self.xpixels = data["xpixels"]
+        self.ypixels = data["ypixels"]
         region_x0 = data["region_x0"]
         region_y0 = data["region_y0"]
         region_x1 = data["region_x1"]
         region_y1 = data["region_y1"]
-        pixels_per_width = xpixels / (region_x1 - region_x0)
-        pixels_per_height = ypixels / (region_y1 - region_y0)
-        x0 = int((data["curve_x0"] - region_x0) * pixels_per_width)
-        y0 = int((region_y1 - data["curve_y0"]) * pixels_per_height)
-        x1 = int((data["curve_x1"] - region_x0) * pixels_per_width)
-        y1 = int((region_y1 - data["curve_y1"]) * pixels_per_height)
-        pixmap = gtk.gdk.Pixmap(None, xpixels, ypixels, 24)
-        gc = self.imageview.style.light_gc[gtk.STATE_NORMAL]
-        pixmap.draw_pixbuf(gc, data["magpat_pixbuf"], 0, 0, 0, 0)
-        pixmap.draw_line(gc, x0, y0, x1, y1)
-        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False,
-                                8, xpixels, ypixels)
-        pixbuf.get_from_drawable(pixmap, pixmap.get_colormap(),
-                                 0, 0, 0, 0, xpixels, ypixels)
-        self.imageview.set_pixbuf(pixbuf)
+        pixels_per_width = self.xpixels / (region_x1 - region_x0)
+        pixels_per_height = self.ypixels / (region_y1 - region_y0)
+        self.coords = (int((data["curve_x0"] - region_x0) * pixels_per_width),
+                       int((region_y1 - data["curve_y0"]) * pixels_per_height),
+                       int((data["curve_x1"] - region_x0) * pixels_per_width),
+                       int((region_y1 - data["curve_y1"]) * pixels_per_height))
+        self.magpat_buf = data["magpat_pic"]
+        self.main_widget.mark_dirty()
 
-    def imageview_clicked(self, widget, event, data=None):
-        widget.grab_focus()
+    def get_pixbuf(self):
+        magpat_pixbuf = gtk.gdk.pixbuf_new_from_array(
+            self.magpat_buf, gtk.gdk.COLORSPACE_RGB, 8)
+        pixmap = gtk.gdk.Pixmap(None, self.xpixels, self.ypixels, 24)
+        gc = self.main_widget.style.light_gc[gtk.STATE_NORMAL]
+        pixmap.draw_pixbuf(gc, magpat_pixbuf, 0, 0, 0, 0)
+        pixmap.draw_line(gc, *self.coords)
+        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False,
+                                8, self.xpixels, self.ypixels)
+        pixbuf.get_from_drawable(pixmap, pixmap.get_colormap(),
+                                 0, 0, 0, 0, self.xpixels, self.ypixels)
+        return pixbuf

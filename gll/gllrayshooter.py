@@ -3,17 +3,15 @@ import gtkimageview
 import luckylensing as ll
 from rayshooter import Rayshooter
 from gllplugin import GllPlugin
+from gllimageview import GllImageView
 
 class GllRayshooter(GllPlugin):
     def __init__(self):
         super(GllRayshooter, self).__init__(Rayshooter())
-        self.imageview = gtkimageview.ImageView()
-        self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
-        self.main_widget = gtkimageview.ImageScrollWin(self.imageview)
-        self.main_widget.show_all()
+        self.main_widget = GllImageView(self.get_pixbuf, self.imageview_clicked)
+        self.imageview = self.main_widget.imageview
         self.dragger = self.imageview.get_tool()
         self.selector = gtkimageview.ImageToolSelector(self.imageview)
-        self.imageview.connect("button-press-event", self.imageview_clicked)
         self.builder = gtk.Builder()
         self.builder.add_from_file("gllrayshooter.glade")
         self.builder.connect_signals(self)
@@ -88,17 +86,19 @@ class GllRayshooter(GllPlugin):
         colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
                   (195, 16, 16), (249, 249, 70), (255, 255, 255)]
         steps = [255, 32, 255, 255, 255]
-        buf = ll.render_magpattern_gradient(data["magpat"], colors, steps)
-        pixbuf = gtk.gdk.pixbuf_new_from_array(buf, gtk.gdk.COLORSPACE_RGB, 8)
+        self.buf = ll.render_magpattern_gradient(data["magpat"], colors, steps)
         self.imageview.set_tool(self.dragger)
-        self.imageview.set_pixbuf(pixbuf)
-        data["magpat_pixbuf"] = pixbuf
+        self.main_widget.mark_dirty()
+        data["magpat_pic"] = self.buf
         self.region = {}
         for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
             self.builder.get_object(key).set_value(data[key])
             self.region[key[7:]] = data[key]
         self.xpixels = data["xpixels"]
         self.ypixels = data["ypixels"]
+
+    def get_pixbuf(self):
+        return self.buf
 
     def imageview_clicked(self, widget, event, data=None):
         widget.grab_focus()

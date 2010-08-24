@@ -1,18 +1,12 @@
-import gtk
-import gtkimageview
 import luckylensing as ll
 from convolution import Convolution
 from gllplugin import GllPlugin
+from gllimageview import GllImageView
 
 class GllConvolution(GllPlugin):
     def __init__(self):
         super(GllConvolution, self).__init__(Convolution())
-        self.imageview = gtkimageview.ImageView()
-        self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
-        self.imageview.connect("button-press-event", self.imageview_clicked)
-        scrollwin = gtkimageview.ImageScrollWin(self.imageview)
-        scrollwin.show_all()
-        self.main_widget = scrollwin
+        self.main_widget = GllImageView(self.get_pixbuf)
 
     def update(self, data):
         colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
@@ -22,13 +16,12 @@ class GllConvolution(GllPlugin):
         convolved_magpat = data["convolved_magpat"]
         min_mag = magpat.min()
         max_mag = magpat.max()
-        buf = ll.render_magpattern_gradient(convolved_magpat, colors, steps,
-                                            min_mag, max_mag)
-        pixbuf = gtk.gdk.pixbuf_new_from_array(buf, gtk.gdk.COLORSPACE_RGB, 8)
-        self.imageview.set_pixbuf(pixbuf)
+        self.buf = ll.render_magpattern_gradient(
+            convolved_magpat, colors, steps, min_mag, max_mag)
+        self.main_widget.mark_dirty()
         data["min_mag"] = min_mag
         data["max_mag"] = max_mag
-        data["convolved_magpat_pixbuf"] = pixbuf
+        data["convolved_magpat_pic"] = self.buf
 
-    def imageview_clicked(self, widget, event, data=None):
-        widget.grab_focus()
+    def get_pixbuf(self):
+        return self.buf
