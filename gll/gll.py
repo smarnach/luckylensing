@@ -4,6 +4,7 @@ import sys
 sys.path.append("../libll")
 
 import threading
+import cPickle as pickle
 import gobject
 import gtk
 from gllplugin import GllPlugin
@@ -73,7 +74,7 @@ class GllApp(object):
         addmenu = gtk.Menu()
         for name in sorted(all_plugins.keys()):
             item = gtk.MenuItem(name)
-            item.connect("activate", self.add_plugin, name)
+            item.connect("activate", self.add_plugin_activated, name)
             addmenu.append(item)
         addmenu.show_all()
         addbutton = self.builder.get_object("addbutton")
@@ -84,18 +85,28 @@ class GllApp(object):
     def popup_addmenu(self, *args):
         self.arrowbutton.set_active(True)
 
-    def add_plugin(self, menuitem, name):
+    def add_plugin_activated(self, menuitem, name):
+        self.add_plugin(name)
+
+    def add_plugin(self, name, active=True):
         plugin = all_plugins[name]()
-        it = self.plugins.append((True, name, plugin, -1))
+        it = self.plugins.append((active, name, plugin, -1))
         self.selection.select_iter(it)
         plugin.connect("run-pipeline", self.run_pipeline)
         plugin.connect("cancel-pipeline", self.cancel_pipeline)
         plugin.connect("history-back", self.history_back)
         plugin.connect("history-forward", self.history_forward)
+        return plugin
 
     def remove_plugin(self, *args):
         plugins, it = self.selection.get_selected()
         if it is not None:
+            child = self.main_box.get_child()
+            if child:
+                self.main_box.remove(child)
+            child = self.config_box.get_child()
+            if child:
+                self.config_box.remove(child)
             if plugins.remove(it):
                 self.selection.select_iter(it)
             elif len(plugins):
@@ -154,6 +165,66 @@ class GllApp(object):
         gobject.timeout_add(100, self.update_progressbar)
         threading.Thread(target=self.pipeline_thread).start()
 
+    def save_pipeline(self, *args):
+        if not len(self.plugins):
+            return
+        dialog = gtk.FileChooserDialog(
+            "Save Pipeline", action=gtk.FILE_CHOOSER_ACTION_SAVE,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+                     gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
+        dialog.set_do_overwrite_confirmation(True)
+        filt = gtk.FileFilter()
+        filt.set_name("GLL Pipeline Files")
+        filt.add_pattern("*.gll")
+        dialog.set_filter(filt)
+        response = dialog.run()
+        filename = dialog.get_filename()
+        dialog.destroy()
+        if response != gtk.RESPONSE_ACCEPT:
+            return
+        plugins = []
+        for active, name, plugin, last_serial in self.plugins:
+            plugins.append((active, name, plugin.get_config()))
+        it = self.selection.get_selected()[1]
+        if it is None:
+            selected = 0
+        else:
+            selected = self.plugins.get_path(it)[0]
+        f = open(filename, "w")
+        pickle.dump(plugins, f)
+        pickle.dump(selected, f)
+        f.close()
+
+    def open_pipeline(self, *args):
+        dialog = gtk.FileChooserDialog(
+            "Open Pipeline", action=gtk.FILE_CHOOSER_ACTION_OPEN,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+                     gtk.STOCK_OPEN, gtk.RESPONSE_ACCEPT))
+        filt = gtk.FileFilter()
+        filt.set_name("GLL Pipeline Files")
+        filt.add_pattern("*.gll")
+        dialog.set_filter(filt)
+        response = dialog.run()
+        filename = dialog.get_filename()
+        dialog.destroy()
+        if response != gtk.RESPONSE_ACCEPT:
+            return
+        f = open(filename)
+        plugins = pickle.load(f)
+        selected = pickle.load(f)
+        f.close()
+        if len(self.plugins):
+            message = gtk.MessageDialog(type=gtk.MESSAGE_QUESTION,
+                                        buttons=gtk.BUTTONS_YES_NO)
+            message.set_markup("Append to current pipeline?")
+            if message.run() == gtk.RESPONSE_NO:
+                self.plugins.clear()
+            message.destroy()
+        for active, name, config in plugins:
+            plugin = self.add_plugin(name, active)
+            plugin.set_config(config)
+        self.selection.select_path(selected)
+
     def save_to_history(self):
         truncate = self.history_pos < len(self.history) - 1
         if truncate:
@@ -188,7 +259,7 @@ class GllApp(object):
                 if plugin.processor:
                     plugin.processor.restore(data, serial)
                 plugin.update(data)
-        plugins, it = self.selection.get_selected()
+        it = self.selection.get_selected()[1]
         if it is None:
             self.selection.select_path(0)
 
