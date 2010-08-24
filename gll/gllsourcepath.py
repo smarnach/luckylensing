@@ -15,6 +15,9 @@ class GllSourcePath(GllPlugin):
              ("curve_x1", "End x coordinate", (0.4, -1e10, 1e10, 0.01), 4),
              ("curve_y1", "End y coordinate", (0.02, -1e10, 1e10, 0.01), 4),
              ("curve_samples", "Number of samples", (256, 0, 1000000, 16), 0)])
+        for key in ["curve_x0", "curve_y0", "curve_x1", "curve_y1"]:
+            self.config_widget.adjustments[key].connect(
+                "value_changed", self.coords_changed)
 
     def get_config(self):
         return self.config_widget.get_config()
@@ -25,17 +28,21 @@ class GllSourcePath(GllPlugin):
     def update(self, data):
         self.xpixels = data["xpixels"]
         self.ypixels = data["ypixels"]
-        region_x0 = data["region_x0"]
-        region_y0 = data["region_y0"]
-        region_x1 = data["region_x1"]
-        region_y1 = data["region_y1"]
-        pixels_per_width = self.xpixels / (region_x1 - region_x0)
-        pixels_per_height = self.ypixels / (region_y1 - region_y0)
-        self.coords = (int((data["curve_x0"] - region_x0) * pixels_per_width),
-                       int((region_y1 - data["curve_y0"]) * pixels_per_height),
-                       int((data["curve_x1"] - region_x0) * pixels_per_width),
-                       int((region_y1 - data["curve_y1"]) * pixels_per_height))
+        self.region_x0 = data["region_x0"]
+        self.region_y0 = data["region_y0"]
+        self.region_x1 = data["region_x1"]
+        self.region_y1 = data["region_y1"]
         self.magpat_buf = data["magpat_pic"]
+        self.update_coords(data)
+
+    def update_coords(self, data):
+        pixels_per_width = self.xpixels / (self.region_x1 - self.region_x0)
+        pixels_per_height = self.ypixels / (self.region_y1 - self.region_y0)
+        self.coords = (
+            int((data["curve_x0"] - self.region_x0) * pixels_per_width),
+            int((self.region_y1 - data["curve_y0"]) * pixels_per_height),
+            int((data["curve_x1"] - self.region_x0) * pixels_per_width),
+            int((self.region_y1 - data["curve_y1"]) * pixels_per_height))
         self.main_widget.mark_dirty()
 
     def get_pixbuf(self):
@@ -50,3 +57,7 @@ class GllSourcePath(GllPlugin):
         pixbuf.get_from_drawable(pixmap, pixmap.get_colormap(),
                                  0, 0, 0, 0, self.xpixels, self.ypixels)
         return pixbuf
+
+    def coords_changed(self, *args):
+        if hasattr(self, "magpat_buf"):
+            self.update_coords(self.config_widget.get_config())
