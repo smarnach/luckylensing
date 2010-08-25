@@ -29,13 +29,13 @@ class Processor(object):
             self.last_serial = serial
         else:
             output = self.history[self.last_serial][0]
-        self.history[serial] = output, my_serials
+        self.history[serial] = output, my_serials, self.last_serial
         data.update(output)
         data_serials.update(dict.fromkeys(output, self.last_serial))
 
     def restore(self, data, serial):
         data.update(self.history[serial][0])
-        self.last_serial = serial
+        self.last_serial = self.history[serial][2]
 
     def restrict_history(self, serials):
         self.history = dict((s, self.history[s])
