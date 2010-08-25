@@ -3,6 +3,8 @@ Overall issues
 
  * Documentation
 
+ * Restructure to a Python package
+
 libll
 =====
 
@@ -12,19 +14,35 @@ libll
    radius.  Integer conversion will be neccessary which can be avoided
    in the current version.  Performance?
 
-luckylensing.py
-===============
-
- * Currently, the Python application still needs to know some details
-   about the C layer.  For example, when changing the type of the
-   counts in a magpattern from int to float, I needed to touch
-   magpattern.py.  Maybe it is possible to improve encapsulation.
-
 User interface
 ==============
 
  * Add save and load (including FITS output)
 
+ * Use cairo instead of client-side rendering
+
+    * Beautify the light curve tool
+
+     * Make the size of the light curve rendering dependent on the
+       window size, not on the magnification pattern size
+
  * Make source image viewer a separate UI tool
 
  * Add some kind of statistics output (xrays, yrays, levels, time)
+
+ * Improve performance (maybe reuse the pixbuf of the ImageView?)
+
+ * Integrate the source profile tools into one tool
+
+ * Let the user choose between magpat and convoluted magpat in the
+   source path tool
+
+ * Make the current main and config widget choosable independently
+
+ * Restrict the history to a finite number of entries
+
+ * Move plug-in treeview definition to gll.glade
+
+ * Catch KeyErrors during pipeline run and give a useful message
+
+ * Add fullscreen mode
