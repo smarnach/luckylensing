@@ -10,8 +10,6 @@ class SourceStar(Processor):
     def run(self, data):
         xpixels = data["xpixels"]
         ypixels = data["ypixels"]
-        assert xpixels % 2 == 0
-        assert ypixels % 2 == 0
         source_radius = data.get("source_radius", 0.01)
         source_radius2 = source_radius*source_radius
         width = (data["region_x1"] - data["region_x0"]) / xpixels
