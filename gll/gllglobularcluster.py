@@ -15,10 +15,7 @@ class GllGlobularCluster(GllPlugin):
              ("region_radius", "Region radius", (1.0, 0.0, 1000.0, 0.1), 2)])
 
     def get_config(self):
-        config = self.config_widget.get_config()
-        config["num_stars"] = int(config["num_stars"])
-        config["random_seed"] = int(config["random_seed"])
-        return config
+        return self.config_widget.get_config()
 
     def set_config(self, config):
         self.config_widget.set_config(config)

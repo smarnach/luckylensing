@@ -8,26 +8,16 @@ class GllLightCurve(GllPlugin):
     def __init__(self):
         super(GllLightCurve, self).__init__(LightCurve())
         self.main_widget = GllImageView(self.get_pixbuf)
-        self.export_max = gtk.CheckButton("Set upper magnification")
-        self.export_max.connect("toggled", self.toggle_export_max)
-        self.config_widget = GllConfigBox(
-            [self.export_max,
-             ("curve_max_mag", "Upper magnification", (10.0, 0.0, 1e10, 1.0), 1)])
-        self.toggle_export_max()
+        self.config_widget = GllConfigBox()
+        self.config_widget.add_toggle_block(
+            "export_max", "Set upper magnification", False,
+            [("curve_max_mag", "Upper magnification", (10.0, 0.0, 1e10, 1.0), 1)])
 
     def get_config(self):
-        d = {}
-        export_max = self.export_max.get_active()
-        d["export_max"] = export_max
-        if export_max:
-            d.update(self.config_widget.get_config())
-        return d
+        return self.config_widget.get_config()
 
     def set_config(self, config):
-        export_max = config["export_max"]
-        self.export_max.set_active(export_max)
-        if export_max:
-            self.config_widget.set_config(config)
+        self.config_widget.set_config(config)
 
     def update(self, data):
         self.xpixels = data["xpixels"]
@@ -51,7 +41,3 @@ class GllLightCurve(GllPlugin):
         pixbuf.get_from_drawable(pixmap, pixmap.get_colormap(),
                                  0, 0, 0, 0, self.xpixels, self.ypixels)
         return pixbuf
-
-    def toggle_export_max(self, *args):
-        state = self.export_max.get_active()
-        self.config_widget[1].set_sensitive(state)

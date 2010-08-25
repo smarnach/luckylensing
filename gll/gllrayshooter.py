@@ -3,6 +3,7 @@ import gtkimageview
 import luckylensing as ll
 from rayshooter import Rayshooter
 from gllplugin import GllPlugin
+from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
 
 class GllRayshooter(GllPlugin):
@@ -12,75 +13,67 @@ class GllRayshooter(GllPlugin):
         self.imageview = self.main_widget.imageview
         self.dragger = self.imageview.get_tool()
         self.selector = gtkimageview.ImageToolSelector(self.imageview)
-        self.builder = gtk.Builder()
-        self.builder.add_from_file("gllrayshooter.glade")
-        self.builder.connect_signals(self)
-        self.config_widget = self.builder.get_object("config")
-        self.set_config({"xpixels": 1024,
-                         "ypixels": 1024,
-                         "density": 100,
-                         "num_threads": 2,
-                         "kernel": ll.KERNEL_BILINEAR,
-                         "export_region": False,
-                         "region_x0": -1.,
-                         "region_y0": -1.,
-                         "region_x1":  1.,
-                         "region_y1":  1.})
+        self.radio_simple = gtk.RadioButton(None, "Simple")
+        self.radio_bilinear = gtk.RadioButton(self.radio_simple, "Bilinear")
+        self.radio_triangulated = gtk.RadioButton(self.radio_simple,
+                                                  "Triangulated")
+        radiobuttons = gtk.VBox()
+        radiobuttons.pack_start(self.radio_simple)
+        radiobuttons.pack_start(self.radio_bilinear)
+        radiobuttons.pack_start(self.radio_triangulated)
+        kernel_chooser = gtk.HBox()
+        kernel_label = gtk.Label("Ray shooting kernel")
+        kernel_label.set_alignment(0.0, 0.0)
+        kernel_label.set_padding(0, 4)
+        kernel_chooser.pack_start(kernel_label, False)
+        kernel_chooser.pack_start(radiobuttons)
+        self.config_widget = GllConfigBox(
+            [("xpixels", "Resolution x", (1024, 0, 16384, 16), 0),
+             ("ypixels", "Resolution y", (1024, 0, 16384, 16), 0),
+             ("density", "Ray density", (100.0, 0.0, 100000.0, 1.0), 1),
+             ("num_threads", "Number of threads", (2, 0, 32, 1), 0),
+             kernel_chooser])
+        self.radio_bilinear.set_active(True)
+        self.config_widget.add_toggle_block(
+            "export_region", "Ray shooting region", False,
+            [("region_x0", "Left coordinate",  (-1.0, -1e10, 1e10, 0.01), 4),
+             ("region_y0", "Lower coordinate", (-1.0, -1e10, 1e10, 0.01), 4),
+             ("region_x1", "Right coordinate", ( 1.0, -1e10, 1e10, 0.01), 4),
+             ("region_y1", "Upper coordinate", ( 1.0, -1e10, 1e10, 0.01), 4)])
         self.region = None
         self.xpixels = None
         self.ypixels = None
 
     def get_config(self):
-        d = {}
-        d["xpixels"] = int(self.builder.get_object("xpixels").get_value())
-        d["ypixels"] = int(self.builder.get_object("ypixels").get_value())
-        exp_reg = self.builder.get_object("export_region").get_active()
-        d["export_region"] = exp_reg
+        config = self.config_widget.get_config()
         if self.region and self.imageview.get_tool() is self.selector:
             rect = self.selector.get_selection()
             width = max(rect.width, rect.height*self.xpixels/self.ypixels)
             x = rect.x + (rect.width - width)/2
             xfactor = (self.region["x1"]-self.region["x0"])/self.xpixels
-            d["region_x0"] = self.region["x0"] + x * xfactor
-            d["region_x1"] = d["region_x0"] + width * xfactor
+            config["region_x0"] = self.region["x0"] + x * xfactor
+            config["region_x1"] = config["region_x0"] + width * xfactor
             height = max(rect.height, rect.width*self.ypixels/self.xpixels)
             y = rect.y + (rect.height - height)/2
             yfactor = (self.region["y1"]-self.region["y0"])/self.ypixels
-            d["region_y1"] = self.region["y1"] - y * yfactor
-            d["region_y0"] = d["region_y1"] - height * yfactor
-        else:
-            if exp_reg:
-                for key in ["region_x0", "region_x1",
-                            "region_y0", "region_y1"]:
-                    d[key] = self.builder.get_object(key).get_value()
-        d["density"] = self.builder.get_object("density").get_value()
-        d["num_threads"] = int(self.builder.get_object("num_threads"
-                                                       ).get_value())
-        if self.builder.get_object("kernel_simple").get_active():
-            d["kernel"] = ll.KERNEL_SIMPLE
-        elif self.builder.get_object("kernel_bilinear").get_active():
-            d["kernel"] = ll.KERNEL_BILINEAR
-        elif self.builder.get_object("kernel_triangulated").get_active():
-            d["kernel"] = ll.KERNEL_TRIANGULATED
-        return d
+            config["region_y1"] = self.region["y1"] - y * yfactor
+            config["region_y0"] = config["region_y1"] - height * yfactor
+        if self.radio_simple.get_active():
+            config["kernel"] = ll.KERNEL_SIMPLE
+        elif self.radio_bilinear.get_active():
+            config["kernel"] = ll.KERNEL_BILINEAR
+        elif self.radio_triangulated.get_active():
+            config["kernel"] = ll.KERNEL_TRIANGULATED
+        return config
 
     def set_config(self, config):
-        self.builder.get_object("xpixels").set_value(config["xpixels"])
-        self.builder.get_object("ypixels").set_value(config["ypixels"])
-        exp_reg = config["export_region"]
-        self.builder.get_object("export_region").set_active(exp_reg)
-        self.toggle_export_region()
-        for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
-            if key in config:
-                self.builder.get_object(key).set_value(config[key])
-        self.builder.get_object("density").set_value(config["density"])
-        self.builder.get_object("num_threads").set_value(config["num_threads"])
+        self.config_widget.set_config(config)
         if config["kernel"] == ll.KERNEL_SIMPLE:
-            self.builder.get_object("kernel_simple").set_active(True)
+            self.radio_simple.set_active(True)
         elif config["kernel"] == ll.KERNEL_BILINEAR:
-            self.builder.get_object("kernel_bilinear").set_active(True)
+            self.radio_bilinear.set_active(True)
         elif config["kernel"] == ll.KERNEL_TRIANGULATED:
-            self.builder.get_object("kernel_triangulated").set_active(True)
+            self.radio_triangulated.set_active(True)
 
     def update(self, data):
         colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
@@ -92,7 +85,7 @@ class GllRayshooter(GllPlugin):
         data["magpat_pic"] = self.buf
         self.region = {}
         for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
-            self.builder.get_object(key).set_value(data[key])
+            self.config_widget.set_value(key, data[key])
             self.region[key[7:]] = data[key]
         self.xpixels = data["xpixels"]
         self.ypixels = data["ypixels"]
@@ -108,13 +101,7 @@ class GllRayshooter(GllPlugin):
         if event.button == 3:
             if widget.get_tool() is self.dragger:
                 widget.set_tool(self.selector)
-                self.builder.get_object("export_region").set_active(True)
+                self.config_widget.set_active("export_region", True)
                 self.toggle_export_region()
             else:
                 widget.set_tool(self.dragger)
-
-    def toggle_export_region(self, *args):
-        state = self.builder.get_object("export_region").get_active()
-        for name in ["x0", "x1", "y0", "y1"]:
-            self.builder.get_object("label_" + name).set_sensitive(state)
-            self.builder.get_object("spinbutton_" + name).set_sensitive(state)
