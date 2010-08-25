@@ -174,7 +174,6 @@
                 <property name="label" translatable="yes">Add</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-add</property>
-                <accelerator key="plus" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -186,8 +185,6 @@
                 <property name="label" translatable="yes">Remove</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-remove</property>
-                <accelerator key="minus" signal="clicked"/>
-                <accelerator key="Delete" signal="clicked"/>
                 <signal name="clicked" handler="remove_plugin"/>
               </object>
               <packing>
