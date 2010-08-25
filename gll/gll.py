@@ -334,6 +334,29 @@ class GllApp(object):
     def edit_plugin_name(self, cell, path, new_text):
         self.plugins[path][1] = new_text
 
+    def fullscreen(self, *args):
+        main_widget = self.main_box.get_child()
+        if main_widget is None:
+            return
+        self.main_box.remove(main_widget)
+        self.fullwindow = gtk.Window()
+        self.fullwindow.add(main_widget)
+        self.fullwindow.fullscreen()
+        self.fullwindow.show()
+        accelgroup = gtk.AccelGroup()
+        accelgroup.connect_group(gtk.gdk.keyval_from_name("F11"),
+                                 0, 0, self.unfullscreen)
+        accelgroup.connect_group(gtk.gdk.keyval_from_name("Escape"),
+                                 0, 0, self.unfullscreen)
+        self.fullwindow.add_accel_group(accelgroup)
+
+    def unfullscreen(self, *args):
+        main_widget = self.fullwindow.get_child()
+        self.fullwindow.remove(main_widget)
+        self.fullwindow.destroy()
+        del self.fullwindow
+        self.main_box.add(main_widget)
+
     def show_console(self, *args):
         if not pyconsole:
             return
