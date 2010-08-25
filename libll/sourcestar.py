@@ -23,12 +23,14 @@ class SourceStar(Processor):
         kernel = self.f(height2*kernel[0]+width2*kernel[1], source_radius2,
                         width, height)
         if kernel is None:
-            return {"source_fft": None}
+            return {"source_fft": None,
+                    "source_profile": None}
         kernel = numpy.concatenate((kernel, numpy.flipud(kernel)), 0)
         kernel = numpy.concatenate((kernel, numpy.fliplr(kernel)), 1)
         kernel = kernel / float(numpy.sum(kernel))
         kernel_fft = numpy.fft.rfft2(kernel)
-        return {"source_fft": kernel_fft}
+        return {"source_fft": kernel_fft,
+                "source_profile": kernel}
 
 class FlatSource(SourceStar):
     def f(self, r2, source_radius2, width, height):
