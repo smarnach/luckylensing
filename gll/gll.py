@@ -195,7 +195,7 @@ class GllApp(object):
             selected = 0
         else:
             selected = self.plugins.get_path(it)[0]
-        f = open(self.filename, "w")
+        f = open(filename, "w")
         pickle.dump(plugins, f)
         pickle.dump(selected, f)
         f.close()
