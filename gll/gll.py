@@ -52,7 +52,7 @@ class GllApp(object):
         self.filename = None
         if len(sys.argv) > 1:
             self.filename = sys.argv[1]
-            self.open_pipeline(use_filename=True)
+            self.read_pipeline(self.filename)
 
     def init_plugins(self):
         self.plugins = gtk.ListStore(bool, str, GllPlugin, int)
@@ -186,24 +186,7 @@ class GllApp(object):
         self.plugins.clear()
         self.filename = None
 
-    def save_pipeline(self, *args, **kwargs):
-        if not len(self.plugins):
-            return
-        if not self.filename or kwargs.get("save_as"):
-            dialog = gtk.FileChooserDialog(
-                "Save Pipeline", action=gtk.FILE_CHOOSER_ACTION_SAVE,
-                buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-                         gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
-            dialog.set_do_overwrite_confirmation(True)
-            filt = gtk.FileFilter()
-            filt.set_name("GLL Pipeline Files")
-            filt.add_pattern("*.gll")
-            dialog.set_filter(filt)
-            response = dialog.run()
-            self.filename = dialog.get_filename()
-            dialog.destroy()
-            if response != gtk.RESPONSE_ACCEPT:
-                return
+    def write_pipeline(self, filename):
         plugins = []
         for active, name, plugin, last_serial in self.plugins:
             plugins.append((active, name, plugin.get_config()))
@@ -216,46 +199,65 @@ class GllApp(object):
         pickle.dump(plugins, f)
         pickle.dump(selected, f)
         f.close()
+        self.filename = filename
 
-    def save_pipeline_as(self, *args):
-        self.save_pipeline(save_as=True)
-
-    def open_pipeline(self, *args, **kwargs):
-        if kwargs.get("use_filename"):
-            filename = self.filename
-        else:
-            dialog = gtk.FileChooserDialog(
-                "Open Pipeline", action=gtk.FILE_CHOOSER_ACTION_OPEN,
-                buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-                         gtk.STOCK_OPEN, gtk.RESPONSE_ACCEPT))
-            filt = gtk.FileFilter()
-            filt.set_name("GLL Pipeline Files")
-            filt.add_pattern("*.gll")
-            dialog.set_filter(filt)
-            response = dialog.run()
-            filename = dialog.get_filename()
-            dialog.destroy()
-            if response != gtk.RESPONSE_ACCEPT:
-                return
+    def read_pipeline(self, filename):
         f = open(filename)
         plugins = pickle.load(f)
         selected = pickle.load(f)
         f.close()
-        if len(self.plugins):
-            message = gtk.MessageDialog(type=gtk.MESSAGE_QUESTION,
-                                        buttons=gtk.BUTTONS_YES_NO)
-            message.set_markup("Append file contents to the current pipeline?")
-            if message.run() == gtk.RESPONSE_NO:
-                self.remove_plugin_widgets()
-                self.plugins.clear()
-                self.filename = filename
-            message.destroy()
-        else:
-            self.filename = filename
         for active, name, config in plugins:
             plugin = self.add_plugin(name, active)
             plugin.set_config(config)
         self.selection.select_path(selected)
+
+    def save_pipeline_as(self, *args):
+        dialog = gtk.FileChooserDialog(
+            "Save Pipeline", action=gtk.FILE_CHOOSER_ACTION_SAVE,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+                     gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
+        dialog.set_do_overwrite_confirmation(True)
+        filt = gtk.FileFilter()
+        filt.set_name("GLL Pipeline Files")
+        filt.add_pattern("*.gll")
+        dialog.set_filter(filt)
+        response = dialog.run()
+        filename = dialog.get_filename()
+        dialog.destroy()
+        if response != gtk.RESPONSE_ACCEPT:
+            return
+        self.write_pipeline(filename)
+
+    def save_pipeline(self, *args):
+        if not len(self.plugins):
+            return
+        if not self.filename:
+            self.save_pipeline_as()
+        else:
+            self.write_pipeline(self.filename)
+
+    def open_pipeline(self, arg=None, append=False):
+        dialog = gtk.FileChooserDialog(
+            "Open Pipeline", action=gtk.FILE_CHOOSER_ACTION_OPEN,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+                     gtk.STOCK_OPEN, gtk.RESPONSE_ACCEPT))
+        filt = gtk.FileFilter()
+        filt.set_name("GLL Pipeline Files")
+        filt.add_pattern("*.gll")
+        dialog.set_filter(filt)
+        response = dialog.run()
+        filename = dialog.get_filename()
+        dialog.destroy()
+        if response != gtk.RESPONSE_ACCEPT:
+            return
+        if not append:
+            self.remove_plugin_widgets()
+            self.plugins.clear()
+            self.filename = filename
+        self.read_pipeline(filename)
+
+    def append_to_pipeline(self, *args):
+        self.open_pipeline(append=True)
 
     def save_to_history(self):
         truncate = self.history_pos < len(self.history) - 1

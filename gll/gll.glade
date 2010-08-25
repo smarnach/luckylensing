@@ -41,6 +41,14 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem" id="menuitem2">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Append</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="append_to_pipeline"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkImageMenuItem" id="imagemenuitem3">
                         <property name="label">gtk-save</property>
                         <property name="visible">True</property>
