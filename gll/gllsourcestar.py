@@ -31,9 +31,11 @@ class GllSourceStar(GllPlugin):
         return source.reshape(source.shape + (1,)).repeat(3, axis=2)
 
 class GllFlatSource(GllSourceStar):
+    name = "Flat source profile"
     def __init__(self):
         super(GllFlatSource, self).__init__(FlatSource())
 
 class GllGaussianSource(GllSourceStar):
+    name = "Gaussian source profile"
     def __init__(self):
         super(GllGaussianSource, self).__init__(GaussianSource())

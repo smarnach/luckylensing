@@ -3,9 +3,10 @@ from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 
 class GllLenses(GllPlugin):
+    name = "Lens list"
+
     def __init__(self):
         super(GllLenses, self).__init__()
-        self.name = "Lenses"
         self.builder = gtk.Builder()
         self.builder.add_from_file("glllenses.glade")
         self.builder.connect_signals(self)

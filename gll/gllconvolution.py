@@ -4,6 +4,8 @@ from gllplugin import GllPlugin
 from gllimageview import GllImageView
 
 class GllConvolution(GllPlugin):
+    name = "Convolution"
+
     def __init__(self):
         super(GllConvolution, self).__init__(Convolution())
         self.main_widget = GllImageView(self.get_pixbuf)

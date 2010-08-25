@@ -5,6 +5,8 @@ from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
 
 class GllLightCurve(GllPlugin):
+    name = "Light curve"
+
     def __init__(self):
         super(GllLightCurve, self).__init__(LightCurve())
         self.main_widget = GllImageView(self.get_pixbuf)

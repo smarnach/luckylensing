@@ -4,6 +4,8 @@ from gllconfigbox import GllConfigBox
 from globularcluster import GlobularCluster
 
 class GllGlobularCluster(GllPlugin):
+    name = "Globular cluster"
+
     def __init__(self):
         super(GllGlobularCluster, self).__init__(GlobularCluster())
         self.config_widget = GllConfigBox(

@@ -5,9 +5,10 @@ from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
 
 class GllSourcePath(GllPlugin):
+    name = "Source path"
+
     def __init__(self):
         super(GllSourcePath, self).__init__()
-        self.name = "SourcePath"
         self.main_widget = GllImageView(self.get_pixbuf)
         self.config_widget = GllConfigBox(
             [("curve_x0", "Start x coordinate", (-1.0, -1e10, 1e10, 0.01), 4),

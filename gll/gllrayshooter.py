@@ -7,6 +7,8 @@ from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
 
 class GllRayshooter(GllPlugin):
+    name = "Magnification pattern"
+
     def __init__(self):
         super(GllRayshooter, self).__init__(Rayshooter())
         self.main_widget = GllImageView(self.get_pixbuf, self.imageview_clicked)

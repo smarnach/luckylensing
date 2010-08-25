@@ -21,14 +21,8 @@ try:
 except:
     pyconsole = None
 
-all_plugins = {"Globular cluster": GllGlobularCluster,
-               "Lens list": GllLenses,
-               "Magnification pattern": GllRayshooter,
-               "Gaussian source profile": GllGaussianSource,
-               "Flat source profile": GllFlatSource,
-               "Source path": GllSourcePath,
-               "Convolution": GllConvolution,
-               "Light curve": GllLightCurve}
+all_plugins = [GllGlobularCluster, GllLenses, GllRayshooter, GllGaussianSource,
+               GllFlatSource, GllSourcePath, GllConvolution, GllLightCurve]
 
 class GllApp(object):
     def __init__(self):
@@ -77,9 +71,10 @@ class GllApp(object):
         self.builder.get_object("pipeline_window").add(treeview)
         self.treeview = treeview
         addmenu = gtk.Menu()
-        for name in sorted(all_plugins.keys()):
+        plugin_names = sorted((plugin.name, plugin) for plugin in all_plugins)
+        for name, plugin_type in plugin_names:
             item = gtk.MenuItem(name)
-            item.connect("activate", self.add_plugin_activated, name)
+            item.connect("activate", self.add_plugin_activated, plugin_type)
             addmenu.append(item)
         addmenu.show_all()
         addbutton = self.builder.get_object("addbutton")
@@ -90,12 +85,12 @@ class GllApp(object):
     def popup_addmenu(self, *args):
         self.arrowbutton.set_active(True)
 
-    def add_plugin_activated(self, menuitem, name):
-        self.add_plugin(name)
+    def add_plugin_activated(self, menuitem, plugin_type):
+        self.add_plugin(plugin_type)
 
-    def add_plugin(self, name, active=True):
-        plugin = all_plugins[name]()
-        it = self.plugins.append((active, name, plugin, -1))
+    def add_plugin(self, plugin_type, active=True):
+        plugin = plugin_type()
+        it = self.plugins.append((active, plugin_type.name, plugin, -1))
         self.selection.select_iter(it)
         plugin.connect("run-pipeline", self.run_pipeline)
         plugin.connect("cancel-pipeline", self.cancel_pipeline)
@@ -189,7 +184,8 @@ class GllApp(object):
     def write_pipeline(self, filename):
         plugins = []
         for active, name, plugin, last_serial in self.plugins:
-            plugins.append((active, name, plugin.get_config()))
+            plugins.append((active, plugin.__class__.__name__,
+                            plugin.get_config()))
         it = self.selection.get_selected()[1]
         if it is None:
             selected = 0
@@ -206,8 +202,8 @@ class GllApp(object):
         plugins = pickle.load(f)
         selected = pickle.load(f)
         f.close()
-        for active, name, config in plugins:
-            plugin = self.add_plugin(name, active)
+        for active, class_name, config in plugins:
+            plugin = self.add_plugin(globals()[class_name], active)
             plugin.set_config(config)
         self.selection.select_path(selected)
 
