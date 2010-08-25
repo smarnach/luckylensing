@@ -102,6 +102,5 @@ class GllRayshooter(GllPlugin):
             if widget.get_tool() is self.dragger:
                 widget.set_tool(self.selector)
                 self.config_widget.set_active("export_region", True)
-                self.toggle_export_region()
             else:
                 widget.set_tool(self.dragger)
