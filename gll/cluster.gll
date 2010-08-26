@@ -1,5 +1,6 @@
 (lp1
 (I01
+S'Globular cluster'
 S'GllGlobularCluster'
 p2
 (dp3
@@ -23,6 +24,7 @@ p9
 F0
 stp10
 a(I01
+S'Magnification pattern'
 S'GllRayshooter'
 p11
 (dp12
@@ -46,6 +48,7 @@ p18
 I00
 stp19
 a(I01
+S'Source path'
 S'GllSourcePath'
 p20
 (dp21
@@ -66,6 +69,7 @@ p26
 F-0.59999999999999998
 stp27
 a(I01
+S'Gaussian source profile'
 S'GllGaussianSource'
 p28
 (dp29
@@ -74,16 +78,19 @@ p30
 F0.029999999999999999
 stp31
 a(I01
+S'Convolution'
 S'GllConvolution'
 p32
 (dtp33
 a(I01
-S'GllLightCurve'
+S'Light curve'
 p34
-(dp35
+S'GllLightCurve'
+p35
+(dp36
 S'export_max'
-p36
+p37
 I00
-stp37
+stp38
 a.I1
 .

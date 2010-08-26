@@ -1,5 +1,6 @@
 (lp1
 (I01
+S'Lens list'
 S'GllLenses'
 p2
 (dp3
@@ -53,6 +54,7 @@ F2.5000000000000001e-05
 tp18
 astp19
 a(I01
+S'Magnification pattern'
 S'GllRayshooter'
 p20
 (dp21
@@ -75,6 +77,7 @@ sg13
 I00
 stp27
 a(I01
+S'Source path'
 S'GllSourcePath'
 p28
 (dp29
@@ -95,6 +98,7 @@ p34
 F-0.025000000000000001
 stp35
 a(I01
+S'Flat source profile'
 S'GllFlatSource'
 p36
 (dp37
@@ -103,16 +107,19 @@ p38
 F0.0040000000000000001
 stp39
 a(I01
+S'Convolution'
 S'GllConvolution'
 p40
 (dtp41
 a(I01
-S'GllLightCurve'
+S'Light curve'
 p42
-(dp43
+S'GllLightCurve'
+p43
+(dp44
 S'export_max'
-p44
+p45
 I00
-stp45
+stp46
 a.I1
 .

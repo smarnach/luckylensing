@@ -60,17 +60,19 @@ class GllApp(object):
         treeview.append_column(column)
         column = gtk.TreeViewColumn("Name")
         renderer = gtk.CellRendererText()
+        renderer.set_property('editable', True)
         renderer.connect("edited", self.edit_plugin_name)
         column.pack_start(renderer, True)
         column.add_attribute(renderer, 'text', 1)
         treeview.append_column(column)
         treeview.set_headers_visible(False)
         treeview.set_reorderable(True)
+        treeview.set_enable_search(False)
+        treeview.show_all()
+        self.treeview = treeview
         self.selection = treeview.get_selection()
         self.selection.connect("changed", self.selected_plugin_changed)
-        treeview.show_all()
         self.builder.get_object("pipeline_window").add(treeview)
-        self.treeview = treeview
         addmenu = gtk.Menu()
         plugin_names = sorted((plugin.name, plugin) for plugin in all_plugins)
         for name, plugin_type in plugin_names:
@@ -89,9 +91,11 @@ class GllApp(object):
     def add_plugin_activated(self, menuitem, plugin_type):
         self.add_plugin(plugin_type)
 
-    def add_plugin(self, plugin_type, active=True):
+    def add_plugin(self, plugin_type, active=True, name=None):
         plugin = plugin_type()
-        it = self.plugins.append((active, plugin_type.name, plugin, -1))
+        if name is None:
+            name = plugin_type.name
+        it = self.plugins.append((active, name, plugin, -1))
         self.selection.select_iter(it)
         plugin.connect("run-pipeline", self.run_pipeline)
         plugin.connect("cancel-pipeline", self.cancel_pipeline)
@@ -187,7 +191,7 @@ class GllApp(object):
     def write_pipeline(self, filename):
         plugins = []
         for active, name, plugin, last_serial in self.plugins:
-            plugins.append((active, plugin.__class__.__name__,
+            plugins.append((active, name, plugin.__class__.__name__,
                             plugin.get_config()))
         it = self.selection.get_selected()[1]
         if it is None:
@@ -205,8 +209,8 @@ class GllApp(object):
         plugins = pickle.load(f)
         selected = pickle.load(f)
         f.close()
-        for active, class_name, config in plugins:
-            plugin = self.add_plugin(globals()[class_name], active)
+        for active, name, class_name, config in plugins:
+            plugin = self.add_plugin(globals()[class_name], active, name)
             plugin.set_config(config)
         self.selection.select_path(selected)
 
