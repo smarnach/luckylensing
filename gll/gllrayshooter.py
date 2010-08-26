@@ -11,8 +11,9 @@ class GllRayshooter(GllPlugin):
 
     def __init__(self):
         super(GllRayshooter, self).__init__(Rayshooter())
-        self.main_widget = GllImageView(self.get_pixbuf, self.imageview_clicked)
+        self.main_widget = GllImageView(self.get_pixbuf)
         self.imageview = self.main_widget.imageview
+        self.imageview.connect("button-press-event", self.imageview_clicked)
         self.dragger = self.imageview.get_tool()
         self.selector = gtkimageview.ImageToolSelector(self.imageview)
         self.radio_simple = gtk.RadioButton(None, "Simple")
@@ -96,7 +97,6 @@ class GllRayshooter(GllPlugin):
         return self.buf
 
     def imageview_clicked(self, widget, event, data=None):
-        widget.grab_focus()
         if event.button == 1:
             if event.type == gtk.gdk._2BUTTON_PRESS:
                 self.emit("run-pipeline")

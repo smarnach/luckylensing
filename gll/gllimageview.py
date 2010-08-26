@@ -3,14 +3,11 @@ import gtk
 import numpy
 
 class GllImageView(gtkimageview.ImageScrollWin):
-    def __init__(self, get_pixbuf, imageview_clicked=None):
+    def __init__(self, get_pixbuf):
         self.get_pixbuf = get_pixbuf
         self.imageview = gtkimageview.ImageView()
         self.imageview.set_interpolation(gtk.gdk.INTERP_TILES)
-        if imageview_clicked is not None:
-            self.imageview.connect("button-press-event", imageview_clicked)
-        else:
-            self.imageview.connect("button-press-event", self.imageview_clicked)
+        self.imageview.connect("button-press-event", self.imageview_clicked)
         self.imageview.connect("expose-event", self.expose)
         super(GllImageView, self).__init__(self.imageview)
         self.show_all()
