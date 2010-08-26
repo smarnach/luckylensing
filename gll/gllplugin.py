@@ -4,6 +4,8 @@ class GllPlugin(gobject.GObject):
     __gsignals__ = {
         "run-pipeline": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ()),
         "cancel-pipeline": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ()),
+        "statusbar-push": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, (str,)),
+        "statusbar-pop": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ()),
         "history-back": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ()),
         "history-forward": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ())}
 

@@ -34,6 +34,7 @@ class GllApp(object):
         self.config_box = self.builder.get_object("config_box")
         self.config_label = self.builder.get_object("config_label")
         self.progressbar = self.builder.get_object("progressbar")
+        self.statusbar = self.builder.get_object("statusbar")
         if not pyconsole:
             self.builder.get_object("toolbutton_console").hide()
         self.init_plugins()
@@ -94,6 +95,8 @@ class GllApp(object):
         self.selection.select_iter(it)
         plugin.connect("run-pipeline", self.run_pipeline)
         plugin.connect("cancel-pipeline", self.cancel_pipeline)
+        plugin.connect("statusbar-push", self.statusbar_push)
+        plugin.connect("statusbar-pop", self.statusbar_pop)
         plugin.connect("history-back", self.history_back)
         plugin.connect("history-forward", self.history_forward)
         return plugin
@@ -327,6 +330,13 @@ class GllApp(object):
         self.progressbar.set_property("show-text", False)
         self.progressbar.set_fraction(0.0)
         return False
+
+    def statusbar_push(self, plugin, text):
+        self.statusbar.pop(id(plugin))
+        self.statusbar.push(id(plugin), text)
+
+    def statusbar_pop(self, plugin):
+        self.statusbar.pop(id(plugin))
 
     def toggle_plugin(self, cell, path):
         self.plugins[path][0] ^= True

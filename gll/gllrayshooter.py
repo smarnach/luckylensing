@@ -1,3 +1,4 @@
+from math import log10
 import gtk
 import gtkimageview
 import luckylensing as ll
@@ -13,7 +14,12 @@ class GllRayshooter(GllPlugin):
         super(GllRayshooter, self).__init__(Rayshooter())
         self.main_widget = GllImageView(self.get_pixbuf)
         self.imageview = self.main_widget.imageview
+        self.imageview.add_events(gtk.gdk.BUTTON_PRESS_MASK |
+                                  gtk.gdk.POINTER_MOTION_MASK |
+                                  gtk.gdk.LEAVE_NOTIFY_MASK)
         self.imageview.connect("button-press-event", self.imageview_clicked)
+        self.imageview.connect("motion-notify-event", self.imageview_motion)
+        self.imageview.connect("leave-notify-event", self.imageview_leave)
         self.dragger = self.imageview.get_tool()
         self.selector = gtkimageview.ImageToolSelector(self.imageview)
         self.radio_simple = gtk.RadioButton(None, "Simple")
@@ -53,14 +59,12 @@ class GllRayshooter(GllPlugin):
             rect = self.selector.get_selection()
             width = max(rect.width, rect.height*self.xpixels/self.ypixels)
             x = rect.x + (rect.width - width)/2
-            xfactor = (self.region["x1"]-self.region["x0"])/self.xpixels
-            config["region_x0"] = self.region["x0"] + x * xfactor
-            config["region_x1"] = config["region_x0"] + width * xfactor
+            config["region_x0"] = self.region["x0"] + x * self.xfactor
+            config["region_x1"] = config["region_x0"] + width * self.xfactor
             height = max(rect.height, rect.width*self.ypixels/self.xpixels)
             y = rect.y + (rect.height - height)/2
-            yfactor = (self.region["y1"]-self.region["y0"])/self.ypixels
-            config["region_y1"] = self.region["y1"] - y * yfactor
-            config["region_y0"] = config["region_y1"] - height * yfactor
+            config["region_y1"] = self.region["y1"] - y * self.yfactor
+            config["region_y0"] = config["region_y1"] - height * self.yfactor
         if self.radio_simple.get_active():
             config["kernel"] = ll.KERNEL_SIMPLE
         elif self.radio_bilinear.get_active():
@@ -82,7 +86,8 @@ class GllRayshooter(GllPlugin):
         colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
                   (195, 16, 16), (249, 249, 70), (255, 255, 255)]
         steps = [255, 32, 255, 255, 255]
-        self.buf = ll.render_magpattern_gradient(data["magpat"], colors, steps)
+        self.magpat = data["magpat"]
+        self.buf = ll.render_magpattern_gradient(self.magpat, colors, steps)
         self.imageview.set_tool(self.dragger)
         self.main_widget.mark_dirty()
         data["magpat_pic"] = self.buf
@@ -92,17 +97,59 @@ class GllRayshooter(GllPlugin):
             self.region[key[7:]] = data[key]
         self.xpixels = data["xpixels"]
         self.ypixels = data["ypixels"]
+        self.xfactor = (self.region["x1"]-self.region["x0"])/self.xpixels
+        self.yfactor = (self.region["y1"]-self.region["y0"])/self.ypixels
+        xlog = log10(abs(self.region["x0"]) + abs(self.region["x1"]))
+        if -2.0 <= xlog < 0.0:
+            xprec = int(-log10(self.xfactor) + 1)
+        else:
+            xprec = int(xlog - log10(self.xfactor) + 1)
+        if xlog < -2.0:
+            self.xformat = "%" + (".%ie" % xprec)
+        else:
+            self.xformat = "%" + (".%if" % xprec)
+        ylog = log10(abs(self.region["y0"]) + abs(self.region["y1"]))
+        if -2.0 <= ylog < 0.0:
+            yprec = int(-log10(self.yfactor) + 1)
+        else:
+            yprec = int(ylog - log10(self.yfactor) + 1)
+        if ylog < -2.0:
+            self.yformat = "%" + (".%ie" % yprec)
+        else:
+            self.yformat = "%" + (".%if" % yprec)
 
     def get_pixbuf(self):
         return self.buf
 
-    def imageview_clicked(self, widget, event, data=None):
+    def imageview_clicked(self, imageview, event):
         if event.button == 1:
             if event.type == gtk.gdk._2BUTTON_PRESS:
                 self.emit("run-pipeline")
         if event.button == 3:
-            if widget.get_tool() is self.dragger:
-                widget.set_tool(self.selector)
+            if imageview.get_tool() is self.dragger:
+                imageview.set_tool(self.selector)
                 self.config_widget.set_active("export_region", True)
             else:
-                widget.set_tool(self.dragger)
+                imageview.set_tool(self.dragger)
+
+    def imageview_motion(self, imageview, event):
+        draw_rect = self.imageview.get_draw_rect()
+        if self.region is None or draw_rect is None:
+            return
+        zoom = self.imageview.get_zoom()
+        viewport = self.imageview.get_viewport()
+        mag_x = (event.x - draw_rect.x + viewport.x) / zoom
+        mag_y = self.ypixels - (event.y - draw_rect.y + viewport.y + 1) / zoom
+        if (mag_x < 0 or mag_x >= self.xpixels or
+            mag_y < 0 or mag_y >= self.ypixels):
+            self.emit("statusbar-pop")
+            return
+        x = self.region["x0"] + mag_x * self.xfactor
+        y = self.region["y0"] + mag_y * self.yfactor
+        mag = self.magpat[mag_y][mag_x]
+        text = (("x: " + self.xformat + ", y: " + self.yformat +
+                 ", magnification: %.2f") % (x, y, mag))
+        self.emit("statusbar-push", text)
+
+    def imageview_leave(self, imageview, event):
+        self.emit("statusbar-pop")
