@@ -2,9 +2,9 @@ import numpy
 from processor import Processor
 from math import sqrt
 
-class SourceStar(Processor):
+class SourceProfile(Processor):
     def get_input_keys(self, data):
-        return ["xpixels", "ypixels", "source_radius",
+        return ["xpixels", "ypixels", "profile_type", "source_radius",
                 "region_x0", "region_x1", "region_y0", "region_y1"]
 
     def run(self, data):
@@ -18,8 +18,14 @@ class SourceStar(Processor):
         height2 = height*height
         kernel = numpy.indices((ypixels/2, xpixels/2)) + 0.5
         kernel = kernel*kernel
-        kernel = self.f(height2*kernel[0]+width2*kernel[1], source_radius2,
-                        width, height)
+        kernel = height2*kernel[0]+width2*kernel[1]
+        profile_type = data.get("profile_type", "flat").lower()
+        if profile_type == "flat":
+            kernel = self.flat(kernel, source_radius2, width, height)
+        elif profile_type == "gaussian":
+            kernel = self.gaussian(kernel, source_radius2, width, height)
+        else:
+            raise ValueError("Unknown source profile type: " + profile_type)
         if kernel is None:
             return {"source_fft": None,
                     "source_profile": None}
@@ -30,8 +36,7 @@ class SourceStar(Processor):
         return {"source_fft": kernel_fft,
                 "source_profile": kernel}
 
-class FlatSource(SourceStar):
-    def f(self, r2, source_radius2, width, height):
+    def flat(self, r2, source_radius2, width, height):
         width2 = width*width
         height2 = height*height
         if source_radius2 <= 0.25*width2 + 0.25*height2:
@@ -45,6 +50,5 @@ class FlatSource(SourceStar):
              0.25*width*height)
         return numpy.clip(-m*r2 + m*b, 0.0, 1.0)
 
-class GaussianSource(SourceStar):
-    def f(self, r2, source_radius2, width, height):
+    def gaussian(self, r2, source_radius2, width, height):
         return numpy.exp(-r2 / (2.0*source_radius2))

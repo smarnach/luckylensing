@@ -98,28 +98,32 @@ p34
 F-0.025000000000000001
 stp35
 a(I01
-S'Flat source profile'
-S'GllFlatSource'
+S'Source profile'
+S'GllSourceProfile'
 p36
 (dp37
 S'source_radius'
 p38
 F0.0040000000000000001
-stp39
+sS'profile_type'
+p39
+S'flat'
+p40
+stp41
 a(I01
 S'Convolution'
 S'GllConvolution'
-p40
-(dtp41
+p42
+(dtp43
 a(I01
 S'Light curve'
-p42
+p44
 S'GllLightCurve'
-p43
-(dp44
-S'export_max'
 p45
+(dp46
+S'export_max'
+p47
 I00
-stp46
+stp48
 a.I1
 .

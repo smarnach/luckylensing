@@ -69,28 +69,32 @@ p26
 F-0.40000000000000002
 stp27
 a(I01
-S'Gaussian source profile'
-S'GllGaussianSource'
+S'Source profile'
+S'GllSourceProfile'
 p28
 (dp29
 S'source_radius'
 p30
-F0.030000000000000016
-stp31
+F0.029999999999999999
+sS'profile_type'
+p31
+S'gaussian'
+p32
+stp33
 a(I01
 S'Convolution'
 S'GllConvolution'
-p32
-(dtp33
+p34
+(dtp35
 a(I01
 S'Light curve'
-p34
+p36
 S'GllLightCurve'
-p35
-(dp36
-S'export_max'
 p37
+(dp38
+S'export_max'
+p39
 I00
-stp38
+stp40
 a.I1
 .

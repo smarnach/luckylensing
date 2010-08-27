@@ -12,7 +12,7 @@ from gllplugin import GllPlugin
 from gllglobularcluster import GllGlobularCluster
 from glllenses import GllLenses
 from gllrayshooter import GllRayshooter
-from gllsourcestar import GllGaussianSource, GllFlatSource
+from gllsourceprofile import GllSourceProfile
 from gllsourcepath import GllSourcePath
 from gllconvolution import GllConvolution
 from glllightcurve import GllLightCurve
@@ -21,8 +21,8 @@ try:
 except:
     pyconsole = None
 
-all_plugins = [GllGlobularCluster, GllLenses, GllRayshooter, GllGaussianSource,
-               GllFlatSource, GllSourcePath, GllConvolution, GllLightCurve]
+all_plugins = [GllGlobularCluster, GllLenses, GllRayshooter, GllSourceProfile,
+               GllSourcePath, GllConvolution, GllLightCurve]
 
 class GllApp(object):
     def __init__(self):
