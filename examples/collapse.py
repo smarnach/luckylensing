@@ -6,6 +6,7 @@ sys.path.append("../libll")
 from globularcluster import GlobularCluster
 from rayshooter import Rayshooter
 from imagewriter import ImageWriter
+from math import log
 
 pipe = [GlobularCluster(), Rayshooter(), ImageWriter()]
 for i in range(1000):
@@ -13,7 +14,7 @@ for i in range(1000):
     data = dict(
         # Parameters for the cluster generator:
         num_stars = 1000,
-        log_mass = log_mass,
+        total_mass = 1000 * exp(log_mass),
         random_seed = 43,
         # Parameters for the ray shooter:
         density = 15 * 1.5**(-log_mass),
