@@ -1,4 +1,5 @@
-import gtk
+import cairo
+import numpy
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
@@ -38,25 +39,23 @@ class GllSourcePath(GllPlugin):
     def update_coords(self, data):
         pixels_per_width = self.xpixels / (self.region_x1 - self.region_x0)
         pixels_per_height = self.ypixels / (self.region_y1 - self.region_y0)
-        self.coords = (
-            int((data["curve_x0"] - self.region_x0) * pixels_per_width),
-            int((self.region_y1 - data["curve_y0"]) * pixels_per_height),
-            int((data["curve_x1"] - self.region_x0) * pixels_per_width),
-            int((self.region_y1 - data["curve_y1"]) * pixels_per_height))
+        self.coords = ((data["curve_x0"] - self.region_x0) * pixels_per_width,
+                       (self.region_y1 - data["curve_y0"]) * pixels_per_height,
+                       (data["curve_x1"] - self.region_x0) * pixels_per_width,
+                       (self.region_y1 - data["curve_y1"]) * pixels_per_height)
         self.main_widget.mark_dirty()
 
     def get_pixbuf(self):
-        magpat_pixbuf = gtk.gdk.pixbuf_new_from_array(
-            self.magpat_buf, gtk.gdk.COLORSPACE_RGB, 8)
-        pixmap = gtk.gdk.Pixmap(None, self.xpixels, self.ypixels, 24)
-        gc = self.main_widget.style.light_gc[gtk.STATE_NORMAL]
-        pixmap.draw_pixbuf(gc, magpat_pixbuf, 0, 0, 0, 0)
-        pixmap.draw_line(gc, *self.coords)
-        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False,
-                                8, self.xpixels, self.ypixels)
-        pixbuf.get_from_drawable(pixmap, pixmap.get_colormap(),
-                                 0, 0, 0, 0, self.xpixels, self.ypixels)
-        return pixbuf
+        buf = numpy.ascontiguousarray(numpy.dstack(
+            (self.magpat_buf, 255*numpy.ones_like(self.magpat_buf[...,:1]))))
+        surface = cairo.ImageSurface.create_for_data(
+            buf.data, cairo.FORMAT_ARGB32, self.xpixels, self.ypixels)
+        ctx = cairo.Context(surface)
+        ctx.set_source_rgb(1.0, 1.0, 1.0)
+        ctx.move_to(self.coords[0], self.coords[1])
+        ctx.line_to(self.coords[2], self.coords[3])
+        ctx.stroke()
+        return buf
 
     def coords_changed(self, *args):
         if hasattr(self, "magpat_buf"):
