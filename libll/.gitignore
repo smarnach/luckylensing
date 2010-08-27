@@ -1,1 +1,6 @@
-testll
+/testll
+*.c.gcov
+*.gcda
+*.gcno
+*.o
+*.so
