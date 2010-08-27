@@ -60,14 +60,14 @@ class GllApp(object):
         treeview.append_column(column)
         column = gtk.TreeViewColumn("Name")
         renderer = gtk.CellRendererText()
-        renderer.set_property('editable', True)
-        renderer.connect("edited", self.edit_plugin_name)
+        renderer.connect("edited", self.plugin_name_edited)
         column.pack_start(renderer, True)
         column.add_attribute(renderer, 'text', 1)
         treeview.append_column(column)
         treeview.set_headers_visible(False)
         treeview.set_reorderable(True)
         treeview.set_enable_search(False)
+        treeview.connect("button-press-event", self.plugins_clicked)
         treeview.show_all()
         self.treeview = treeview
         self.selection = treeview.get_selection()
@@ -87,6 +87,23 @@ class GllApp(object):
 
     def popup_addmenu(self, *args):
         self.arrowbutton.set_active(True)
+
+    def plugins_clicked(self, treeview, event):
+        if event.button == 3:
+            result = treeview.get_path_at_pos(int(event.x), int(event.y))
+            if result is not None:
+                path, col, x, y = result
+                menu = gtk.Menu()
+                item = gtk.MenuItem("Rename")
+                item.connect("activate", self.edit_plugin_name, path, col)
+                menu.append(item)
+                menu.show_all()
+                menu.popup(None, None, None, event.button, event.time)
+
+    def edit_plugin_name(self, item, path, col):
+        col.get_cell_renderers()[0].set_property('editable', True)
+        self.treeview.set_cursor(path, col, True)
+        col.get_cell_renderers()[0].set_property('editable', False)
 
     def add_plugin_activated(self, menuitem, plugin_type):
         self.add_plugin(plugin_type)
@@ -345,7 +362,7 @@ class GllApp(object):
     def toggle_plugin(self, cell, path):
         self.plugins[path][0] ^= True
 
-    def edit_plugin_name(self, cell, path, new_text):
+    def plugin_name_edited(self, cell, path, new_text):
         self.plugins[path][1] = new_text
 
     def toggle_fullscreen(self, *args):
