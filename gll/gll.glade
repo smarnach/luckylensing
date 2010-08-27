@@ -282,7 +282,7 @@
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-fullscreen</property>
                 <accelerator key="F11" signal="clicked"/>
-                <signal name="clicked" handler="fullscreen"/>
+                <signal name="clicked" handler="toggle_fullscreen"/>
               </object>
               <packing>
                 <property name="expand">False</property>
