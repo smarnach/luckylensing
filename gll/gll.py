@@ -94,13 +94,17 @@ class GllApp(object):
             if result is not None:
                 path, col, x, y = result
                 menu = gtk.Menu()
-                item = gtk.MenuItem("Rename")
-                item.connect("activate", self.edit_plugin_name, path, col)
-                menu.append(item)
+                for label, handler in [
+                    ("Rename", (self.edit_plugin_name, path, col)),
+                    ("Duplicate", (self.duplicate_plugin, path)),
+                    ("Delete", (self.remove_plugin, path))]:
+                    item = gtk.MenuItem(label)
+                    item.connect("activate", *handler)
+                    menu.append(item)
                 menu.show_all()
                 menu.popup(None, None, None, event.button, event.time)
 
-    def edit_plugin_name(self, item, path, col):
+    def edit_plugin_name(self, menuitem, path, col):
         col.get_cell_renderers()[0].set_property('editable', True)
         self.treeview.set_cursor(path, col, True)
         col.get_cell_renderers()[0].set_property('editable', False)
@@ -108,11 +112,11 @@ class GllApp(object):
     def add_plugin_activated(self, menuitem, plugin_type):
         self.add_plugin(plugin_type)
 
-    def add_plugin(self, plugin_type, active=True, name=None):
+    def add_plugin(self, plugin_type, active=True, name=None, pos=-1):
         plugin = plugin_type()
         if name is None:
             name = plugin_type.name
-        it = self.plugins.append((active, name, plugin, -1))
+        it = self.plugins.insert(pos, (active, name, plugin, -1))
         self.selection.select_iter(it)
         plugin.connect("run-pipeline", self.run_pipeline)
         plugin.connect("cancel-pipeline", self.cancel_pipeline)
@@ -122,6 +126,17 @@ class GllApp(object):
         plugin.connect("history-forward", self.history_forward)
         return plugin
 
+    def duplicate_plugin(self, menuitem, path):
+        row = self.plugins[path]
+        name_peaces = row[1].rsplit("(", 1)
+        if (len(name_peaces) == 2 and name_peaces[1].endswith(")") and
+            name_peaces[1][:-1].isdigit()):
+            name = name_peaces[0] + "(" + str(int(name_peaces[1][:-1])+1) + ")"
+        else:
+            name = row[1] + " (2)"
+        plugin = self.add_plugin(type(row[2]), row[0], name, path[0] + 1)
+        plugin.set_config(row[2].get_config())
+
     def remove_plugin_widgets(self):
         child = self.config_box.get_child()
         if child:
@@ -130,14 +145,17 @@ class GllApp(object):
         if child:
             self.main_box.remove(child)
 
-    def remove_plugin(self, *args):
-        plugins, it = self.selection.get_selected()
+    def remove_plugin(self, widget, path=None):
+        if path is None:
+            it = self.selection.get_selected()[1]
+        else:
+            it = self.plugins.get_iter(path)
         if it is not None:
             self.remove_plugin_widgets()
-            if plugins.remove(it):
+            if self.plugins.remove(it):
                 self.selection.select_iter(it)
-            elif len(plugins):
-                self.selection.select_path(len(plugins)-1)
+            elif len(self.plugins):
+                self.selection.select_path(len(self.plugins)-1)
 
     def selected_plugin_changed(self, selection):
         plugins, it = selection.get_selected()
@@ -363,7 +381,7 @@ class GllApp(object):
         self.plugins[path][0] ^= True
 
     def plugin_name_edited(self, cell, path, new_text):
-        self.plugins[path][1] = new_text
+        self.plugins[path][1] = new_text.strip()
 
     def toggle_fullscreen(self, *args):
         if hasattr(self, "fullwindow"):

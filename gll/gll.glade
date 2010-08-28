@@ -206,7 +206,7 @@
                 <property name="visible">True</property>
                 <property name="tooltip_text" translatable="yes">Run the computation</property>
                 <property name="label" translatable="yes">Run</property>
-                <property name="icon_name">system-run</property>
+                <property name="icon_name">gtk-refresh</property>
                 <accelerator key="r" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <signal name="clicked" handler="run_pipeline"/>
               </object>
