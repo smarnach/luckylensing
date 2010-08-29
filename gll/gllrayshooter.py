@@ -44,7 +44,7 @@ class GllRayshooter(GllPlugin):
              kernel_chooser])
         self.radio_bilinear.set_active(True)
         self.config_widget.add_toggle_block(
-            "export_region", "Ray shooting region", False,
+            "export_region", "Magnification pattern region", False,
             [("region_x0", "Left coordinate",  (-1.0, -1e10, 1e10, 0.01), 4),
              ("region_y0", "Lower coordinate", (-1.0, -1e10, 1e10, 0.01), 4),
              ("region_x1", "Right coordinate", ( 1.0, -1e10, 1e10, 0.01), 4),

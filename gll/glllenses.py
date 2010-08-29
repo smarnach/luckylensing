@@ -15,7 +15,7 @@ class GllLenses(GllPlugin):
         self.lens_selection.set_mode(gtk.SELECTION_MULTIPLE)
         self.config_widget = GllConfigBox()
         self.config_widget.add_toggle_block(
-            "export_region", "Ray shooting region", True,
+            "export_region", "Magnification pattern region", True,
             [("region_x0", "Left coordinate",  (-1.0, -1e10, 1e10, 0.01), 4),
              ("region_y0", "Lower coordinate", (-1.0, -1e10, 1e10, 0.01), 4),
              ("region_x1", "Right coordinate", ( 1.0, -1e10, 1e10, 0.01), 4),
