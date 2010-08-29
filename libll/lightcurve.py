@@ -4,7 +4,7 @@ import numpy
 
 class LightCurve(Processor):
     def get_input_keys(self, data):
-        return ["convolved_magpat", "xpixels", "ypixels",
+        return ["convolved_magpat",
                 "region_x0", "region_x1", "region_y0", "region_y1",
                 "curve_x0", "curve_x1", "curve_y0", "curve_y1",
                 "curve_samples"]
@@ -17,8 +17,8 @@ class LightCurve(Processor):
         region_y1 = data["region_y1"]
         region = (region_x0, region_y0, region_x1 - region_x0,
                   region_y1 - region_y0)
-        params = ll.MagPatternParams([], region,
-                                     data["xpixels"], data["ypixels"])
+        ypixels, xpixels = magpat.shape
+        params = ll.MagPatternParams([], region, xpixels, ypixels)
         samples = data.get("curve_samples", 256)
         curve = numpy.empty(samples, dtype=numpy.float32)
         params.light_curve(magpat, curve, data["curve_x0"], data["curve_y0"],
