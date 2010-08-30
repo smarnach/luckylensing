@@ -10,6 +10,7 @@ import gobject
 import gtk
 from gllplugin import GllPlugin
 from gllglobularcluster import GllGlobularCluster
+from gllpolygonallenses import GllPolygonalLenses
 from glllenses import GllLenses
 from gllrayshooter import GllRayshooter
 from gllsourceprofile import GllSourceProfile
@@ -21,8 +22,8 @@ try:
 except:
     pyconsole = None
 
-all_plugins = [GllGlobularCluster, GllLenses, GllRayshooter, GllSourceProfile,
-               GllSourcePath, GllConvolution, GllLightCurve]
+all_plugins = [GllGlobularCluster, GllPolygonalLenses, GllLenses, GllRayshooter,
+               GllSourceProfile, GllSourcePath, GllConvolution, GllLightCurve]
 
 class GllApp(object):
     def __init__(self):
