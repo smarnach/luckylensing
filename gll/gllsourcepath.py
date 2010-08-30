@@ -1,5 +1,4 @@
 import gtk
-from lightcurve import LightCurve
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView

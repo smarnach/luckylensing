@@ -1,4 +1,3 @@
-import gtk
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 from globularcluster import GlobularCluster

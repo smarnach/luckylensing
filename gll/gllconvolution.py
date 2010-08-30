@@ -3,6 +3,10 @@ from convolution import Convolution
 from gllplugin import GllPlugin
 from gllimageview import GllImageView
 
+colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
+          (195, 16, 16), (249, 249, 70), (255, 255, 255)]
+steps = [255, 32, 255, 255, 255]
+
 class GllConvolution(GllPlugin):
     name = "Convolution"
 
@@ -11,9 +15,6 @@ class GllConvolution(GllPlugin):
         self.main_widget = GllImageView(self.get_pixbuf)
 
     def update(self, data):
-        colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
-                  (195, 16, 16), (249, 249, 70), (255, 255, 255)]
-        steps = [255, 32, 255, 255, 255]
         magpat = data["magpat"]
         convolved_magpat = data["convolved_magpat"]
         min_mag = magpat.min()

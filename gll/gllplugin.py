@@ -9,7 +9,7 @@ class GllPlugin(gobject.GObject):
         "history-back": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ()),
         "history-forward": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ())}
 
-    name = "Gll plugin"
+    name = "Gll plug-in"
 
     def __init__(self, processor=None):
         super(GllPlugin, self).__init__()

@@ -7,6 +7,10 @@ from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
 
+colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
+          (195, 16, 16), (249, 249, 70), (255, 255, 255)]
+steps = [255, 32, 255, 255, 255]
+
 class GllRayshooter(GllPlugin):
     name = "Magnification pattern"
 
@@ -83,9 +87,6 @@ class GllRayshooter(GllPlugin):
             self.radio_triangulated.set_active(True)
 
     def update(self, data):
-        colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
-                  (195, 16, 16), (249, 249, 70), (255, 255, 255)]
-        steps = [255, 32, 255, 255, 255]
         self.magpat = data["magpat"]
         self.buf = ll.render_magpattern_gradient(self.magpat, colors, steps)
         self.imageview.set_tool(self.dragger)
