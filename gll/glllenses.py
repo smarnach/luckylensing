@@ -3,7 +3,7 @@ from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 
 class GllLenses(GllPlugin):
-    name = "Lens list"
+    name = "Lens configuration"
 
     def __init__(self):
         super(GllLenses, self).__init__()
