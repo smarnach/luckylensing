@@ -214,6 +214,8 @@ _ll_rayshoot_triangulated(const struct ll_magpattern_param_t *params, float *mag
              (tri_vertices[2][1]-tri_vertices[0][1]) -
              (tri_vertices[1][1]-tri_vertices[0][1]) *
              (tri_vertices[2][0]-tri_vertices[0][0]));
+        if (fabs(magnification) < 1e-4)
+            continue;
 
         // Render the triangle
         if (single_pixel_optimization && mag_x0 == mag_x1 && mag_y0 == mag_y1)
