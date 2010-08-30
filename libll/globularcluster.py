@@ -1,7 +1,6 @@
 import numpy
 from math import pi, sin, cos, log
 from processor import Processor
-from luckylensing import Lenses
 
 class GlobularCluster(Processor):
     def get_input_keys(self, data):
