@@ -192,8 +192,8 @@ class GllApp(object):
                 break
             self.plugins[i][3] = self.serial
             gobject.idle_add(plugin.update, data)
-            while gobject.main_context_default().iteration(False):
-                pass
+            while gtk.events_pending():
+                gtk.main_iteration(False)
         self.active_processor = None
         self.progressbar_active = False
         if not self.cancel_flag:
