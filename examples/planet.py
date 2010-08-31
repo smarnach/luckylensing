@@ -5,11 +5,11 @@ sys.path.append("../libll")
 
 import luckylensing as ll
 from rayshooter import Rayshooter
-from ImageWriter import save_img, colors, steps
+from imagewriter import save_img, colors, steps
 
-for i in range(101):
-    x = 0.85 + i*0.003
-    p = ll.MagPatternParams([(0,0,1), (x, 0, .0004)], (-.3, -.15, .6, .3),
+for i in range(120):
+    x = 0.8 + i*0.005
+    p = ll.MagPatternParams([(0,0,1), (x, 0, .0025)], (-.4, -.25, 1., .5),
                             1024, 512)
     rs = Rayshooter(p)
     rs.num_threads = 2
