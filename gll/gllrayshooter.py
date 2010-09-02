@@ -24,6 +24,7 @@ class GllRayshooter(GllPlugin):
         self.imageview.connect("button-press-event", self.imageview_clicked)
         self.imageview.connect("motion-notify-event", self.imageview_motion)
         self.imageview.connect("leave-notify-event", self.imageview_leave)
+        self.main_widget.connect("parent-set", self.imageview_leave)
         self.dragger = self.imageview.get_tool()
         self.selector = gtkimageview.ImageToolSelector(self.imageview)
         self.radio_simple = gtk.RadioButton(None, "Simple")
