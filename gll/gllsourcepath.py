@@ -1,5 +1,3 @@
-import cairo
-import numpy
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
