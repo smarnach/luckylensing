@@ -124,6 +124,10 @@ class Rect(_c.Structure):
             self.__class__.__module__, self.__class__.__name__,
             self.x, self.y, self.width, self.height)
 
+    def __str__(self):
+        return "x=%0.3g, y=%0.3g, width=%0.3g, height=%0.3g" % (
+            self.x, self.y, self.width, self.height)
+
     def __setattr__(self, name, value):
         # This method is needed for the consistency magic in the
         # MagPatternParams and Patches classes

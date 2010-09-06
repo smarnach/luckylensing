@@ -1,11 +1,44 @@
-class Processor(object):
+import logging
+import sys
+import time
+
+logger = logging.getLogger("luckylensing")
+logger.setLevel(logging.DEBUG)
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setLevel(logging.INFO)
+logger.addHandler(stdout_handler)
+
+class ProcessorInterface(object):
+    def get_input_keys(self, data):
+        raise NotImplementedError
+
+    def run(self, data):
+        return {}
+
+    def cancel(self):
+        pass
+
+    def get_progress(self):
+        return 1.0
+
+class Processor(ProcessorInterface):
     def __init__(self):
         super(Processor, self).__init__()
         self.history = {}
         self.last_serial = -1
 
-    def get_input_keys(self, data):
-        raise NotImplementedError
+    def run_and_log(self, data):
+        name = self.__class__.__name__
+        logger.debug("Starting %s", name)
+        start_time = time.time()
+        output = self.run(data)
+        elapsed = time.time() - start_time
+        if elapsed >= 0.1:
+            level = logging.INFO
+        else:
+            level = logging.DEBUG
+        logger.log(level, "Finished %s in %.2f seconds", name, elapsed)
+        return output
 
     def needs_update(self, data, data_serials):
         history_entry = self.history.get(self.last_serial)
@@ -19,15 +52,17 @@ class Processor(object):
 
     def update(self, data, data_serials=None, serial=None):
         if data_serials is None:
-            data.update(self.run(data))
+            data.update(self.run_and_log(data))
             return
         my_serials = dict((key, data_serials[key])
                           for key in self.get_input_keys(data)
                           if key in data_serials)
         if self.needs_update(data, my_serials):
-            output = self.run(data)
+            output = self.run_and_log(data)
             self.last_serial = serial
         else:
+            logger.debug("Reusing %s result of run #%i",
+                         self.__class__.__name__, self.last_serial)
             output = self.history[self.last_serial][0]
         self.history[serial] = output, my_serials, self.last_serial
         data.update(output)
@@ -40,12 +75,3 @@ class Processor(object):
     def restrict_history(self, serials):
         self.history = dict((s, self.history[s])
                             for s in serials if s in self.history)
-
-    def run(self, data):
-        return {}
-
-    def cancel(self):
-        pass
-
-    def get_progress(self):
-        return 1.0

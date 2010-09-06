@@ -1,10 +1,9 @@
 from math import sqrt, log, ceil
-from time import time
 import threading
 from Queue import Queue, Empty
 import numpy
 import luckylensing as ll
-from processor import Processor
+from processor import Processor, logger
 
 class Rayshooter(ll.BasicRayshooter, Processor):
     def __init__(self, params=None):
@@ -99,16 +98,15 @@ class Rayshooter(ll.BasicRayshooter, Processor):
         shape = self.params[0].ypixels, self.params[0].xpixels
         self.magpat = numpy.zeros(shape, numpy.float32)
         rect, xrays, yrays, levels = self.get_shooting_params()
-        print xrays, yrays
-        print levels
-        start_time = time()
+        logger.debug("Ray shooting rectangle: %s", rect)
+        logger.debug("Rays on the coarsest level: %i x %i", xrays, yrays)
+        logger.debug("Ray shooting levels: %i", levels)
         self.progress = [ll.Progress(0.0) for j in range(self.num_threads)]
         if self.num_threads > 1:
             self._run_threaded(rect, xrays, yrays, levels)
         else:
             ll.BasicRayshooter.run(self, self.magpat, rect, xrays, yrays,
                                    levels, progress=self.progress[0])
-        print time()-start_time
         self.progress = []
         if data:
             return {"shooting_rect": rect, "xrays": xrays, "yrays": yrays,

@@ -1,5 +1,5 @@
 import numpy
-from processor import Processor
+from processor import Processor, logger
 from math import sqrt
 
 class SourceProfile(Processor):
@@ -27,6 +27,7 @@ class SourceProfile(Processor):
         else:
             raise ValueError("Unknown source profile type: " + profile_type)
         if kernel is None:
+            logger.warn("Source too small -- skipping convolution")
             return {"source_fft": None,
                     "source_profile": None}
         kernel = numpy.concatenate((kernel, numpy.flipud(kernel)), 0)

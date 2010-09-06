@@ -1,5 +1,5 @@
 from subprocess import Popen, PIPE
-from processor import Processor
+from processor import Processor, logger
 from luckylensing import render_magpattern_gradient
 
 colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
@@ -13,6 +13,7 @@ def save_img(buf, filename, convert_opts=""):
     buf.tofile(p.stdin)
     p.stdin.close()
     p.wait()
+    logger.info("Wrote magnification pattern to %s", filename)
 
 class ImageWriter(Processor):
     def get_input_keys(self, data):
