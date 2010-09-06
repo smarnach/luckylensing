@@ -4,7 +4,10 @@ CFLAGS_ALWAYS = -std=c99 -pedantic -Wall -Wextra -Winline -Wno-uninitialized
 
 CFLAGS_OPTIMISE = -O3 -ffinite-math-only -fno-tree-vectorize
 
-CFLAGS_ARCH = -msse3
+# Uncomment the following line if your processor supports the sse3
+# instruction set.  Floating point to integer conversions are considerably
+# faster with sse3
+#CFLAGS_ARCH = -msse3
 
 CFLAGS = $(CFLAGS_ALWAYS) $(CFLAGS_OPTIMISE) $(CFLAGS_ARCH)
 
