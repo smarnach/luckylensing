@@ -299,6 +299,20 @@
               </packing>
             </child>
             <child>
+              <object class="GtkToolButton" id="toolbutton12">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Log</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-info</property>
+                <accelerator key="l" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                <signal name="clicked" handler="show_pipeline_log"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkToolButton" id="toolbutton_console">
                 <property name="visible">True</property>
                 <property name="tooltip_text" translatable="yes">Start the debugging console</property>

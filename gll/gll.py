@@ -8,6 +8,7 @@ import threading
 import cPickle as pickle
 import gobject
 import gtk
+from glllogdialog import logger, GllLogDialog, ERROR
 from gllplugin import GllPlugin
 from gllglobularcluster import GllGlobularCluster
 from gllpolygonallenses import GllPolygonalLenses
@@ -180,14 +181,26 @@ class GllApp(object):
     def pipeline_thread(self):
         data = {}
         data_serials = {}
+        logger.info("\n--- Pipeline start ------------------------------------"
+                    "-----------------------------")
         for i, (active, name, plugin, last_serial) in enumerate(self.plugins):
             if not active:
                 continue
             self.serial += 1
+            logger.debug("Processing \"%s\" (serial #%i)", name, self.serial)
             self.active_processor = plugin.processor
             plugin.update_config(data, data_serials, self.serial, last_serial)
             if plugin.processor:
-                plugin.processor.update(data, data_serials, self.serial)
+                try:
+                    plugin.processor.update(data, data_serials, self.serial)
+                except KeyError, exc:
+                    logger.error("Tool \"%s\" did not find input key \"%s\".\n"
+                                 "    Add a tool providing this key earlier in"
+                                 " the pipeline.", name, exc[0])
+                    gobject.idle_add(self.show_pipeline_log, None, ERROR,
+                                     "An error occured while "
+                                     "running the pipeline.")
+                    self.cancel_flag = True
             if self.cancel_flag:
                 break
             self.plugins[i][3] = self.serial
@@ -201,7 +214,7 @@ class GllApp(object):
         self.running.release()
 
     def run_pipeline(self, *args):
-        if not self.running.acquire(False):
+        if not len(self.plugins) or not self.running.acquire(False):
             return
         self.cancel_flag = False
         self.treeview.grab_focus()
@@ -210,6 +223,13 @@ class GllApp(object):
         self.progressbar.set_fraction(0.0)
         gobject.timeout_add(100, self.update_progressbar)
         threading.Thread(target=self.pipeline_thread).start()
+
+    def show_pipeline_log(self, widget, level=None, txt=None):
+        if txt is None:
+            txt = "Log of previous pipeline runs"
+        dialog = GllLogDialog(level, txt)
+        dialog.run()
+        dialog.destroy()
 
     def new_pipeline(self, *args):
         if len(self.plugins):
