@@ -13,9 +13,9 @@ CFLAGS = $(CFLAGS_ALWAYS) $(CFLAGS_OPTIMISE) $(CFLAGS_ARCH)
 
 LDLIBS = -lm
 
-default: libll.so
+default: optimised
 
-all: default testll
+all: libll.so testll
 
 testll.o ll.o: ll.h
 
