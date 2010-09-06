@@ -183,6 +183,7 @@ class GllApp(object):
         data_serials = {}
         logger.info("\n--- Pipeline start ------------------------------------"
                     "-----------------------------")
+        semaphore = threading.Semaphore(0)
         for i, (active, name, plugin, last_serial) in enumerate(self.plugins):
             if not active:
                 continue
@@ -204,9 +205,11 @@ class GllApp(object):
             if self.cancel_flag:
                 break
             self.plugins[i][3] = self.serial
-            gobject.idle_add(plugin.update, data)
-            while gtk.events_pending():
-                gtk.main_iteration(False)
+            def update_plugin():
+                plugin.update(data)
+                semaphore.release()
+            gobject.idle_add(update_plugin)
+            semaphore.acquire()
         self.active_processor = None
         self.progressbar_active = False
         if not self.cancel_flag:
