@@ -11,7 +11,7 @@ class Processor(object):
         history_entry = self.history.get(self.last_serial)
         if history_entry:
             last_serials = history_entry[1]
-            for key in data_serials:
+            for key in list(data_serials.keys()) + list(last_serials.keys()):
                 if data_serials.get(key) != last_serials.get(key):
                     return True
             return False
