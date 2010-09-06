@@ -18,12 +18,14 @@ class GlobularCluster(Processor):
         coords = numpy.random.multivariate_normal([0., 0., 0.],
                                                   numpy.identity(3),
                                                   num_stars)
+        coords -= coords.mean(axis=0)
         if log_mass_stddev <= 0.0:
             masses = numpy.ones((num_stars, 1)) * (total_mass / num_stars)
         else:
             masses = numpy.random.lognormal(log(total_mass / num_stars),
                                             log_mass_stddev * log(10.0),
                                             (num_stars, 1))
+            masses *= total_mass / num_stars / masses.mean()
         lenses = numpy.hstack((cos(angle) * coords[:,:1] +
                                sin(angle) * coords[:,1:2],
                                coords[:,2:], masses))
