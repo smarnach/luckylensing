@@ -16,6 +16,7 @@ class GllLightCurve(GllPlugin):
         self.config_widget.add_toggle_block(
             "export_max", "Set upper magnification", False,
             [("curve_max_mag", "Upper magnification", (10.0, 0.0, 1e10, 1.0), 1)])
+        self.points = []
 
     def get_config(self):
         return self.config_widget.get_config()
