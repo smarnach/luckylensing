@@ -4,6 +4,7 @@ import logging.handlers
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
 from cStringIO import StringIO
 import gtk
+import gobject
 
 class GllBufferingHandler(logging.handlers.BufferingHandler):
     def flush(self):
@@ -42,13 +43,13 @@ class GllLogDialog(gtk.Dialog):
         hbox.pack_start(label2, False)
         hbox.pack_start(combobox, False)
         self.buffer = gtk.TextBuffer()
-        textview = gtk.TextView(self.buffer)
-        textview.set_editable(False)
-        textview.set_cursor_visible(False)
+        self.textview = gtk.TextView(self.buffer)
+        self.textview.set_editable(False)
+        self.textview.set_cursor_visible(False)
         scrolledwindow = gtk.ScrolledWindow()
         scrolledwindow.set_size_request(500, 300)
         scrolledwindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
-        scrolledwindow.add(textview)
+        scrolledwindow.add(self.textview)
         vbox = gtk.VBox()
         vbox.set_spacing(10)
         vbox.set_border_width(10)
@@ -69,6 +70,9 @@ class GllLogDialog(gtk.Dialog):
         handler = logging.StreamHandler(buf)
         buf_handler.query(handler, self.level)
         self.buffer.set_text(buf.getvalue())
+        def scroll_to_end():
+            self.textview.scroll_to_iter(self.buffer.get_end_iter(), 0.0)
+        gobject.idle_add(scroll_to_end)
 
     def level_changed(self, combobox):
         self.level = self.all_levels[combobox.get_active()]
