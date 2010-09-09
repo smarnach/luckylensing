@@ -95,18 +95,24 @@ class GllApp(object):
             result = treeview.get_path_at_pos(int(event.x), int(event.y))
             if result is not None:
                 path, col, x, y = result
+                plugin = self.plugins[path][2]
                 menu = gtk.Menu()
-                for label, handler in [
-                    ("Rename", (self.edit_plugin_name, path, col)),
-                    ("Duplicate", (self.duplicate_plugin, path)),
-                    ("Delete", (self.remove_plugin, path))]:
+                for label, handler in ([("Rename", self.edit_plugin_name),
+                                        ("Duplicate", self.duplicate_plugin),
+                                        ("Delete", self.remove_plugin)] +
+                                       plugin.get_actions()):
                     item = gtk.MenuItem(label)
-                    item.connect("activate", *handler)
+                    item.connect("activate", handler)
                     menu.append(item)
                 menu.show_all()
                 menu.popup(None, None, None, event.button, event.time)
 
-    def edit_plugin_name(self, menuitem, path, col):
+    def edit_plugin_name(self, menuitem):
+        it = self.selection.get_selected()[1]
+        if it is None:
+            return
+        path = self.plugins.get_path(it)
+        col = self.treeview.get_column(1)
         col.get_cell_renderers()[0].set_property('editable', True)
         self.treeview.set_cursor(path, col, True)
         col.get_cell_renderers()[0].set_property('editable', False)
@@ -128,7 +134,11 @@ class GllApp(object):
         plugin.connect("history-forward", self.history_forward)
         return plugin
 
-    def duplicate_plugin(self, menuitem, path):
+    def duplicate_plugin(self, menuitem):
+        it = self.selection.get_selected()[1]
+        if it is None:
+            return
+        path = self.plugins.get_path(it)
         row = self.plugins[path]
         name_peaces = row[1].rsplit("(", 1)
         if (len(name_peaces) == 2 and name_peaces[1].endswith(")") and
@@ -147,17 +157,15 @@ class GllApp(object):
         if child:
             self.main_box.remove(child)
 
-    def remove_plugin(self, widget, path=None):
-        if path is None:
-            it = self.selection.get_selected()[1]
-        else:
-            it = self.plugins.get_iter(path)
-        if it is not None:
-            self.remove_plugin_widgets()
-            if self.plugins.remove(it):
-                self.selection.select_iter(it)
-            elif len(self.plugins):
-                self.selection.select_path(len(self.plugins)-1)
+    def remove_plugin(self, widget):
+        it = self.selection.get_selected()[1]
+        if it is None:
+            return
+        self.remove_plugin_widgets()
+        if self.plugins.remove(it):
+            self.selection.select_iter(it)
+        elif len(self.plugins):
+            self.selection.select_path(len(self.plugins)-1)
 
     def selected_plugin_changed(self, selection):
         plugins, it = selection.get_selected()

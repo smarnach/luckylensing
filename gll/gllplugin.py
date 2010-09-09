@@ -53,4 +53,7 @@ class GllPlugin(gobject.GObject):
     def update(self, data):
         pass
 
+    def get_actions(self):
+        return []
+
 gobject.type_register(GllPlugin)
