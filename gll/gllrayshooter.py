@@ -6,6 +6,7 @@ from rayshooter import Rayshooter
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
+from gllutils import save_dialog
 
 colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
           (195, 16, 16), (249, 249, 70), (255, 255, 255)]
@@ -155,3 +156,17 @@ class GllRayshooter(GllPlugin):
 
     def imageview_leave(self, imageview, event):
         self.emit("statusbar-pop")
+
+    def save_png(self, *args):
+        filename = save_dialog("Save Magnification Pattern Image",
+                               [("PNG Image Files", "*.png")])
+        if filename is None:
+            return
+        pixbuf = gtk.gdk.pixbuf_new_from_array(
+            self.buf, gtk.gdk.COLORSPACE_RGB, 8)
+        pixbuf.save(filename, "png")
+
+    def get_actions(self):
+        if hasattr(self, "buf"):
+            return [("Save PNG", self.save_png)]
+        return []

@@ -4,6 +4,7 @@ from gllimageview import GllImageView
 import gtk
 import gtkimageview
 import gobject
+from gllutils import save_dialog
 
 class ImageToolSourcePath(gobject.GObject, gtkimageview.IImageTool):
     def __init__(self):
@@ -96,3 +97,25 @@ class GllSourcePath(GllPlugin):
     def coords_changed(self, *args):
         if hasattr(self, "magpat_buf"):
             self.update_coords(self.config_widget.get_config())
+
+    def save_png(self, *args):
+        filename = save_dialog("Save Magnification Pattern Image",
+                               [("PNG Image Files", "*.png")])
+        if filename is None:
+            return
+        magpat_pixbuf = gtk.gdk.pixbuf_new_from_array(
+            self.magpat_buf, gtk.gdk.COLORSPACE_RGB, 8)
+        pixmap = gtk.gdk.Pixmap(None, self.xpixels, self.ypixels, 24)
+        cr = pixmap.cairo_create()
+        cr.set_source_pixbuf(magpat_pixbuf, 0, 0)
+        cr.paint()
+        cr.move_to(*self.tool.coords[:2])
+        cr.line_to(*self.tool.coords[2:])
+        cr.set_source_rgb(1.0, 1.0, 1.0)
+        cr.stroke()
+        cr.get_target().write_to_png(filename)
+
+    def get_actions(self):
+        if hasattr(self, "magpat_buf"):
+            return [("Save PNG", self.save_png)]
+        return []
