@@ -9,6 +9,7 @@ import cPickle as pickle
 import gobject
 import gtk
 from glllogdialog import logger, GllLogDialog, ERROR
+from gllutils import open_dialog, save_dialog
 from gllplugin import GllPlugin
 from gllglobularcluster import GllGlobularCluster
 from gllpolygonallenses import GllPolygonalLenses
@@ -282,21 +283,10 @@ class GllApp(object):
         self.selection.select_path(selected)
 
     def save_pipeline_as(self, *args):
-        dialog = gtk.FileChooserDialog(
-            "Save Pipeline", action=gtk.FILE_CHOOSER_ACTION_SAVE,
-            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-                     gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
-        dialog.set_do_overwrite_confirmation(True)
-        filt = gtk.FileFilter()
-        filt.set_name("GLL Pipeline Files")
-        filt.add_pattern("*.gll")
-        dialog.set_filter(filt)
-        response = dialog.run()
-        filename = dialog.get_filename()
-        dialog.destroy()
-        if response != gtk.RESPONSE_ACCEPT:
-            return
-        self.write_pipeline(filename)
+        filename = save_dialog("Save Pipeline",
+                               [("GLL Pipeline Files", "*.gll")])
+        if filename is not None:
+            self.write_pipeline(filename)
 
     def save_pipeline(self, *args):
         if not len(self.plugins):
@@ -307,18 +297,9 @@ class GllApp(object):
             self.write_pipeline(self.filename)
 
     def open_pipeline(self, arg=None, append=False):
-        dialog = gtk.FileChooserDialog(
-            "Open Pipeline", action=gtk.FILE_CHOOSER_ACTION_OPEN,
-            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-                     gtk.STOCK_OPEN, gtk.RESPONSE_ACCEPT))
-        filt = gtk.FileFilter()
-        filt.set_name("GLL Pipeline Files")
-        filt.add_pattern("*.gll")
-        dialog.set_filter(filt)
-        response = dialog.run()
-        filename = dialog.get_filename()
-        dialog.destroy()
-        if response != gtk.RESPONSE_ACCEPT:
+        filename = open_dialog("Open Pipeline",
+                               [("GLL Pipeline Files", "*.gll")])
+        if filename is None:
             return
         if not append:
             self.remove_plugin_widgets()
