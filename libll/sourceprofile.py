@@ -1,5 +1,5 @@
 import numpy
-from processor import Processor, logger
+from processor import Processor
 from math import sqrt
 
 class SourceProfile(Processor):
@@ -16,7 +16,7 @@ class SourceProfile(Processor):
         width2 = width*width
         height = (data["region_y1"] - data["region_y0"]) / ypixels
         height2 = height*height
-        kernel = numpy.indices((ypixels/2, xpixels/2)) + 0.5
+        kernel = numpy.indices((ypixels/2 + 1, xpixels/2 + 1))
         kernel = kernel*kernel
         kernel = height2*kernel[0]+width2*kernel[1]
         profile_type = data.get("profile_type", "flat").lower()
@@ -26,12 +26,8 @@ class SourceProfile(Processor):
             kernel = self.gaussian(kernel, source_radius2, width, height)
         else:
             raise ValueError("Unknown source profile type: " + profile_type)
-        if kernel is None:
-            logger.warn("Source too small -- skipping convolution")
-            return {"source_fft": None,
-                    "source_profile": None}
-        kernel = numpy.concatenate((kernel, numpy.flipud(kernel)), 0)
-        kernel = numpy.concatenate((kernel, numpy.fliplr(kernel)), 1)
+        kernel = numpy.vstack((kernel[:-1], numpy.flipud(kernel[1:])))
+        kernel = numpy.hstack((kernel[:,:-1], numpy.fliplr(kernel[:,1:])))
         kernel = kernel / float(numpy.sum(kernel))
         kernel_fft = numpy.fft.rfft2(kernel)
         return {"source_fft": kernel_fft,
@@ -41,9 +37,7 @@ class SourceProfile(Processor):
         width2 = width*width
         height2 = height*height
         if source_radius2 <= 0.25*width2 + 0.25*height2:
-            return None
-        if source_radius2 <= 0.5*width2 + 0.5*height2:
-            return r2 < source_radius2
+            return r2 <= source_radius2
         source_radius = sqrt(source_radius2)
         m = 1.0/((width+height)*source_radius)
         b = (source_radius2 +
