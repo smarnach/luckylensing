@@ -1,6 +1,5 @@
 from subprocess import Popen, PIPE
-from processor import Processor, logger
-from luckylensing import render_magpattern_gradient
+from luckylensing import Processor, logger, render_magpattern_gradient
 
 colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
           (195, 16, 16), (249, 249, 70), (255, 255, 255)]

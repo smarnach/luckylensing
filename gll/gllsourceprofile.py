@@ -3,7 +3,7 @@ import gtk
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
-from sourceprofile import SourceProfile
+from luckylensing import SourceProfile
 
 class GllSourceProfile(GllPlugin):
     name = "Source profile"

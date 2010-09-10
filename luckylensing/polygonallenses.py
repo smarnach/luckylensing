@@ -1,6 +1,5 @@
 import numpy
 from processor import Processor
-from luckylensing import Lenses
 
 class PolygonalLenses(Processor):
     def get_input_keys(self, data):

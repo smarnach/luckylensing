@@ -1,6 +1,6 @@
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
-from polygonallenses import PolygonalLenses
+from luckylensing import PolygonalLenses
 
 class GllPolygonalLenses(GllPlugin):
     name = "Polygonal lens configuration"

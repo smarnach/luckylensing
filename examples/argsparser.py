@@ -1,4 +1,4 @@
-from processor import Processor
+from luckylensing import Processor
 
 class ArgsParser(Processor):
     def get_input_keys(self, data):

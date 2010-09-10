@@ -1,5 +1,4 @@
 import luckylensing as ll
-from convolution import Convolution
 from gllplugin import GllPlugin
 from gllimageview import GllImageView
 
@@ -11,7 +10,7 @@ class GllConvolution(GllPlugin):
     name = "Convolution"
 
     def __init__(self):
-        super(GllConvolution, self).__init__(Convolution())
+        super(GllConvolution, self).__init__(ll.Convolution())
         self.main_widget = GllImageView(self.get_pixbuf)
 
     def update(self, data):

@@ -1,4 +1,4 @@
-from processor import logger, stdout_handler
+from luckylensing import logger, stdout_handler
 import logging
 import logging.handlers
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL

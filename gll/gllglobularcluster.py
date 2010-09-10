@@ -1,6 +1,6 @@
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
-from globularcluster import GlobularCluster
+from luckylensing import GlobularCluster
 
 class GllGlobularCluster(GllPlugin):
     name = "Globular cluster"

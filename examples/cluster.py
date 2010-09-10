@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.append("../libll")
+sys.path.append("..")
 
 from argsparser import ArgsParser
-from globularcluster import GlobularCluster
-from rayshooter import Rayshooter
+from luckylensing import GlobularCluster, Rayshooter
 from imagewriter import ImageWriter
 
 data = {"args": sys.argv[1:],

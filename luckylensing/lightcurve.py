@@ -1,4 +1,4 @@
-import luckylensing as ll
+import libll as ll
 from processor import Processor
 import numpy
 

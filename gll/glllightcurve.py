@@ -1,5 +1,5 @@
 import gtk
-from lightcurve import LightCurve
+from luckylensing import LightCurve
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 

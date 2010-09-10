@@ -2,7 +2,7 @@
 # -*- coding: latin-1 -*-
 
 import sys
-sys.path.append("../libll")
+sys.path.append("..")
 
 import threading
 import cPickle as pickle

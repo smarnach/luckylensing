@@ -2,7 +2,7 @@ from math import sqrt, log, ceil
 import threading
 from Queue import Queue, Empty
 import numpy
-import luckylensing as ll
+import libll as ll
 from processor import Processor, logger
 
 class Rayshooter(ll.BasicRayshooter, Processor):

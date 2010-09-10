@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.append("../libll")
+sys.path.append("..")
 
-from globularcluster import GlobularCluster
-from rayshooter import Rayshooter
+from luckylensing import GlobularCluster, Rayshooter
 from imagewriter import ImageWriter
 from math import log
 

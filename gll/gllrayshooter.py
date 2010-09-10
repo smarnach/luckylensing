@@ -2,7 +2,6 @@ from math import log10
 import gtk
 import gtkimageview
 import luckylensing as ll
-from rayshooter import Rayshooter
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
@@ -16,7 +15,7 @@ class GllRayshooter(GllPlugin):
     name = "Magnification pattern"
 
     def __init__(self):
-        super(GllRayshooter, self).__init__(Rayshooter())
+        super(GllRayshooter, self).__init__(ll.Rayshooter())
         self.main_widget = GllImageView(self.get_pixbuf)
         self.imageview = self.main_widget.imageview
         self.imageview.add_events(gtk.gdk.BUTTON_PRESS_MASK |
