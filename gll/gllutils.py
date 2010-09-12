@@ -1,14 +1,6 @@
 import gtk
 
-def open_save_dialog(action, title, filter_specs):
-    if action == gtk.FILE_CHOOSER_ACTION_OPEN:
-        buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-                   gtk.STOCK_OPEN, gtk.RESPONSE_ACCEPT)
-    elif action == gtk.FILE_CHOOSER_ACTION_SAVE:
-        buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-                   gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
-    dialog = gtk.FileChooserDialog(title, action=action, buttons=buttons)
-    dialog.set_do_overwrite_confirmation(True)
+def add_file_filters(filechooser, filter_specs):
     filters = []
     for name, pattern in [("All files", "*")] + filter_specs:
         filt = gtk.FileFilter()
@@ -18,9 +10,20 @@ def open_save_dialog(action, title, filter_specs):
             filt.set_name(name)
         filt.add_pattern(pattern)
         filters.append(filt)
-        dialog.add_filter(filt)
+        filechooser.add_filter(filt)
     if len(filter_specs):
-        dialog.set_filter(filters[1])
+        filechooser.set_filter(filters[1])
+
+def open_save_dialog(action, title, filter_specs):
+    if action == gtk.FILE_CHOOSER_ACTION_OPEN:
+        buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+                   gtk.STOCK_OPEN, gtk.RESPONSE_ACCEPT)
+    elif action == gtk.FILE_CHOOSER_ACTION_SAVE:
+        buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+                   gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
+    dialog = gtk.FileChooserDialog(title, action=action, buttons=buttons)
+    dialog.set_do_overwrite_confirmation(True)
+    add_file_filters(dialog, filter_specs)
     response = dialog.run()
     filename = dialog.get_filename()
     dialog.destroy()
