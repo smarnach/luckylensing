@@ -93,6 +93,7 @@ class GllRayshooter(GllPlugin):
         self.imageview.set_tool(self.dragger)
         self.main_widget.mark_dirty()
         data["magpat_pic"] = self.buf
+        self.lenses = data["lenses"]
         self.region = {}
         for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
             self.config_widget.set_value(key, data[key])
@@ -165,7 +166,16 @@ class GllRayshooter(GllPlugin):
             self.buf, gtk.gdk.COLORSPACE_RGB, 8)
         pixbuf.save(filename, "png")
 
+    def save_fits(self, *args):
+        filename = save_dialog("Save Magnification Pattern",
+                               [("FITS Image Files", "*.fits")])
+        if filename is not None:
+            ll.write_fits(filename, self.magpat, self.lenses,
+                          self.region["x0"], self.region["x1"],
+                          self.region["y0"], self.region["y1"])
+
     def get_actions(self):
         if hasattr(self, "buf"):
-            return [("Save PNG", self.save_png)]
+            return [("Save FITS", self.save_fits),
+                    ("Save PNG", self.save_png)]
         return []
