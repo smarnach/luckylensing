@@ -149,7 +149,6 @@ class GllRayshooter(GllPlugin):
                           self.region["y0"], self.region["y1"])
 
     def get_actions(self):
-        if hasattr(self, "buf"):
-            return [("Save FITS", self.save_fits),
-                    ("Save PNG", self.save_png)]
-        return []
+        save_sensitive = hasattr(self, "buf")
+        return [("Save FITS", self.save_fits, save_sensitive),
+                ("Save PNG", self.save_png, save_sensitive)]

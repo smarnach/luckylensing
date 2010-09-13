@@ -98,11 +98,13 @@ class GllApp(object):
                 path, col, x, y = result
                 plugin = self.plugins[path][2]
                 menu = gtk.Menu()
-                for label, handler in ([("Rename", self.edit_plugin_name),
-                                        ("Duplicate", self.duplicate_plugin),
-                                        ("Delete", self.remove_plugin)] +
-                                       plugin.get_actions()):
+                for label, handler, sensitive in (
+                    [("Rename", self.edit_plugin_name, True),
+                     ("Duplicate", self.duplicate_plugin, True),
+                     ("Delete", self.remove_plugin, True)] +
+                    plugin.get_actions()):
                     item = gtk.MenuItem(label)
+                    item.set_sensitive(sensitive)
                     item.connect("activate", handler)
                     menu.append(item)
                 menu.show_all()

@@ -110,6 +110,4 @@ class GllSourcePath(GllPlugin):
         cr.get_target().write_to_png(filename)
 
     def get_actions(self):
-        if hasattr(self, "magpat_buf"):
-            return [("Save PNG", self.save_png)]
-        return []
+        return [("Save PNG", self.save_png, hasattr(self, "magpat_buf"))]
