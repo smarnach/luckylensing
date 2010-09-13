@@ -23,10 +23,11 @@ class GllSourceProfile(GllPlugin):
         self.main_widget.mark_dirty()
 
     def get_pixbuf(self):
-        if self.source is None:
-            return numpy.zeros((1, 1, 3), dtype=numpy.uint8)
         ypixels, xpixels = self.source.shape
         source = numpy.vstack((self.source[ypixels/2:], self.source[:ypixels/2]))
         source = numpy.hstack((source[:,xpixels/2:], source[:,:xpixels/2]))
-        source = numpy.array(source*(255/source.max()), dtype=numpy.uint8)
-        return source.reshape(source.shape + (1,)).repeat(3, axis=2)
+        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
+                                xpixels, ypixels)
+        array = numpy.rollaxis(pixbuf.get_pixels_array(), 2, 0)
+        array[:] = source*(255/source.max())
+        return pixbuf

@@ -1,6 +1,5 @@
 import gtkimageview
 import gtk
-import numpy
 
 class GllImageView(gtkimageview.ImageScrollWin):
     def __init__(self, get_pixbuf):
@@ -21,10 +20,6 @@ class GllImageView(gtkimageview.ImageScrollWin):
         widget.grab_focus()
 
     def expose(self, *args):
-        pixbuf = self.get_pixbuf()
-        if isinstance(pixbuf, numpy.ndarray):
-            pixbuf = gtk.gdk.pixbuf_new_from_array(
-                pixbuf, gtk.gdk.COLORSPACE_RGB, 8)
-        self.imageview.set_pixbuf(pixbuf, False)
+        self.imageview.set_pixbuf(self.get_pixbuf(), False)
         self.imageview.disconnect(self.handler)
         self.handler = None

@@ -6,6 +6,7 @@ sys.path.append("..")
 
 import threading
 import cPickle as pickle
+import warnings
 import gobject
 import gtk
 from glllogdialog import logger, GllLogDialog, ERROR
@@ -448,6 +449,8 @@ class GllApp(object):
         self.cancel_pipeline()
         gtk.main_quit()
 
+warnings.filterwarnings(
+    "ignore", "PyArray_FromDimsAndDataAndDescr: use PyArray_NewFromDescr.")
 gobject.threads_init()
 app = GllApp()
 gtk.main()

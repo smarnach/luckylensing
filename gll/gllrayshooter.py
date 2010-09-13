@@ -44,8 +44,6 @@ class GllRayshooter(GllPlugin):
              ("region_x1", "Right coordinate", ( 1.0, -1e10, 1e10, 0.01), 4),
              ("region_y1", "Upper coordinate", ( 1.0, -1e10, 1e10, 0.01), 4)])
         self.region = None
-        self.xpixels = None
-        self.ypixels = None
 
     def get_config(self):
         config = self.config_widget.get_config()
@@ -63,17 +61,19 @@ class GllRayshooter(GllPlugin):
 
     def update(self, data):
         self.magpat = data["magpat"]
-        self.buf = ll.render_magpattern_gradient(self.magpat, colors, steps)
+        self.ypixels, self.xpixels = self.magpat.shape
+        self.pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
+                                     self.xpixels, self.ypixels)
+        data["magpat_pixbuf"] = self.pixbuf
+        ll.render_magpattern_gradient(self.magpat, colors, steps,
+                                      buf=self.pixbuf.get_pixels_array())
         self.imageview.set_tool(self.dragger)
         self.main_widget.mark_dirty()
-        data["magpat_pic"] = self.buf
         self.lenses = data["lenses"]
         self.region = {}
         for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
             self.config_widget[key].set_value(data[key])
             self.region[key[7:]] = data[key]
-        self.xpixels = data["xpixels"]
-        self.ypixels = data["ypixels"]
         self.xfactor = (self.region["x1"]-self.region["x0"])/self.xpixels
         self.yfactor = (self.region["y1"]-self.region["y0"])/self.ypixels
         xlog = log10(abs(self.region["x0"]) + abs(self.region["x1"]))
@@ -96,7 +96,7 @@ class GllRayshooter(GllPlugin):
             self.yformat = "%" + (".%if" % yprec)
 
     def get_pixbuf(self):
-        return self.buf
+        return self.pixbuf
 
     def imageview_clicked(self, imageview, event):
         if event.button == 1:
@@ -136,9 +136,7 @@ class GllRayshooter(GllPlugin):
                                [("PNG Image Files", "*.png")])
         if filename is None:
             return
-        pixbuf = gtk.gdk.pixbuf_new_from_array(
-            self.buf, gtk.gdk.COLORSPACE_RGB, 8)
-        pixbuf.save(filename, "png")
+        self.pixbuf.save(filename, "png")
 
     def save_fits(self, *args):
         filename = save_dialog("Save Magnification Pattern",
@@ -149,6 +147,6 @@ class GllRayshooter(GllPlugin):
                           self.region["y0"], self.region["y1"])
 
     def get_actions(self):
-        save_sensitive = hasattr(self, "buf")
+        save_sensitive = hasattr(self, "pixbuf")
         return [("Save FITS", self.save_fits, save_sensitive),
                 ("Save PNG", self.save_png, save_sensitive)]

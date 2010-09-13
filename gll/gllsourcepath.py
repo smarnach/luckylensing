@@ -70,7 +70,7 @@ class GllSourcePath(GllPlugin):
             self.region_y0 = data["region_y0"]
             self.region_x1 = data["region_x1"]
             self.region_y1 = data["region_y1"]
-            self.magpat_buf = data["magpat_pic"]
+            self.pixbuf = data["magpat_pixbuf"]
         except KeyError:
             return
         self.update_coords(data)
@@ -86,10 +86,10 @@ class GllSourcePath(GllPlugin):
         self.main_widget.mark_dirty()
 
     def get_pixbuf(self):
-        return self.magpat_buf
+        return self.pixbuf
 
     def coords_changed(self, *args):
-        if hasattr(self, "magpat_buf"):
+        if hasattr(self, "pixbuf"):
             self.update_coords(self.config_widget.get_config())
 
     def save_png(self, *args):
@@ -97,11 +97,9 @@ class GllSourcePath(GllPlugin):
                                [("PNG Image Files", "*.png")])
         if filename is None:
             return
-        magpat_pixbuf = gtk.gdk.pixbuf_new_from_array(
-            self.magpat_buf, gtk.gdk.COLORSPACE_RGB, 8)
         pixmap = gtk.gdk.Pixmap(None, self.xpixels, self.ypixels, 24)
         cr = pixmap.cairo_create()
-        cr.set_source_pixbuf(magpat_pixbuf, 0, 0)
+        cr.set_source_pixbuf(self.pixbuf, 0, 0)
         cr.paint()
         cr.move_to(*self.tool.coords[:2])
         cr.line_to(*self.tool.coords[2:])
@@ -110,4 +108,4 @@ class GllSourcePath(GllPlugin):
         cr.get_target().write_to_png(filename)
 
     def get_actions(self):
-        return [("Save PNG", self.save_png, hasattr(self, "magpat_buf"))]
+        return [("Save PNG", self.save_png, hasattr(self, "pixbuf"))]
