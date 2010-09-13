@@ -11,35 +11,12 @@ class GllSourceProfile(GllPlugin):
     def __init__(self):
         super(GllSourceProfile, self).__init__(SourceProfile())
         self.main_widget = GllImageView(self.get_pixbuf)
-        self.radio_flat = gtk.RadioButton(None, "Flat")
-        self.radio_gaussian = gtk.RadioButton(self.radio_flat, "Gaussian")
-        radiobuttons = gtk.VBox()
-        radiobuttons.pack_start(self.radio_flat)
-        radiobuttons.pack_start(self.radio_gaussian)
-        profile_chooser = gtk.HBox()
-        profile_label = gtk.Label("Source profile type")
-        profile_label.set_alignment(0.0, 0.0)
-        profile_label.set_padding(0, 4)
-        profile_chooser.pack_start(profile_label, False)
-        profile_chooser.pack_start(radiobuttons)
-        self.config_widget = GllConfigBox(
-            [profile_chooser,
-             ("source_radius", "Source radius", (0.01, 0.0, 1e10, 0.001), 4)])
-
-    def get_config(self):
-        config = self.config_widget.get_config()
-        if self.radio_flat.get_active():
-            config["profile_type"] = "flat"
-        elif self.radio_gaussian.get_active():
-            config["profile_type"] = "gaussian"
-        return config
-
-    def set_config(self, config):
-        self.config_widget.set_config(config)
-        if config["profile_type"] == "flat":
-            self.radio_flat.set_active(True)
-        elif config["profile_type"] == "gaussian":
-            self.radio_gaussian.set_active(True)
+        self.config_widget = GllConfigBox()
+        self.config_widget.add_radio_buttons(
+            "profile_type", "Source profile type", "flat",
+            [("Flat", "flat"), ("Gaussian", "gaussian")])
+        self.config_widget.add_items(
+             ("source_radius", "Source radius", (0.01, 0.0, 1e10, 0.001), 4))
 
     def update(self, data):
         self.source = data["source_profile"]

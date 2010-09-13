@@ -27,27 +27,16 @@ class GllRayshooter(GllPlugin):
         self.main_widget.connect("parent-set", self.imageview_leave)
         self.dragger = self.imageview.get_tool()
         self.selector = gtkimageview.ImageToolSelector(self.imageview)
-        self.radio_simple = gtk.RadioButton(None, "Simple")
-        self.radio_bilinear = gtk.RadioButton(self.radio_simple, "Bilinear")
-        self.radio_triangulated = gtk.RadioButton(self.radio_simple,
-                                                  "Triangulated")
-        radiobuttons = gtk.VBox()
-        radiobuttons.pack_start(self.radio_simple)
-        radiobuttons.pack_start(self.radio_bilinear)
-        radiobuttons.pack_start(self.radio_triangulated)
-        kernel_chooser = gtk.HBox()
-        kernel_label = gtk.Label("Ray shooting kernel")
-        kernel_label.set_alignment(0.0, 0.0)
-        kernel_label.set_padding(0, 4)
-        kernel_chooser.pack_start(kernel_label, False)
-        kernel_chooser.pack_start(radiobuttons)
         self.config_widget = GllConfigBox(
             [("xpixels", "Resolution x", (1024, 0, 16384, 16), 0),
              ("ypixels", "Resolution y", (1024, 0, 16384, 16), 0),
              ("density", "Ray density", (100.0, 0.0, 100000.0, 1.0), 1),
-             ("num_threads", "Number of threads", (2, 0, 32, 1), 0),
-             kernel_chooser])
-        self.radio_bilinear.set_active(True)
+             ("num_threads", "Number of threads", (2, 0, 32, 1), 0)])
+        self.config_widget.add_radio_buttons(
+            "kernel", "Ray shooting kernel", ll.KERNEL_BILINEAR,
+            [("Simple", ll.KERNEL_SIMPLE),
+             ("Bilinear", ll.KERNEL_BILINEAR),
+             ("Triangulated", ll.KERNEL_TRIANGULATED)])
         self.config_widget.add_toggle_group(
             "export_region", "Magnification pattern region", False,
             [("region_x0", "Left coordinate",  (-1.0, -1e10, 1e10, 0.01), 4),
@@ -70,22 +59,7 @@ class GllRayshooter(GllPlugin):
             y = rect.y + (rect.height - height)/2
             config["region_y1"] = self.region["y1"] - y * self.yfactor
             config["region_y0"] = config["region_y1"] - height * self.yfactor
-        if self.radio_simple.get_active():
-            config["kernel"] = ll.KERNEL_SIMPLE
-        elif self.radio_bilinear.get_active():
-            config["kernel"] = ll.KERNEL_BILINEAR
-        elif self.radio_triangulated.get_active():
-            config["kernel"] = ll.KERNEL_TRIANGULATED
         return config
-
-    def set_config(self, config):
-        self.config_widget.set_config(config)
-        if config["kernel"] == ll.KERNEL_SIMPLE:
-            self.radio_simple.set_active(True)
-        elif config["kernel"] == ll.KERNEL_BILINEAR:
-            self.radio_bilinear.set_active(True)
-        elif config["kernel"] == ll.KERNEL_TRIANGULATED:
-            self.radio_triangulated.set_active(True)
 
     def update(self, data):
         self.magpat = data["magpat"]

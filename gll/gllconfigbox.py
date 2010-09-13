@@ -25,6 +25,33 @@ class GllConfigCheckButton(gtk.CheckButton):
     get_value = gtk.CheckButton.get_active
     set_value = gtk.CheckButton.set_active
 
+class GllConfigRadioButtons(gtk.HBox):
+    def __init__(self, label_text, start_value, choices):
+        gtk.HBox.__init__(self)
+        label = gtk.Label(label_text)
+        label.set_alignment(0.0, 0.0)
+        label.set_padding(0, 4)
+        self.pack_start(label, False)
+        self.choices = {}
+        firstbutton = None
+        buttonbox = gtk.VBox()
+        for text, value in choices:
+            radiobutton = gtk.RadioButton(firstbutton, text)
+            buttonbox.pack_start(radiobutton)
+            self.choices[value] = radiobutton
+            if firstbutton is None:
+                firstbutton = radiobutton
+        self.pack_start(buttonbox)
+        self.set_value(start_value)
+
+    def get_value(self):
+        for value, radiobutton in self.choices.iteritems():
+            if radiobutton.get_active():
+                return value
+
+    def set_value(self, value):
+        self.choices[value].set_active(True)
+
 class GllConfigGroup(gtk.VBox):
     def __init__(self, sizegroup, config_items=None):
         gtk.VBox.__init__(self, spacing=4)
@@ -66,7 +93,7 @@ class GllConfigGroup(gtk.VBox):
             self.items[key] = item
         elif isinstance(item, GllConfigGroup):
             self.subgroups.append(item)
-        elif isinstance(item, gtk.HBox):
+        if isinstance(item, gtk.HBox):
             self.sizegroup.add_widget(item.get_children()[0])
         self.pack_start(item, False)
         self.show_all()
@@ -124,3 +151,6 @@ class GllConfigBox(GllConfigGroup):
 
     def add_toggle_group(self, *args):
         self.add_items(GllConfigToggleGroup(self.sizegroup, *args))
+
+    def add_radio_buttons(self, key, *args):
+        self.add_items((key, GllConfigRadioButtons(*args)))
