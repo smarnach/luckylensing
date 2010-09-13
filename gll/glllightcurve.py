@@ -13,9 +13,9 @@ class GllLightCurve(GllPlugin):
         self.main_widget.show()
         self.main_widget.connect("expose-event", self.draw)
         self.config_widget = GllConfigBox()
-        self.config_widget.add_toggle_block(
+        self.config_widget.add_toggle_group(
             "export_max", "Set upper magnification", False,
-            [("curve_max_mag", "Upper magnification", (10.0, 0.0, 1e10, 1.0), 1)])
+            ("curve_max_mag", "Upper magnification", (10.0, 0.0, 1e10, 1.0), 1))
         self.points = []
 
     def get_config(self):

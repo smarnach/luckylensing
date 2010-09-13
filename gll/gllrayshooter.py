@@ -48,7 +48,7 @@ class GllRayshooter(GllPlugin):
              ("num_threads", "Number of threads", (2, 0, 32, 1), 0),
              kernel_chooser])
         self.radio_bilinear.set_active(True)
-        self.config_widget.add_toggle_block(
+        self.config_widget.add_toggle_group(
             "export_region", "Magnification pattern region", False,
             [("region_x0", "Left coordinate",  (-1.0, -1e10, 1e10, 0.01), 4),
              ("region_y0", "Lower coordinate", (-1.0, -1e10, 1e10, 0.01), 4),
@@ -96,7 +96,7 @@ class GllRayshooter(GllPlugin):
         self.lenses = data["lenses"]
         self.region = {}
         for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
-            self.config_widget.set_value(key, data[key])
+            self.config_widget[key].set_value(data[key])
             self.region[key[7:]] = data[key]
         self.xpixels = data["xpixels"]
         self.ypixels = data["ypixels"]
@@ -131,7 +131,7 @@ class GllRayshooter(GllPlugin):
         if event.button == 3:
             if imageview.get_tool() is self.dragger:
                 imageview.set_tool(self.selector)
-                self.config_widget.set_active("export_region", True)
+                self.config_widget["export_region"].set_active(True)
             else:
                 imageview.set_tool(self.dragger)
 

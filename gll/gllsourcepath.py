@@ -59,7 +59,7 @@ class GllSourcePath(GllPlugin):
              ("curve_y1", "End y coordinate", (0.0, -1e10, 1e10, 0.01), 4),
              ("curve_samples", "Number of samples", (256, 0, 1000000, 16), 0)])
         for key in ["curve_x0", "curve_y0", "curve_x1", "curve_y1"]:
-            self.config_widget.adjustments[key].connect(
+            self.config_widget[key].adjustment.connect(
                 "value_changed", self.coords_changed)
 
     def get_config(self):
