@@ -18,12 +18,6 @@ class GllLightCurve(GllPlugin):
             ("curve_max_mag", "Upper magnification", (10.0, 0.0, 1e10, 1.0), 1))
         self.points = []
 
-    def get_config(self):
-        return self.config_widget.get_config()
-
-    def set_config(self, config):
-        self.config_widget.set_config(config)
-
     def update(self, data):
         curve = data["light_curve"]
         self.max_mag = data.get("curve_max_mag")

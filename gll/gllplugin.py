@@ -45,10 +45,13 @@ class GllPlugin(gobject.GObject):
                             for s in serials if s in self.history)
 
     def get_config(self):
+        if self.config_widget is not None:
+            return self.config_widget.get_config()
         return {}
 
     def set_config(self, config):
-        pass
+        if self.config_widget is not None:
+            self.config_widget.set_config(config)
 
     def update(self, data):
         pass

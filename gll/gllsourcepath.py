@@ -62,12 +62,6 @@ class GllSourcePath(GllPlugin):
             self.config_widget[key].adjustment.connect(
                 "value_changed", self.coords_changed)
 
-    def get_config(self):
-        return self.config_widget.get_config()
-
-    def set_config(self, config):
-        self.config_widget.set_config(config)
-
     def update(self, data):
         try:
             self.xpixels = data["xpixels"]
