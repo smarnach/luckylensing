@@ -30,14 +30,17 @@ class Processor(ProcessorInterface):
     def run_and_log(self, data):
         name = self.__class__.__name__
         logger.debug("Starting %s", name)
-        start_time = time.time()
+        wall_time = time.time()
+        cpu_time = time.clock()
         output = self.run(data)
-        elapsed = time.time() - start_time
-        if elapsed >= 0.1:
+        wall_time = time.time() - wall_time
+        cpu_time = time.clock() - cpu_time
+        if wall_time >= 0.1:
             level = logging.INFO
         else:
             level = logging.DEBUG
-        logger.log(level, "Finished %s in %.2f seconds", name, elapsed)
+        logger.log(level, "Finished %s in %.2f s (wall time), "
+                   "%.2f s (CPU time)", name, wall_time, cpu_time)
         return output
 
     def needs_update(self, data, data_serials):
