@@ -1,6 +1,7 @@
 import logging
 import sys
 import time
+from itertools import chain
 
 logger = logging.getLogger("luckylensing")
 logger.setLevel(logging.DEBUG)
@@ -45,13 +46,11 @@ class Processor(ProcessorInterface):
 
     def needs_update(self, data, data_serials):
         history_entry = self.history.get(self.last_serial)
-        if history_entry:
-            last_serials = history_entry[1]
-            for key in list(data_serials.keys()) + list(last_serials.keys()):
-                if data_serials.get(key) != last_serials.get(key):
-                    return True
-            return False
-        return True
+        if history_entry is None:
+            return True
+        last_serials = history_entry[1]
+        return any(data_serials.get(key) != last_serials.get(key)
+                   for key in chain(data_serials, last_serials))
 
     def update(self, data, data_serials=None, serial=None):
         if data_serials is None:

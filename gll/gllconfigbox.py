@@ -74,10 +74,7 @@ class GllConfigGroup(gtk.VBox):
     def __contains__(self, key):
         if key in self.items:
             return True
-        for group in self.subgroups:
-            if key in group:
-                return True
-        return False
+        return any(key in group for group in self.subgroups)
 
     def add_items(self, item):
         if isinstance(item, list):
