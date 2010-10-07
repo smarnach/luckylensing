@@ -24,8 +24,8 @@ class GllSourceProfile(GllPlugin):
 
     def get_pixbuf(self):
         ypixels, xpixels = self.source.shape
-        source = numpy.vstack((self.source[ypixels/2:], self.source[:ypixels/2]))
-        source = numpy.hstack((source[:,xpixels/2:], source[:,:xpixels/2]))
+        source = numpy.vstack((self.source[ypixels//2:], self.source[:ypixels//2]))
+        source = numpy.hstack((source[:,xpixels//2:], source[:,:xpixels//2]))
         pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
                                 xpixels, ypixels)
         array = numpy.rollaxis(pixbuf.get_pixels_array(), 2, 0)

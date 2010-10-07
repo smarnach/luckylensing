@@ -16,7 +16,7 @@ class SourceProfile(Processor):
         width2 = width*width
         height = (data["region_y1"] - data["region_y0"]) / ypixels
         height2 = height*height
-        kernel = numpy.indices((ypixels/2 + 1, xpixels/2 + 1))
+        kernel = numpy.indices((ypixels//2 + 1, xpixels//2 + 1))
         kernel = kernel*kernel
         kernel = height2*kernel[0]+width2*kernel[1]
         profile_type = data.get("profile_type", "flat").lower()

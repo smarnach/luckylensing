@@ -8,7 +8,7 @@ import gobject
 
 class GllBufferingHandler(logging.handlers.BufferingHandler):
     def flush(self):
-        del self.buffer[:self.capacity/4]
+        del self.buffer[:self.capacity//4]
 
     def flush_all(self):
         self.buffer = []

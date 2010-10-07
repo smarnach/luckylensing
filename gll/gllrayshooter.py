@@ -49,12 +49,12 @@ class GllRayshooter(GllPlugin):
         config = self.config_widget.get_config()
         if self.region and self.imageview.get_tool() is self.selector:
             rect = self.selector.get_selection()
-            width = max(rect.width, rect.height*self.xpixels/self.ypixels)
-            x = rect.x + (rect.width - width)/2
+            width = max(rect.width, rect.height*self.xpixels//self.ypixels)
+            x = rect.x + (rect.width - width)//2
             config["region_x0"] = self.region["x0"] + x * self.xfactor
             config["region_x1"] = config["region_x0"] + width * self.xfactor
-            height = max(rect.height, rect.width*self.ypixels/self.xpixels)
-            y = rect.y + (rect.height - height)/2
+            height = max(rect.height, rect.width*self.ypixels//self.xpixels)
+            y = rect.y + (rect.height - height)//2
             config["region_y1"] = self.region["y1"] - y * self.yfactor
             config["region_y0"] = config["region_y1"] - height * self.yfactor
         return config
