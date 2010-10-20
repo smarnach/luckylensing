@@ -11,7 +11,7 @@ def add_file_filters(filechooser, filter_specs):
         filt.add_pattern(pattern)
         filters.append(filt)
         filechooser.add_filter(filt)
-    if len(filter_specs):
+    if filter_specs:
         filechooser.set_filter(filters[1])
 
 def open_save_dialog(action, title, filter_specs):

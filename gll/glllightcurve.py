@@ -48,7 +48,7 @@ class GllLightCurve(GllPlugin):
         self.points = [(i, mag) for i, mag in enumerate(curve) if mag]
 
     def draw(self, area, event):
-        if not len(self.points):
+        if not self.points:
             return
         width, height = area.window.get_size()
         cr = area.window.cairo_create()

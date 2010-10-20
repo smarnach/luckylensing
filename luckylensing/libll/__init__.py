@@ -93,9 +93,9 @@ class Lenses(_c.Structure):
 
         will create an array of the two given lenses.
         """
-        if type(lens_list) is Lenses:
+        if isinstance(lens_list, Lenses):
             super(Lenses, self).__init__(lens_list.num_lenses, lens_list.lens)
-        elif type(lens_list) is _np.ndarray:
+        elif isinstance(lens_list, _np.ndarray):
             super(Lenses, self).__init__(
                 len(lens_list), lens_list.ctypes.data_as(_c.POINTER(Lens)))
         else:
@@ -306,7 +306,7 @@ class BasicRayshooter(_c.Structure):
     def __init__(self, params=None):
         if params is None:
             params = MagPatternParams()
-        if type(params) is not MagPatternParams:
+        if not isinstance(params, MagPatternParams):
             params = MagPatternParams(*params)
         super(BasicRayshooter, self).__init__(_c.pointer(params),
                                               KERNEL_BILINEAR, 15, 25, False)
@@ -325,7 +325,7 @@ class BasicRayshooter(_c.Structure):
         _rayshoot_subpatches(self, magpat, patches, progress)
 
     def finalise_subpatches(self, magpat, patches):
-        if type(magpat) is list:
+        if isinstance(magpat, list):
             for m in magpat:
                 if self.kernel == KERNEL_TRIANGULATED:
                     m.dtype = _np.float32
