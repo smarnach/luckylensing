@@ -12,8 +12,28 @@ def write_fits(fits_output_file, magpat, lenses,
     col_y = pyfits.Column(name="y", format="D", array=lenses[:,1])
     col_mass = pyfits.Column(name="mass", format="D", array=lenses[:,2])
     lens_hdu = pyfits.new_table([col_x, col_y, col_mass])
+    lens_hdu.name = "lenses"
     pyfits.HDUList([img_hdu, lens_hdu]).writeto(open(fits_output_file, "w"))
     logger.info("Wrote magnification pattern to %s", fits_output_file)
+
+def read_fits(fits_input_file):
+    output = {}
+    hdus = pyfits.open(fits_input_file)
+    magpat =  numpy.ascontiguousarray(hdus[0].data, dtype=numpy.float32)
+    output["magpat"] = magpat
+    output["ypixels"], output["xpixels"] = magpat.shape
+    for s in ["x0", "y0", "x1", "y1"]:
+        if "magpat" + s in hdus[0].header:
+            output["region_" + s] = hdus[0].header["magpat" + s]
+    if len(hdus) > 1 and hdus[1].name.lower() == "lenses":
+        lenses = hdus[1].data
+        if lenses.dtype.names != ("x", "y", "mass"):
+            lenses = numpy.hstack((lenses["x"], lenses["y"], lenses["mass"]))
+        if not lenses.dtype.isnative:
+            lenses = lenses.byteswap(True).newbyteorder()
+        output["lenses"] = lenses
+    logger.info("Read magnification pattern from %s", fits_input_file)
+    return output
 
 class FITSWriter(Processor):
     def get_input_keys(self, data):
@@ -30,18 +50,4 @@ class FITSReader(Processor):
         return ["fits_input_file"]
 
     def run(self, data):
-        output = {}
-        filename = data["fits_input_file"]
-        hdus = pyfits.open(filename)
-        output["magpat"] = numpy.ascontiguousarray(hdus[0].data,
-                                                   dtype=numpy.float32)
-        for s in ["x0", "y0", "x1", "y1"]:
-            output["region_" + s] = hdus[0].header["magpat" + s]
-        lenses = hdus[1].data
-        if lenses.dtype.names == ("x", "y", "mass"):
-            output["lenses"] = lenses
-        else:
-            output["lenses"] = numpy.hstack((lenses["x"], lenses["y"],
-                                             lenses["mass"]))
-        logger.info("Read magnification pattern from %s", filename)
-        return output
+        return read_fits(data["fits_input_file"])

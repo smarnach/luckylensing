@@ -8,6 +8,6 @@ from polygonallenses import PolygonalLenses
 from rayshooter import Rayshooter
 from sourceprofile import SourceProfile
 try:
-    from fits import FITSWriter, FITSReader, write_fits
+    from fits import FITSWriter, FITSReader, write_fits, read_fits
 except ImportError:
     pass
