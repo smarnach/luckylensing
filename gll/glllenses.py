@@ -1,3 +1,6 @@
+# Lucky Lensing Library (http://github.com/smarnach/luckylensing)
+# Copyright 2010 Sven Marnach
+
 import gtk
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox

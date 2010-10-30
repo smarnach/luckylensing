@@ -1,3 +1,6 @@
+# Lucky Lensing Library (http://github.com/smarnach/luckylensing)
+# Copyright 2010 Sven Marnach
+
 import gobject
 
 class GllPlugin(gobject.GObject):

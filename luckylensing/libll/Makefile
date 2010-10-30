@@ -1,4 +1,5 @@
-# lucky lens Makefile
+# Lucky Lensing Library (http://github.com/smarnach/luckylensing)
+# Copyright 2010 Sven Marnach
 
 CFLAGS_ALWAYS = -std=c99 -pedantic -Wall -Wextra -Winline -Wno-uninitialized
 

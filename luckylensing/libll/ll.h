@@ -1,3 +1,6 @@
+// Lucky Lensing Library (http://github.com/smarnach/luckylensing)
+// Copyright 2010 Sven Marnach
+
 #ifndef LL_LL_H
 #define LL_LL_H
 

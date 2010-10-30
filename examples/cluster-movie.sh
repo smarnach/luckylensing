@@ -1,4 +1,6 @@
 #!/bin/sh
+# Lucky Lensing Library (http://github.com/smarnach/luckylensing)
+# Copyright 2010 Sven Marnach
 
 for i in `seq 0 3141`; do
     ./cluster.py imgfile="magpats/cluster-$(printf %04i $i).png" \

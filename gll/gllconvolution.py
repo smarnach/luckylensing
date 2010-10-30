@@ -1,3 +1,6 @@
+# Lucky Lensing Library (http://github.com/smarnach/luckylensing)
+# Copyright 2010 Sven Marnach
+
 import luckylensing as ll
 from gllplugin import GllPlugin
 from gllimageview import GllImageView

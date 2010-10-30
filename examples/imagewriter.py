@@ -1,3 +1,6 @@
+# Lucky Lensing Library (http://github.com/smarnach/luckylensing)
+# Copyright 2010 Sven Marnach
+
 from subprocess import Popen, PIPE
 from luckylensing import Processor, logger, render_magpattern_gradient
 

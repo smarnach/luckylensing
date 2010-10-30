@@ -1,3 +1,6 @@
+# Lucky Lensing Library (http://github.com/smarnach/luckylensing)
+# Copyright 2010 Sven Marnach
+
 from math import sqrt, log, ceil
 import threading
 from Queue import Queue, Empty

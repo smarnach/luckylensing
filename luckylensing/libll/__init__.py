@@ -1,3 +1,6 @@
+# Lucky Lensing Library (http://github.com/smarnach/luckylensing)
+# Copyright 2010 Sven Marnach
+
 """Wrap the C functions in the ll library with an Pythonic interface.
 
 The functions in the Lucky Lensing Library (libll.so) allow for high
