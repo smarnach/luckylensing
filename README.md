@@ -83,10 +83,12 @@ feel like it one day.
 Installation
 ------------
 
-First, make sure you have git installed and clone the repository by
-calling
+If you have git installed, you can clone the repository by calling
 
     git clone git://github.com/smarnach/luckylensing.git
+
+Alternatively, you can [download a tarball][10] of the current
+development version.
 
 Then, to compile the C library, run "make" in the distribution
 directory.  If your processor supports the SSE3 instruction set, you
@@ -122,5 +124,6 @@ to ask questions: <sven (a) marnach.net>
   [7]: http://www.pygtk.org/
   [8]: http://trac.bjourne.webfactional.com/
   [9]: http://www.imagemagick.org/
+ [10]: http://github.com/smarnach/luckylensing/tarball/master
 
 Copyright 2010 Sven Marnach
