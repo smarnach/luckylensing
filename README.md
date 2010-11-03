@@ -6,7 +6,8 @@ for computations in the context of [gravitational microlensing][1], an
 astronomical phenomenon due to the "bending" of light by massive
 objects.
 
-Here you will find the [web home of the library][2].
+The web home of the library is
+<http://github.com/smarnach/luckylensing>.
 
 Features:
 
@@ -30,7 +31,7 @@ The code is a work in progress and interfaces have not yet stabilised.
 There is no documentation yet, but the library might still be useful
 for experimentation with magnification patterns.
 
-  -- Sven Marnach <sven (a) marnach.net>
+  -- Sven Marnach (sven (a) marnach.net)
 
 Licence
 -------
@@ -113,10 +114,9 @@ Also check the GUI by
     ./gll.py cluster.gll
 
 Unfortunately, there's no real documentation so far.  Don't hesitate
-to ask questions: <sven (a) marnach.net>
+to ask questions: (sven (a) marnach.net)
 
   [1]: http://en.wikipedia.org/wiki/Microlensing
-  [2]: http://github.com/smarnach/luckylensing
   [3]: http://github.com/smarnach/luckylensing/issues
   [4]: http://help.github.com/pull-requests/
   [5]: http://numpy.scipy.org/
