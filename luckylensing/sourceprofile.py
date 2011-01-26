@@ -23,12 +23,11 @@ class SourceProfile(Processor):
         kernel = kernel*kernel
         kernel = height2*kernel[0]+width2*kernel[1]
         profile_type = data.get("profile_type", "flat").lower()
-        if profile_type == "flat":
-            kernel = self.flat(kernel, source_radius2, width, height)
-        elif profile_type == "gaussian":
-            kernel = self.gaussian(kernel, source_radius2, width, height)
-        else:
+        try:
+            profile = getattr(self, profile_type)
+        except AttributeError:
             raise ValueError("Unknown source profile type: " + profile_type)
+        kernel = profile(kernel, source_radius2, width, height)
         kernel = numpy.vstack((kernel[:-1], numpy.flipud(kernel[1:])))
         kernel = numpy.hstack((kernel[:,:-1], numpy.fliplr(kernel[:,1:])))
         kernel = kernel / float(numpy.sum(kernel))
