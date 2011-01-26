@@ -44,6 +44,8 @@ class FITSWriter(Processor):
                 "region_x0", "region_x1", "region_y0", "region_y1"]
 
     def run(self, data):
+        if "fits_output_file" not in data:
+            return {}
         d = dict((key, data[key]) for key in self.get_input_keys(data))
         write_fits(**d)
         return {}
