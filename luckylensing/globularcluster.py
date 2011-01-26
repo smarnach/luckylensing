@@ -34,10 +34,9 @@ class GlobularCluster(Processor):
                                coords[:,2:], masses))
         output = {"lenses": numpy.ascontiguousarray(lenses)}
         if region_radius > 0.0:
-            if "region_radius" not in data:
-                for k in ["region_x0", "region_x1", "region_y0", "region_y1"]:
-                    if k in data:
-                        return output
+            if ("region_radius" not in data and
+                all("region_" + k in data for k in ["x0", "x1", "y0", "y1"])):
+                return output
             output["region_x0"] = -region_radius
             output["region_y0"] = -region_radius
             output["region_x1"] = +region_radius
