@@ -86,7 +86,7 @@ class Rayshooter(ll.BasicRayshooter, Processor):
                     setattr(self, key, data[key])
             if "kernel" in data:
                 kernel = data["kernel"]
-                if isinstance(kernel, str):
+                if isinstance(kernel, basestring):
                     if "simple" in kernel.lower():
                         self.kernel = ll.KERNEL_SIMPLE
                     elif "bilinear" in kernel.lower():
