@@ -128,8 +128,7 @@ class GllApp(object):
 
     def add_plugin(self, plugin_type, active=True, name=None, pos=-1):
         plugin = plugin_type()
-        if name is None:
-            name = plugin_type.name
+        name = name or plugin_type.name
         it = self.plugins.insert(pos, (active, name, plugin, -1))
         self.selection.select_iter(it)
         plugin.connect("run-pipeline", self.run_pipeline)
@@ -242,8 +241,7 @@ class GllApp(object):
         threading.Thread(target=self.pipeline_thread).start()
 
     def show_pipeline_log(self, widget, level=None, txt=None):
-        if txt is None:
-            txt = "Log of previous pipeline runs"
+        txt = txt or "Log of previous pipeline runs"
         dialog = GllLogDialog(level, txt)
         dialog.run()
         dialog.destroy()

@@ -24,7 +24,7 @@ class GllPlugin(gobject.GObject):
     def update_config(self, data, data_serials, serial, last_serial):
         config = self.get_config()
         history_entry = self.history.get(last_serial)
-        if history_entry:
+        if history_entry is not None:
             last_config, last_serials = history_entry
             config_serials = {}
             for key in config:

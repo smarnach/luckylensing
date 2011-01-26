@@ -30,11 +30,7 @@ import numpy as _np
 from numpy.ctypeslib import ndpointer as _ndpointer
 
 # Import symbols from libll.so to the module namespace
-_dir = _path.dirname(__file__)
-if not _dir:
-    _dir = "."
-_libll = _c.CDLL(_path.join(_dir, "libll.so"))
-del _dir
+_libll = _c.CDLL(_path.join(_path.dirname(__file__) or  ".", "libll.so"))
 _shoot_single_ray = _libll.ll_shoot_single_ray
 _rayshoot_rect = _libll.ll_rayshoot_rect
 _get_subpatches = _libll.ll_get_subpatches

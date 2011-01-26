@@ -42,8 +42,7 @@ class GllConfigRadioButtons(gtk.HBox):
             radiobutton = gtk.RadioButton(firstbutton, text)
             buttonbox.pack_start(radiobutton)
             self.choices[value] = radiobutton
-            if firstbutton is None:
-                firstbutton = radiobutton
+            firstbutton = firstbutton or radiobutton
         self.pack_start(buttonbox)
         self.set_value(start_value)
 
