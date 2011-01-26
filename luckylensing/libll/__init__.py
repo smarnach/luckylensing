@@ -302,11 +302,11 @@ class BasicRayshooter(_c.Structure):
                 ("refine_final", _c.c_int),
                 ("cancel_flag", _c.c_int)]
 
-    def __init__(self, params=None):
-        if params is None:
-            params = MagPatternParams()
-        if not isinstance(params, MagPatternParams):
-            params = MagPatternParams(*params)
+    def __init__(self, *args):
+        if len(args) == 1 and isinstance(args[0], MagPatternParams):
+            params = args[0]
+        else:
+            params = MagPatternParams(*args)
         super(BasicRayshooter, self).__init__(_c.pointer(params),
                                               KERNEL_BILINEAR, 15, 25, False)
 

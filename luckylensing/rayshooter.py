@@ -9,8 +9,8 @@ import libll as ll
 from processor import Processor, logger
 
 class Rayshooter(ll.BasicRayshooter, Processor):
-    def __init__(self, params=None):
-        ll.BasicRayshooter.__init__(self, params)
+    def __init__(self, *args):
+        ll.BasicRayshooter.__init__(self, *args)
         Processor.__init__(self)
         self.density = 100
         self.num_threads = 1
