@@ -4,7 +4,7 @@
 import numpy
 import gtk
 from gllplugin import GllPlugin
-from gllconfigbox import GllConfigBox
+from gllconfigbox import GllConfigBox, GllConfigCheckButton
 from gllimageview import GllImageView
 from luckylensing import SourceProfile
 
@@ -18,16 +18,29 @@ class GllSourceProfile(GllPlugin):
         self.config_widget.add_radio_buttons(
             "profile_type", "Source profile type", "flat",
             [("Flat", "flat"), ("Gaussian", "gaussian")])
+        show_profile = GllConfigCheckButton("Show profile")
+        show_profile.set_active(True)
         self.config_widget.add_items(
-             ("source_radius", "Source radius", (0.01, 0.0, 1e10, 0.001), 4))
+            [("source_radius", "Source radius", (0.01, 0.0, 1e10, 0.001), 4),
+             ("export_kernel", show_profile)])
 
     def update(self, data):
-        self.source = data["source_profile"]
+        self.show = data["export_kernel"]
+        if self.show:
+            self.source = data["source_profile"]
         self.main_widget.mark_dirty()
 
+    def set_config(self, config):
+        config.setdefault("export_kernel", True)
+        GllPlugin.set_config(self, config)
+
     def get_pixbuf(self):
-        ypixels, xpixels = self.source.shape
-        source = numpy.vstack((self.source[ypixels//2:], self.source[:ypixels//2]))
+        if self.show:
+            source = self.source
+        else:
+            source = numpy.ones((1, 1))
+        ypixels, xpixels = source.shape
+        source = numpy.vstack((source[ypixels//2:], source[:ypixels//2]))
         source = numpy.hstack((source[:,xpixels//2:], source[:,:xpixels//2]))
         pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
                                 xpixels, ypixels)

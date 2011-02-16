@@ -8,7 +8,8 @@ from math import sqrt
 class SourceProfile(Processor):
     def get_input_keys(self, data):
         return ["xpixels", "ypixels", "profile_type", "source_radius",
-                "region_x0", "region_x1", "region_y0", "region_y1"]
+                "region_x0", "region_x1", "region_y0", "region_y1",
+                "export_kernel"]
 
     def run(self, data):
         xpixels = data["xpixels"]
@@ -32,8 +33,10 @@ class SourceProfile(Processor):
         kernel = numpy.hstack((kernel[:,:-1], numpy.fliplr(kernel[:,1:])))
         kernel = kernel / float(numpy.sum(kernel))
         kernel_fft = numpy.fft.rfft2(kernel)
-        return {"source_fft": kernel_fft,
-                "source_profile": kernel}
+        result = {"source_fft": kernel_fft}
+        if data.get("export_kernel"):
+            result["source_profile"] = kernel
+        return result
 
     def flat(self, r2, source_radius2, width, height):
         width2 = width*width
