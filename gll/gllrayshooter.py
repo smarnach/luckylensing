@@ -64,6 +64,8 @@ class GllRayshooter(GllPlugin):
 
     def update(self, data):
         self.magpat = data["magpat"]
+        data["min_mag"] = self.magpat.min()
+        data["max_mag"] = self.magpat.max()
         self.ypixels, self.xpixels = self.magpat.shape
         self.pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
                                      self.xpixels, self.ypixels)

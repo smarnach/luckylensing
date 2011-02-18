@@ -12,7 +12,7 @@ class Convolution(Processor):
         kernel_fft = data.get("source_fft")
         magpat = data["magpat"]
         if kernel_fft is None:
-            return {"convolved_magpat": magpat}
+            return {"magpat": magpat}
         shape = magpat.shape
         if shape[0] & 1:
             logger.info("Correcting for an odd pixel height of the pattern")
@@ -30,4 +30,4 @@ class Convolution(Processor):
             convolved_pattern = numpy.hstack((convolved_pattern,
                                               convolved_pattern[:,-1:]))
         convolved_pattern = numpy.ascontiguousarray(convolved_pattern)
-        return {"convolved_magpat": convolved_pattern}
+        return {"magpat": convolved_pattern}

@@ -7,13 +7,13 @@ import numpy
 
 class LightCurve(Processor):
     def get_input_keys(self, data):
-        return ["convolved_magpat",
+        return ["magpat",
                 "region_x0", "region_x1", "region_y0", "region_y1",
                 "curve_x0", "curve_x1", "curve_y0", "curve_y1",
                 "curve_samples"]
 
     def run(self, data):
-        magpat = data["convolved_magpat"]
+        magpat = data["magpat"]
         region_x0 = data["region_x0"]
         region_x1 = data["region_x1"]
         region_y0 = data["region_y0"]
