@@ -2,7 +2,7 @@
 # Copyright 2010 Sven Marnach
 
 from subprocess import Popen, PIPE
-from luckylensing import Processor, logger, render_magpattern_gradient
+from luckylensing import Processor, logger, render_magpat_gradient
 
 colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
           (195, 16, 16), (249, 249, 70), (255, 255, 255)]
@@ -27,7 +27,7 @@ class ImageWriter(Processor):
             return {}
         min_mag = data.get("min_mag")
         max_mag = data.get("max_mag")
-        buf = render_magpattern_gradient(data["magpat"], colors, steps,
-                                         min_mag, max_mag)
+        buf = render_magpat_gradient(data["magpat"], colors, steps,
+                                     min_mag, max_mag)
         save_img(buf, imgfile, data.get("convert_opts", ""))
         return {}

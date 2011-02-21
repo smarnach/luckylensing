@@ -21,7 +21,7 @@ class LightCurve(Processor):
         region = (region_x0, region_y0, region_x1 - region_x0,
                   region_y1 - region_y0)
         ypixels, xpixels = magpat.shape
-        params = ll.MagPatternParams([], region, xpixels, ypixels)
+        params = ll.MagpatParams([], region, xpixels, ypixels)
         samples = data.get("curve_samples", 256)
         curve = numpy.empty(samples, dtype=numpy.float32)
         params.light_curve(magpat, curve, data["curve_x0"], data["curve_y0"],

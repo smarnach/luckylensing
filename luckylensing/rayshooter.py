@@ -79,8 +79,8 @@ class Rayshooter(ll.BasicRayshooter, Processor):
                       data["region_y1"] - data["region_y0"])
             xpixels = data.get("xpixels", 1024)
             ypixels = data.get("ypixels", 1024)
-            self.params[0] = ll.MagPatternParams(data["lenses"], region,
-                                                 xpixels, ypixels)
+            self.params[0] = ll.MagpatParams(data["lenses"], region,
+                                             xpixels, ypixels)
             for key in ["refine", "refine_final", "density", "num_threads"]:
                 if key in data:
                     setattr(self, key, data[key])

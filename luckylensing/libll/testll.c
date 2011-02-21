@@ -15,17 +15,17 @@ int main(int argc, char *argv[])
     const unsigned levels = 3;
     const int xrays = 600;
     const int yrays = 120;
-    struct ll_rect_t rect = {-1., -.25, 2.5, .5};
+    struct ll_rect rect = {-1., -.25, 2.5, .5};
 
-    struct ll_lens_t lens[3] = {{0.0, 0.0,  1.},
-                                {1.2, 0.0,  4e-4},
-                                {1.2, 0.025, 2.5e-5}};
-    struct ll_lenses_t lenses = {3, lens};
-    struct ll_rect_t region = {.26, -.05, .2, .1};
+    struct ll_lens lens[3] = {{0.0, 0.0,  1.},
+                              {1.2, 0.0,  4e-4},
+                              {1.2, 0.025, 2.5e-5}};
+    struct ll_lenses lenses = {3, lens};
+    struct ll_rect region = {.26, -.05, .2, .1};
 
-    struct ll_magpattern_param_t params;
-    ll_init_magpattern_params(&params, &lenses, &region, xpixels, ypixels);
-    struct ll_rayshooter_t rs;
+    struct ll_magpat_params params;
+    ll_init_magpat_params(&params, &lenses, &region, xpixels, ypixels);
+    struct ll_rayshooter rs;
     ll_init_rayshooter(&rs, &params);
     double progress;
     float *magpat = calloc(N, sizeof(float));
@@ -68,8 +68,8 @@ int main(int argc, char *argv[])
 
         printf("Converting to an image...\n");
         t = clock();
-        ll_render_magpattern_gradient(magpat, buf, xpixels, ypixels,
-                                      -1.0, -1.0, colors, steps);
+        ll_render_magpat_gradient(magpat, buf, xpixels, ypixels,
+                                  -1.0, -1.0, colors, steps);
         printf("finished in %g seconds.\n\n", (double)(clock()-t)/CLOCKS_PER_SEC);
     }
 

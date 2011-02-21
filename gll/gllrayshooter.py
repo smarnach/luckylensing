@@ -70,8 +70,8 @@ class GllRayshooter(GllPlugin):
         self.pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
                                      self.xpixels, self.ypixels)
         data["magpat_pixbuf"] = self.pixbuf
-        ll.render_magpattern_gradient(self.magpat, colors, steps,
-                                      buf=self.pixbuf.get_pixels_array())
+        ll.render_magpat_gradient(self.magpat, colors, steps,
+                                  buf=self.pixbuf.get_pixels_array())
         self.imageview.set_tool(self.dragger)
         self.main_widget.mark_dirty()
         self.lenses = data["lenses"]

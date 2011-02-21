@@ -23,7 +23,7 @@ class GllConvolution(GllPlugin):
         self.pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
                                      xpixels, ypixels)
         data["magpat_pixbuf"] = self.pixbuf
-        self.buf = ll.render_magpattern_gradient(
+        self.buf = ll.render_magpat_gradient(
             magpat, colors, steps, data["min_mag"], data["max_mag"],
             self.pixbuf.get_pixels_array())
         self.main_widget.mark_dirty()

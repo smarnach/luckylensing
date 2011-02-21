@@ -14,14 +14,16 @@ Lens              -- coordinates and mass of a point lens
 Lenses            -- array of point lenses
 Rect              -- coordinates of a rectangle
 Patches           -- subpatch pattern for hierarchical ray shooting
-MagPatternParams  -- parameters of a magnification pattern
+MagpatParams      -- parameters of a magnification pattern
 Progress          -- helper for some methods of BasicRayshooter
 BasicRayshooter   -- compute magnification patterns
 
 Functions:
 
-render_magpattern_greyscale
-                  -- render a magnification pattern
+render_magpat_greyscale
+                  -- render a magnification pattern using grey shades
+render_magpat_palette
+                  -- render a magnification pattern using a color palette
 """
 
 import os.path as _path
@@ -39,8 +41,8 @@ _finalise_subpatches = _libll.ll_finalise_subpatches
 _rayshoot = _libll.ll_rayshoot
 _ray_hit_pattern = _libll.ll_ray_hit_pattern
 _source_images = _libll.ll_source_images
-_render_magpattern_greyscale = _libll.ll_render_magpattern_greyscale
-_render_magpattern_gradient = _libll.ll_render_magpattern_gradient
+_render_magpat_greyscale = _libll.ll_render_magpat_greyscale
+_render_magpat_gradient = _libll.ll_render_magpat_gradient
 _light_curve = _libll.ll_light_curve
 del _libll
 
@@ -129,7 +131,7 @@ class Rect(_c.Structure):
 
     def __setattr__(self, name, value):
         # This method is needed for the consistency magic in the
-        # MagPatternParams and Patches classes
+        # MagpatParams and Patches classes
         super(Rect, self).__setattr__(name, value)
         if getattr(self, "callback", None) and name in ("width", "height"):
             self.callback()
@@ -190,7 +192,7 @@ class Patches(_c.Structure):
         except ZeroDivisionError:
             pass
 
-class MagPatternParams(_c.Structure):
+class MagpatParams(_c.Structure):
 
     """Parameters describing a magnification pattern.
 
@@ -217,8 +219,8 @@ class MagPatternParams(_c.Structure):
 
     def __init__(self, lenses=[], region=(-1.,-1.,2.,2.),
                  xpixels=1024, ypixels=1024):
-        super(MagPatternParams, self).__init__(Lenses(lenses), region,
-                                               xpixels, ypixels)
+        super(MagpatParams, self).__init__(Lenses(lenses), region,
+                                           xpixels, ypixels)
 
     # The following methods try to always keep the quotients
     # pixels_per_width and pixels_per_height consistens.  The same
@@ -227,22 +229,22 @@ class MagPatternParams(_c.Structure):
     def __setattr__(self, name, value):
         if name in ("pixels_per_width", "pixels_per_height"):
             raise AttributeError, "Attribute %s is not writable" % name
-        super(MagPatternParams, self).__setattr__(name, value)
+        super(MagpatParams, self).__setattr__(name, value)
         if name in ("region", "xpixels", "ypixels"):
             self._update_ratios()
 
     def __getattribute__(self, name):
-        value = super(MagPatternParams, self).__getattribute__(name)
+        value = super(MagpatParams, self).__getattribute__(name)
         if name == "region":
-            value.callback = (super(MagPatternParams, self).
+            value.callback = (super(MagpatParams, self).
                               __getattribute__("_update_ratios"))
         return value
 
     def _update_ratios(self):
         try:
-            super(MagPatternParams, self).__setattr__(
+            super(MagpatParams, self).__setattr__(
                 "pixels_per_width", self.xpixels / self.region.width)
-            super(MagPatternParams, self).__setattr__(
+            super(MagpatParams, self).__setattr__(
                 "pixels_per_height", self.ypixels / self.region.height)
         except ZeroDivisionError:
             pass
@@ -286,7 +288,7 @@ The current value can be extracted by reading the attribute 'value'.
 # It should not be necessary for user code to use anything from the
 # ctypes module, so we expose this type
 
-# Constants to select a ra shooting kernel.  These are enum constants in C.
+# Constants to select a ray shooting kernel.  These are enum constants in C.
 KERNEL_SIMPLE = 0
 KERNEL_BILINEAR = 1
 KERNEL_TRIANGULATED = 2
@@ -296,17 +298,17 @@ class BasicRayshooter(_c.Structure):
     """A class controlling the ray shooting process.
     """
 
-    _fields_ = [("params", _c.POINTER(MagPatternParams)),
+    _fields_ = [("params", _c.POINTER(MagpatParams)),
                 ("kernel", _c.c_int),
                 ("refine", _c.c_int),
                 ("refine_final", _c.c_int),
                 ("cancel_flag", _c.c_int)]
 
     def __init__(self, *args):
-        if len(args) == 1 and isinstance(args[0], MagPatternParams):
+        if len(args) == 1 and isinstance(args[0], MagpatParams):
             params = args[0]
         else:
-            params = MagPatternParams(*args)
+            params = MagpatParams(*args)
         super(BasicRayshooter, self).__init__(_c.pointer(params),
                                               KERNEL_BILINEAR, 15, 25, False)
 
@@ -344,21 +346,21 @@ class BasicRayshooter(_c.Structure):
         _rayshoot(self, magpat, rect, xrays, yrays, levels, progress)
 
 # ctypes prototypes for the functions in libll.so
-_shoot_single_ray.argtypes = [_c.POINTER(MagPatternParams),
+_shoot_single_ray.argtypes = [_c.POINTER(MagpatParams),
                               _c.c_double,
                               _c.c_double,
                               _c.POINTER(_c.c_double),
                               _c.POINTER(_c.c_double)]
 _shoot_single_ray.restype = _c.c_int
 
-_rayshoot_rect.argtypes = [_c.POINTER(MagPatternParams),
+_rayshoot_rect.argtypes = [_c.POINTER(MagpatParams),
                            _ndpointer(_np.int, flags="C_CONTIGUOUS"),
                            _c.POINTER(Rect),
                            _c.c_int,
                            _c.c_int]
 _rayshoot_rect.restype = None
 
-_get_subpatches.argtypes = [_c.POINTER(MagPatternParams),
+_get_subpatches.argtypes = [_c.POINTER(MagpatParams),
                             _c.POINTER(Patches)]
 _get_subpatches.restype = None
 
@@ -382,12 +384,12 @@ _rayshoot.argtypes = [_c.POINTER(BasicRayshooter),
                       _c.POINTER(_c.c_double)]
 _rayshoot.restype = None
 
-_ray_hit_pattern.argtypes = [_c.POINTER(MagPatternParams),
+_ray_hit_pattern.argtypes = [_c.POINTER(MagpatParams),
                              _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
                              _c.POINTER(Rect)]
 _ray_hit_pattern.restype = None
 
-_source_images.argtypes = [_c.POINTER(MagPatternParams),
+_source_images.argtypes = [_c.POINTER(MagpatParams),
                            _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
                            _c.POINTER(Rect),
                            _c.c_int,
@@ -398,19 +400,18 @@ _source_images.argtypes = [_c.POINTER(MagPatternParams),
                            _c.c_double]
 _source_images.restype = None
 
-_render_magpattern_greyscale.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
-                                         _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
-                                         _c.c_uint,
-                                         _c.c_uint,
-                                         _c.c_float,
-                                         _c.c_float]
-_render_magpattern_greyscale.restype = None
+_render_magpat_greyscale.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
+                                     _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+                                     _c.c_uint,
+                                     _c.c_uint,
+                                     _c.c_float,
+                                     _c.c_float]
+_render_magpat_greyscale.restype = None
 
-def render_magpattern_greyscale(magpat, min_mag=None, max_mag=None,
-                                buf=None):
+def render_magpat_greyscale(magpat, min_mag=None, max_mag=None, buf=None):
     """Render the magnification pattern using a logarithmic greyscale gradient.
 
-    magpat  -- a contiguous C array of float with the magpattern counts
+    magpat  -- a contiguous C array of float with the magpat counts
     min_mag,
     max_mag -- The magnifications corresponding to black and white,
                respectively.  If either of these parameters is None, the
@@ -434,25 +435,25 @@ def render_magpattern_greyscale(magpat, min_mag=None, max_mag=None,
         min_mag = -1.0
     if max_mag is None:
         max_mag = -1.0
-    _render_magpattern_greyscale(magpat, buf, magpat.shape[1], magpat.shape[0],
-                                 min_mag, max_mag)
+    _render_magpat_greyscale(magpat, buf, magpat.shape[1], magpat.shape[0],
+                             min_mag, max_mag)
     return buf
 
-_render_magpattern_gradient.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
-                                        _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
-                                        _c.c_uint,
-                                        _c.c_uint,
-                                        _c.c_float,
-                                        _c.c_float,
-                                        _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
-                                        _ndpointer(_np.uint, flags="C_CONTIGUOUS")]
-_render_magpattern_gradient.restype = None
+_render_magpat_gradient.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
+                                    _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+                                    _c.c_uint,
+                                    _c.c_uint,
+                                    _c.c_float,
+                                    _c.c_float,
+                                    _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+                                    _ndpointer(_np.uint, flags="C_CONTIGUOUS")]
+_render_magpat_gradient.restype = None
 
-def render_magpattern_gradient(magpat, colors, steps, min_mag=None,
-                               max_mag=None, buf=None):
+def render_magpat_gradient(magpat, colors, steps, min_mag=None,
+                           max_mag=None, buf=None):
     """Render the magnification pattern logarithmically with the given gradient.
 
-    magpat  -- a contiguous C array of float with the magpattern counts
+    magpat  -- a contiguous C array of float with the magpat counts
     colors  -- a sequence of RGB triples describing colors in the gradient
     steps   -- the number of steps to use between the color with the same
                index and the next one.  The length of this needs to be one
@@ -480,11 +481,11 @@ def render_magpattern_gradient(magpat, colors, steps, min_mag=None,
     assert len(colors[0]) == 3
     colors_arr = _np.array(colors, dtype=_np.uint8)
     steps_arr = _np.array(list(steps) + [0], dtype=_np.uint)
-    _render_magpattern_gradient(magpat, buf, magpat.shape[1], magpat.shape[0],
-                                min_mag, max_mag, colors_arr, steps_arr)
+    _render_magpat_gradient(magpat, buf, magpat.shape[1], magpat.shape[0],
+                            min_mag, max_mag, colors_arr, steps_arr)
     return buf
 
-_light_curve.argtypes = [_c.POINTER(MagPatternParams),
+_light_curve.argtypes = [_c.POINTER(MagpatParams),
                          _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
                          _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
                          _c.c_uint,
