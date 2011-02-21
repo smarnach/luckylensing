@@ -2,7 +2,7 @@
 # Copyright 2010 Sven Marnach
 
 import numpy
-from math import pi, sin, cos, log
+from math import sin, cos, log
 from processor import Processor
 
 class GlobularCluster(Processor):
