@@ -301,7 +301,7 @@ class BasicRayshooter(_c.Structure):
     _fields_ = [("params", _c.POINTER(MagpatParams)),
                 ("kernel", _c.c_int),
                 ("refine", _c.c_int),
-                ("refine_final", _c.c_int),
+                ("refine_kernel", _c.c_int),
                 ("cancel_flag", _c.c_int)]
 
     def __init__(self, *args):

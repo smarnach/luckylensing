@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
         double density = xrays*yrays;
         for (unsigned i = 0; i < levels-2; ++i)
             density *= rs.refine * rs.refine;
-        density *= rs.refine_final * rs.refine_final;
+        density *= rs.refine_kernel * rs.refine_kernel;
         density /= N;
         density *= region.width * region.height / (rect.width * rect.height);
         printf("Average rays per pixel shot:    %8.2f\n", density);

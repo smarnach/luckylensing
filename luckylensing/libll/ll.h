@@ -48,7 +48,7 @@ struct ll_rayshooter
     struct ll_magpat_params *params;
     enum ll_rayshooting_kernel kernel;
     int refine;
-    int refine_final;
+    int refine_kernel;
     bool cancel;
 };
 

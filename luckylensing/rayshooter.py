@@ -19,7 +19,7 @@ class Rayshooter(ll.BasicRayshooter, Processor):
 
     def get_input_keys(self, data):
         return ["lenses", "region_x0", "region_x1", "region_y0", "region_y1",
-                "xpixels", "ypixels", "kernel", "refine", "refine_final",
+                "xpixels", "ypixels", "kernel", "refine", "refine_kernel",
                 "density", "num_threads"]
 
     def get_progress(self):
@@ -59,7 +59,7 @@ class Rayshooter(ll.BasicRayshooter, Processor):
 
         # Determine number of rays needed to achieve the ray density
         # specified by self.density (assuming magnification = 1)
-        rays = sqrt(self.density) / self.refine_final
+        rays = sqrt(self.density) / self.refine_kernel
         xraysf = rays * params.xpixels * rect.width / params.region.width
         yraysf = rays * params.ypixels * rect.height / params.region.height
         levels = max(1, int(log(min(xraysf, yraysf)/75)/log(self.refine)))
@@ -81,7 +81,7 @@ class Rayshooter(ll.BasicRayshooter, Processor):
             ypixels = data.get("ypixels", 1024)
             self.params[0] = ll.MagpatParams(data["lenses"], region,
                                              xpixels, ypixels)
-            for key in ["refine", "refine_final", "density", "num_threads"]:
+            for key in ["refine", "refine_kernel", "density", "num_threads"]:
                 if key in data:
                     setattr(self, key, data[key])
             if "kernel" in data:

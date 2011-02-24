@@ -25,7 +25,7 @@ ll_init_rayshooter(struct ll_rayshooter *rs, struct ll_magpat_params *params)
     rs->params = params;
     rs->kernel = LL_KERNEL_BILINEAR;
     rs->refine = 15;
-    rs->refine_final = 25;
+    rs->refine_kernel = 25;
     rs->cancel = false;
 }
 
@@ -462,7 +462,7 @@ _ll_rayshoot_level1(const struct ll_rayshooter *rs, void *magpat,
                     struct ll_rect subrect
                         = {x, y, width_per_xrays, height_per_yrays};
                     ll_rayshoot_rect(rs->params, magpat, &subrect,
-                                     rs->refine_final, rs->refine_final);
+                                     rs->refine_kernel, rs->refine_kernel);
                     break;
                 }
                 case LL_KERNEL_BILINEAR:
@@ -471,12 +471,12 @@ _ll_rayshoot_level1(const struct ll_rayshooter *rs, void *magpat,
                                     hit[m+xrays+2]) == 0x0F;
                     _ll_rayshoot_bilinear(rs->params, magpat,
                                           local_coords, hit_all,
-                                          rs->refine_final);
+                                          rs->refine_kernel);
                     break;
                 }
                 case LL_KERNEL_TRIANGULATED:
                     _ll_rayshoot_triangulated(rs->params, magpat, rect_area,
-                                              local_coords, rs->refine_final);
+                                              local_coords, rs->refine_kernel);
                     break;
                 }
             }
@@ -571,7 +571,7 @@ _ll_scale_magpat(const struct ll_rayshooter *rs, void *magpat,
         double density = xrays * yrays;
         for (unsigned i = 0; i < level - 1; ++i)
             density *= rs->refine * rs->refine;
-        density *= rs->refine_final * rs->refine_final;
+        density *= rs->refine_kernel * rs->refine_kernel;
         density *= rs->params->region.width * rs->params->region.height;
         density /= rect->width * rect->height * pixels;
         density = 1.0/density;
