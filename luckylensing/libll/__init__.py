@@ -95,13 +95,13 @@ class Lenses(_c.Structure):
         will create an array of the two given lenses.
         """
         if isinstance(lens_list, Lenses):
-            super(Lenses, self).__init__(lens_list.num_lenses, lens_list.lens)
+            _c.Structure.__init__(self, lens_list.num_lenses, lens_list.lens)
         elif isinstance(lens_list, _np.ndarray):
-            super(Lenses, self).__init__(
-                len(lens_list), lens_list.ctypes.data_as(_c.POINTER(Lens)))
+            _c.Structure.__init__(self, len(lens_list),
+                                  lens_list.ctypes.data_as(_c.POINTER(Lens)))
         else:
             l = len(lens_list)
-            super(Lenses, self).__init__(l, (Lens*l)(*map(tuple, lens_list)))
+            _c.Structure.__init__(self, l, (Lens*l)(*map(tuple, lens_list)))
 
 class Rect(_c.Structure):
 
@@ -113,6 +113,13 @@ class Rect(_c.Structure):
     y      -- the y-coordinate of the lower boundary
     width  -- the distance between left and right boundary
     height -- the distance between upper and lower boundary
+
+    For convenience, the following read-only properties are provided:
+
+    x0     -- same as x
+    y0     -- same as y
+    x1     -- same as x + width
+    y1     -- same as y + height
     """
 
     _fields_ = [("x", _c.c_double),
@@ -136,6 +143,22 @@ class Rect(_c.Structure):
         if getattr(self, "callback", None) and name in ("width", "height"):
             self.callback()
 
+    @property
+    def x0(self):
+        return self.x
+
+    @property
+    def y0(self):
+        return self.y
+
+    @property
+    def x1(self):
+        return self.x + self.width
+
+    @property
+    def y1(self):
+        return self.y + self.height
+
 class Patches(_c.Structure):
 
     """Stores the pattern of subpatches for hierarchic ray shooting.
@@ -157,7 +180,7 @@ class Patches(_c.Structure):
         else:
             hit = _np.empty((yrays, xrays), _np.uint8)
         self.hit_array = hit
-        super(Patches, self).__init__(rect, xrays, yrays, level,
+        _c.Structure.__init__(self, rect, xrays, yrays, level,
             hit=hit.ctypes.data_as(_c.POINTER(_c.c_char)), num_patches=0)
 
     # The following methods try to always keep the quotients
@@ -217,10 +240,8 @@ class MagpatParams(_c.Structure):
                 ("pixels_per_width", _c.c_double),
                 ("pixels_per_height", _c.c_double)]
 
-    def __init__(self, lenses=[], region=(-1.,-1.,2.,2.),
-                 xpixels=1024, ypixels=1024):
-        super(MagpatParams, self).__init__(Lenses(lenses), region,
-                                           xpixels, ypixels)
+    def __init__(self, lenses, region, xpixels, ypixels):
+        _c.Structure.__init__(self, Lenses(lenses), region, xpixels, ypixels)
 
     # The following methods try to always keep the quotients
     # pixels_per_width and pixels_per_height consistens.  The same
@@ -289,9 +310,7 @@ The current value can be extracted by reading the attribute 'value'.
 # ctypes module, so we expose this type
 
 # Constants to select a ray shooting kernel.  These are enum constants in C.
-KERNEL_SIMPLE = 0
-KERNEL_BILINEAR = 1
-KERNEL_TRIANGULATED = 2
+all_kernels = {"simple": 0, "bilinear": 1, "triangulated": 2}
 
 class BasicRayshooter(_c.Structure):
 
@@ -304,13 +323,14 @@ class BasicRayshooter(_c.Structure):
                 ("refine_kernel", _c.c_int),
                 ("cancel_flag", _c.c_int)]
 
-    def __init__(self, *args):
-        if len(args) == 1 and isinstance(args[0], MagpatParams):
-            params = args[0]
-        else:
-            params = MagpatParams(*args)
-        super(BasicRayshooter, self).__init__(_c.pointer(params),
-                                              KERNEL_BILINEAR, 15, 25, False)
+    def __init__(self, params, kernel, refine, refine_kernel):
+        if kernel not in all_kernels.values():
+            try:
+                kernel = all_kernels[kernel.strip().lower()]
+            except KeyError:
+                raise ValueError("Unknown ray shooting kernel '%s'" % kernel)
+        _c.Structure.__init__(self, _c.pointer(params), kernel,
+                              refine, refine_kernel, False)
 
     def cancel(self):
         """Cancel the currently running ray shooting function.
@@ -328,7 +348,7 @@ class BasicRayshooter(_c.Structure):
     def finalise_subpatches(self, magpat, patches):
         if isinstance(magpat, list):
             for m in magpat:
-                if self.kernel == KERNEL_TRIANGULATED:
+                if self.kernel == all_kernels["triangulated"]:
                     m.dtype = _np.float32
                 else:
                     m.dtype = _np.int
@@ -449,7 +469,7 @@ _render_magpat_gradient.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"
                                     _ndpointer(_np.uint, flags="C_CONTIGUOUS")]
 _render_magpat_gradient.restype = None
 
-def render_magpat_gradient(magpat, colors, steps, min_mag=None,
+def render_magpat_gradient(magpat, colors=None, steps=None, min_mag=None,
                            max_mag=None, buf=None):
     """Render the magnification pattern logarithmically with the given gradient.
 
@@ -457,7 +477,8 @@ def render_magpat_gradient(magpat, colors, steps, min_mag=None,
     colors  -- a sequence of RGB triples describing colors in the gradient
     steps   -- the number of steps to use between the color with the same
                index and the next one.  The length of this needs to be one
-               less than the number of colors
+               less than the number of colors.  If colors and steps are
+               omitted, a standard palette is used.
     min_mag,
     max_mag -- The magnifications corresponding to the ends of the
                gradient.  If either of these parameters is None, the
@@ -469,6 +490,11 @@ def render_magpat_gradient(magpat, colors, steps, min_mag=None,
     The function returns the buffer with the image data.  If you
     provided this buffer, the return value can be ignored.
     """
+    if colors is None:
+        colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
+                  (195, 16, 16), (249, 249, 70), (255, 255, 255)]
+    if steps is None:
+        steps = [255, 32, 255, 255, 255]
     if buf is None:
         buf = _np.empty(magpat.shape + (3,), _np.uint8)
     else:
