@@ -239,7 +239,7 @@ class Rayshooter(object):
             t.start()
         self.rs.get_subpatches(subpatches[0])
         magpats = [self.magpat] + [numpy.zeros_like(self.magpat)
-                                   for j in range(num_threads)]
+                                   for j in range(1, num_threads)]
         for t in threads:
             t.join()
         patches.num_patches = sum(p.num_patches for p in subpatches)

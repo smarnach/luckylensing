@@ -347,15 +347,11 @@ class BasicRayshooter(_c.Structure):
 
     def finalise_subpatches(self, magpat, patches):
         if isinstance(magpat, list):
-            for m in magpat:
-                if self.kernel == all_kernels["triangulated"]:
-                    m.dtype = _np.float32
-                else:
-                    m.dtype = _np.int
+            if self.kernel != all_kernels["triangulated"]:
+                for i, m in enumerate(magpat):
+                    magpat[i] = m.view(int)
             for m in magpat[1:]:
                 magpat[0] += m
-            for m in magpat:
-                m.dtype = _np.float32
             magpat = magpat[0]
         _finalise_subpatches(self, magpat, patches)
 
