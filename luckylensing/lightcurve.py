@@ -6,6 +6,12 @@ from math import sqrt
 import numpy
 import utils
 
+class SourceProfile(numpy.ndarray):
+    arg_name = "source_profile"
+
+class SourceFFT(numpy.ndarray):
+    arg_name = "source_fft"
+
 def _flat(r2, source_radius2, width, height):
     width2 = width*width
     height2 = height*height
@@ -55,7 +61,7 @@ def source_profile(magpat, source_radius, profile_type="flat"):
     kernel = numpy.hstack((kernel[:,:-1], numpy.fliplr(kernel[:,1:])))
     kernel = kernel / float(numpy.sum(kernel))
     kernel_fft = numpy.fft.rfft2(kernel)
-    return kernel, kernel_fft
+    return kernel.view(SourceProfile), kernel_fft.view(SourceFFT)
 
 def convolve(magpat, source_fft, convolved_pattern=None):
     """Returns the convolution of a magnification pattern with a source profile.
@@ -90,6 +96,9 @@ def convolve(magpat, source_fft, convolved_pattern=None):
 class LightCurve(numpy.ndarray):
     """One-dimensional NumPy array representing a light curve.
     """
+
+    arg_name = "light_curve"
+
     def __new__(cls, samples, buffer=None, offset=0):
         return numpy.ndarray.__new__(
             cls, samples, numpy.float32, buffer, offset)

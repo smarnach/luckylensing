@@ -17,6 +17,9 @@ class LensConfig(numpy.recarray):
     You can access a single lens as lenses[index] and its fields as
     lenses[index].x etc.
     """
+
+    arg_name = "lenses"
+
     def __new__(cls, num_lenses=None, buf=None, offset=0):
         dtype = [(n, t._type_) for n, t in libll.Lens._fields_]
         if num_lenses is None:

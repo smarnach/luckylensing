@@ -39,6 +39,8 @@ class Magpat(numpy.ndarray):
         levels           number of hierarchy levels
     """
 
+    arg_name = "magpat"
+
     def __new__(cls, xpixels, ypixels, lenses, region, buffer=None, offset=0):
         obj = numpy.ndarray.__new__(
             cls, (ypixels, xpixels), numpy.float32, buffer, offset)
@@ -123,8 +125,6 @@ class Rayshooter(object):
         refine_kernel    number of rays to use by the kernel in x and
                          y-direction; meaningless for "triangulated"
     """
-
-    result_name = "magpat"
 
     def __init__(self, lenses, region, xpixels=1024, ypixels=1024,
                  density=100, num_threads=1, kernel="triangulated",
