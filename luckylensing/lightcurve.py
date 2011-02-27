@@ -5,6 +5,7 @@ from __future__ import division
 from math import sqrt
 import numpy
 import utils
+import magpat as magpat_mod
 
 class SourceProfile(numpy.ndarray):
     arg_name = "source_profile"
@@ -84,7 +85,7 @@ def convolve(magpat, source_fft, convolved_pattern=None):
         utils.logger.info("Correcting for an odd pixel width of the pattern")
         xcorrect = -1
     if convolved_pattern is None:
-        convolved_pattern = numpy.empty_like(magpat)
+        convolved_pattern = magpat_mod.Magpat.empty_like(magpat)
     convolved_pattern[:ycorrect, :xcorrect] = numpy.fft.irfft2(
         numpy.fft.rfft2(magpat[:ycorrect, :xcorrect]) * source_fft)
     if shape[0] & 1:

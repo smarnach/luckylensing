@@ -72,6 +72,13 @@ class Magpat(numpy.ndarray):
                      "xrays", "yrays", "levels"]:
             setattr(self, attr, getattr(obj, attr, None))
 
+    @classmethod
+    def empty_like(cls, obj):
+        """Create a new empty Magpat instance similar to obj.
+        """
+        ypixels, xpixels = obj.shape
+        return Magpat.__new__(cls, xpixels, ypixels, obj.lenses, obj.region)
+
     def convolve(self, source_fft=None, source_radius=None,
                  profile_type="flat"):
         """Convolve the magnification pattern in place.
