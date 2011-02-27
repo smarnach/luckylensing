@@ -6,15 +6,11 @@ from gllplugin import GllPlugin
 from gllimageview import GllImageView
 import gtk
 
-colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
-          (195, 16, 16), (249, 249, 70), (255, 255, 255)]
-steps = [255, 32, 255, 255, 255]
-
 class GllConvolution(GllPlugin):
     name = "Convolution"
 
     def __init__(self):
-        super(GllConvolution, self).__init__(ll.Convolution())
+        super(GllConvolution, self).__init__(ll.convolve)
         self.main_widget = GllImageView(self.get_pixbuf)
 
     def update(self, data):
@@ -23,9 +19,9 @@ class GllConvolution(GllPlugin):
         self.pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
                                      xpixels, ypixels)
         data["magpat_pixbuf"] = self.pixbuf
-        self.buf = ll.render_magpat_gradient(
-            magpat, colors, steps, data["min_mag"], data["max_mag"],
-            self.pixbuf.get_pixels_array())
+        self.buf = magpat.render_gradient(
+            min_mag=data["min_mag"], max_mag=data["max_mag"],
+            buf=self.pixbuf.get_pixels_array())
         self.main_widget.mark_dirty()
 
     def get_pixbuf(self):

@@ -2,7 +2,7 @@
 # Copyright 2010 Sven Marnach
 
 import gtk
-from luckylensing import LightCurve
+import luckylensing as ll
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
 
@@ -10,7 +10,7 @@ class GllLightCurve(GllPlugin):
     name = "Light curve"
 
     def __init__(self):
-        super(GllLightCurve, self).__init__(LightCurve())
+        super(GllLightCurve, self).__init__(ll.light_curve)
         self.main_widget = gtk.DrawingArea()
         self.main_widget.set_size_request(400, 300)
         self.main_widget.show()

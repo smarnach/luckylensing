@@ -4,6 +4,7 @@
 import gtk
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
+import luckylensing as ll
 
 class GllLenses(GllPlugin):
     name = "Lens configuration"
@@ -30,6 +31,10 @@ class GllLenses(GllPlugin):
         all_lenses = map(tuple, self.lens_list)
         config["all_lenses"] = all_lenses
         config["lenses"] = [lens[1:] for lens in all_lenses if lens[0]]
+        if config["export_region"]:
+            config["region"] = ll.rectangle(
+                **dict((k, config["region_" + k])
+                       for k in ["x0", "y0", "x1", "y1"]))
         return config
 
     def set_config(self, config):

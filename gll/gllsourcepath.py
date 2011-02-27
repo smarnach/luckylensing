@@ -69,23 +69,20 @@ class GllSourcePath(GllPlugin):
         try:
             self.xpixels = data["xpixels"]
             self.ypixels = data["ypixels"]
-            self.region_x0 = data["region_x0"]
-            self.region_y0 = data["region_y0"]
-            self.region_x1 = data["region_x1"]
-            self.region_y1 = data["region_y1"]
+            self.region = data["magpat"].region
             self.pixbuf = data["magpat_pixbuf"]
         except KeyError:
             return
         self.update_coords(data)
 
     def update_coords(self, data):
-        pixels_per_width = self.xpixels / (self.region_x1 - self.region_x0)
-        pixels_per_height = self.ypixels / (self.region_y1 - self.region_y0)
+        pixels_per_width = self.xpixels / self.region.width
+        pixels_per_height = self.ypixels / self.region.height
         self.tool.coords = (
-            (data["curve_x0"] - self.region_x0) * pixels_per_width,
-            (self.region_y1 - data["curve_y0"]) * pixels_per_height,
-            (data["curve_x1"] - self.region_x0) * pixels_per_width,
-            (self.region_y1 - data["curve_y1"]) * pixels_per_height)
+            (data["curve_x0"] - self.region.x0) * pixels_per_width,
+            (self.region.y1 - data["curve_y0"]) * pixels_per_height,
+            (data["curve_x1"] - self.region.x0) * pixels_per_width,
+            (self.region.y1 - data["curve_y1"]) * pixels_per_height)
         self.main_widget.mark_dirty()
 
     def get_pixbuf(self):

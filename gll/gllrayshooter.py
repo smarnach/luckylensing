@@ -10,15 +10,11 @@ from gllconfigbox import GllConfigBox
 from gllimageview import GllImageView
 from gllutils import save_dialog
 
-colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
-          (195, 16, 16), (249, 249, 70), (255, 255, 255)]
-steps = [255, 32, 255, 255, 255]
-
 class GllRayshooter(GllPlugin):
     name = "Magnification pattern"
 
     def __init__(self):
-        super(GllRayshooter, self).__init__(ll.Rayshooter())
+        super(GllRayshooter, self).__init__(ll.Rayshooter)
         self.main_widget = GllImageView(self.get_pixbuf)
         self.imageview = self.main_widget.imageview
         self.imageview.add_events(gtk.gdk.BUTTON_PRESS_MASK |
@@ -36,30 +32,35 @@ class GllRayshooter(GllPlugin):
              ("density", "Ray density", (100.0, 0.0, 100000.0, 1.0), 1),
              ("num_threads", "Number of threads", (2, 0, 32, 1), 0)])
         self.config_widget.add_radio_buttons(
-            "kernel", "Ray shooting kernel", ll.KERNEL_BILINEAR,
-            [("Simple", ll.KERNEL_SIMPLE),
-             ("Bilinear", ll.KERNEL_BILINEAR),
-             ("Triangulated", ll.KERNEL_TRIANGULATED)])
+            "kernel", "Ray shooting kernel", "triangulated",
+            [("Simple", "simple"),
+             ("Bilinear", "bilinear"),
+             ("Triangulated", "triangulated")])
         self.config_widget.add_toggle_group(
             "export_region", "Magnification pattern region", False,
             [("region_x0", "Left coordinate",  (-1.0, -1e10, 1e10, 0.01), 4),
              ("region_y0", "Lower coordinate", (-1.0, -1e10, 1e10, 0.01), 4),
              ("region_x1", "Right coordinate", ( 1.0, -1e10, 1e10, 0.01), 4),
              ("region_y1", "Upper coordinate", ( 1.0, -1e10, 1e10, 0.01), 4)])
+        self.magpat = None
         self.region = None
 
     def get_config(self):
         config = self.config_widget.get_config()
-        if self.region and self.imageview.get_tool() is self.selector:
+        if config["export_region"]:
+            config["region"] = ll.rectangle(
+                **dict((k, config["region_" + k])
+                       for k in ["x0", "y0", "x1", "y1"]))
+        if self.region is not None and self.imageview.get_tool() is self.selector:
             rect = self.selector.get_selection()
             width = max(rect.width, rect.height*self.xpixels//self.ypixels)
             x = rect.x + (rect.width - width)//2
-            config["region_x0"] = self.region["x0"] + x * self.xfactor
-            config["region_x1"] = config["region_x0"] + width * self.xfactor
+            x0 = self.region.x0 + x * self.xfactor
             height = max(rect.height, rect.width*self.ypixels//self.xpixels)
             y = rect.y + (rect.height - height)//2
-            config["region_y1"] = self.region["y1"] - y * self.yfactor
-            config["region_y0"] = config["region_y1"] - height * self.yfactor
+            y0 = self.region.y1 - y * self.yfactor - height * self.yfactor
+            config["region"] = ll.rectangle(
+                x0, y0, width=width*self.xfactor, height=height*self.yfactor)
         return config
 
     def update(self, data):
@@ -70,18 +71,13 @@ class GllRayshooter(GllPlugin):
         self.pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
                                      self.xpixels, self.ypixels)
         data["magpat_pixbuf"] = self.pixbuf
-        ll.render_magpat_gradient(self.magpat, colors, steps,
-                                  buf=self.pixbuf.get_pixels_array())
+        self.magpat.render_gradient(buf=self.pixbuf.get_pixels_array())
         self.imageview.set_tool(self.dragger)
         self.main_widget.mark_dirty()
-        self.lenses = data["lenses"]
-        self.region = {}
-        for key in ["region_x0", "region_x1", "region_y0", "region_y1"]:
-            self.config_widget[key].set_value(data[key])
-            self.region[key[7:]] = data[key]
-        self.xfactor = (self.region["x1"]-self.region["x0"])/self.xpixels
-        self.yfactor = (self.region["y1"]-self.region["y0"])/self.ypixels
-        xlog = log10(abs(self.region["x0"]) + abs(self.region["x1"]))
+        self.region = self.magpat.region
+        self.xfactor = self.region.width / self.xpixels
+        self.yfactor = self.region.height / self.ypixels
+        xlog = log10(abs(self.region.x0) + abs(self.region.x1))
         if -2.0 <= xlog < 0.0:
             xprec = int(-log10(self.xfactor) + 1)
         else:
@@ -90,7 +86,7 @@ class GllRayshooter(GllPlugin):
             self.xformat = "%" + (".%ie" % xprec)
         else:
             self.xformat = "%" + (".%if" % xprec)
-        ylog = log10(abs(self.region["y0"]) + abs(self.region["y1"]))
+        ylog = log10(abs(self.region.y0) + abs(self.region.y1))
         if -2.0 <= ylog < 0.0:
             yprec = int(-log10(self.yfactor) + 1)
         else:
@@ -126,8 +122,8 @@ class GllRayshooter(GllPlugin):
             mag_y < 0 or mag_y >= self.ypixels):
             self.emit("statusbar-pop")
             return
-        x = self.region["x0"] + mag_x * self.xfactor
-        y = self.region["y0"] + mag_y * self.yfactor
+        x = self.region.x0 + mag_x * self.xfactor
+        y = self.region.y0 + mag_y * self.yfactor
         mag = self.magpat[mag_y][mag_x]
         text = (("x: " + self.xformat + ", y: " + self.yformat +
                  ", magnification: %.2f") % (x, y, mag))
@@ -139,17 +135,14 @@ class GllRayshooter(GllPlugin):
     def save_png(self, *args):
         filename = save_dialog("Save Magnification Pattern Image",
                                [("PNG Image Files", "*.png")])
-        if filename is None:
-            return
-        self.pixbuf.save(filename, "png")
+        if filename is not None:
+            self.pixbuf.save(filename, "png")
 
     def save_fits(self, *args):
         filename = save_dialog("Save Magnification Pattern",
                                [("FITS Image Files", "*.fits")])
         if filename is not None:
-            ll.write_fits(filename, self.magpat, self.lenses,
-                          self.region["x0"], self.region["x1"],
-                          self.region["y0"], self.region["y1"])
+            self.magpat.write_fits(filename)
 
     def get_actions(self):
         save_sensitive = hasattr(self, "pixbuf")
