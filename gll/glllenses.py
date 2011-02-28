@@ -25,15 +25,13 @@ class GllLenses(GllPlugin):
              ("region_x1", "Right coordinate", ( 1.0, -1e10, 1e10, 0.01), 4),
              ("region_y1", "Upper coordinate", ( 1.0, -1e10, 1e10, 0.01), 4)])
         self.config_widget.add(self.builder.get_object("lens_box"))
+        self.config_widget.declare_record("region", "export_region")
 
     def get_config(self):
         config = self.config_widget.get_config()
         all_lenses = map(tuple, self.lens_list)
         config["all_lenses"] = all_lenses
         config["lenses"] = [lens[1:] for lens in all_lenses if lens[0]]
-        if config["export_region"]:
-            config["region"] = dict((k, config["region_" + k])
-                                    for k in ["x0", "y0", "x1", "y1"])
         return config
 
     def set_config(self, config):

@@ -147,9 +147,31 @@ class GllConfigBox(GllConfigGroup):
         sizegroup = gtk.SizeGroup(gtk.SIZE_GROUP_HORIZONTAL)
         GllConfigGroup.__init__(self, sizegroup, config_items)
         self.set_border_width(4)
+        self.records = []
 
     def add_toggle_group(self, *args):
         self.add_items(GllConfigToggleGroup(self.sizegroup, *args))
 
     def add_radio_buttons(self, key, *args):
         self.add_items((key, GllConfigRadioButtons(*args)))
+
+    def declare_record(self, name, switch=None):
+        self.records.append((name, switch))
+
+    def get_config(self):
+        config = GllConfigGroup.get_config(self)
+        for name, switch in self.records:
+            if switch is None or config[switch]:
+                keys = [k for k in config if k.startswith(name + "_")]
+                config[name] = dict(
+                    (k.partition("_")[-1], config.pop(k)) for k in keys)
+        return config
+
+    def set_config(self, config):
+        if self.records:
+            config = config.copy()
+            for name, switch in self.records:
+                if switch is None or config[switch]:
+                    config.update(("_".join((name, k)), v)
+                                  for k, v in config.pop(name).iteritems())
+        GllConfigGroup.set_config(self, config)

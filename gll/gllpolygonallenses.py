@@ -15,8 +15,4 @@ class GllPolygonalLenses(GllPlugin):
              ("total_mass", "Total mass", (1.0, 0.0, 1e10, 0.05), 2),
              ("angle", "Rotation angle", (0.0, -100.0, 100.0, 0.01), 4),
              ("region_radius", "Region radius", (1.5, 0.0, 1000.0, 0.1), 2)])
-
-    def get_config(self):
-        config = self.config_widget.get_config()
-        config["region"] = dict(radius=config["region_radius"])
-        return config
+        self.config_widget.declare_record("region")
