@@ -72,6 +72,8 @@ def globular_cluster(num_stars=1000, total_mass=1.0, log_mass_stddev=0.0,
     """
     lenses = LensConfig(num_stars)
     numpy.random.seed(random_seed)
+    coords = numpy.random.multivariate_normal(
+        [0., 0., 0.], numpy.identity(3), num_stars)
     star_mass = total_mass / num_stars
     if log_mass_stddev <= 0.0:
         lenses.mass.fill(star_mass)
@@ -79,8 +81,6 @@ def globular_cluster(num_stars=1000, total_mass=1.0, log_mass_stddev=0.0,
         lenses.mass = numpy.random.lognormal(
             log(star_mass), log_mass_stddev * log(10.0), num_stars)
         lenses.mass *= star_mass / lenses.mass.mean()
-    coords = numpy.random.multivariate_normal(
-        [0., 0., 0.], numpy.identity(3), num_stars)
     coords -= numpy.dot(lenses.mass, coords) / total_mass
     lenses.x = cos(angle) * coords[:,0] + sin(angle) * coords[:,1]
     lenses.y = coords[:,2]
