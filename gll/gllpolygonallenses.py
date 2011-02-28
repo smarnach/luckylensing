@@ -18,6 +18,5 @@ class GllPolygonalLenses(GllPlugin):
 
     def get_config(self):
         config = self.config_widget.get_config()
-        config["region"] = ll.rectangle(
-            0.0, 0.0, radius=config["region_radius"])
+        config["region"] = dict(radius=config["region_radius"])
         return config

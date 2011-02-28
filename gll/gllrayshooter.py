@@ -48,9 +48,8 @@ class GllRayshooter(GllPlugin):
     def get_config(self):
         config = self.config_widget.get_config()
         if config["export_region"]:
-            config["region"] = ll.rectangle(
-                **dict((k, config["region_" + k])
-                       for k in ["x0", "y0", "x1", "y1"]))
+            config["region"] = dict((k, config["region_" + k])
+                                    for k in ["x0", "y0", "x1", "y1"])
         if self.region is not None and self.imageview.get_tool() is self.selector:
             rect = self.selector.get_selection()
             width = max(rect.width, rect.height*self.xpixels//self.ypixels)
@@ -59,8 +58,8 @@ class GllRayshooter(GllPlugin):
             height = max(rect.height, rect.width*self.ypixels//self.xpixels)
             y = rect.y + (rect.height - height)//2
             y0 = self.region.y1 - y * self.yfactor - height * self.yfactor
-            config["region"] = ll.rectangle(
-                x0, y0, width=width*self.xfactor, height=height*self.yfactor)
+            config["region"] = dict(x0=x0, y0=y0, width=width*self.xfactor,
+                                    height=height*self.yfactor)
         return config
 
     def update(self, data):
