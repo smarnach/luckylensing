@@ -14,12 +14,12 @@ class Processor(object):
         self.last_serial = -1
         self.name = action.__name__
         if inspect.isclass(action):
-            self.inputs = set(inspect.getargspec(action.__init__).args)
+            self.inputs = set(inspect.getargspec(action.__init__)[0])
             self.inputs.remove("self")
             self.action = self._class_action
             self.action_class = action
         else:
-            self.inputs = set(inspect.getargspec(action).args)
+            self.inputs = set(inspect.getargspec(action)[0])
             self.action = action
 
     def _class_action(self, **kwargs):
