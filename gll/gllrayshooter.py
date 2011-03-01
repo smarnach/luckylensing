@@ -73,6 +73,9 @@ class GllRayshooter(GllPlugin):
         self.imageview.set_tool(self.dragger)
         self.main_widget.mark_dirty()
         self.region = self.magpat.region
+        for key in ["x0", "x1", "y0", "y1"]:
+            self.config_widget["region_" + key].set_value(
+                getattr(self.region, key))
         self.xfactor = self.region.width / self.xpixels
         self.yfactor = self.region.height / self.ypixels
         xlog = log10(abs(self.region.x0) + abs(self.region.x1))
