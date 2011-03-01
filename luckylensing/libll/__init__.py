@@ -153,7 +153,7 @@ class Patches(_c.Structure):
         if hit is not None:
             yrays, xrays = hit.shape
         else:
-            hit = _np.empty((yrays, xrays), _np.uint8)
+            hit = _np.empty((yrays, xrays), _c.c_uint8)
         self.hit_array = hit
         super(Patches, self).__init__(rect, xrays, yrays, level,
             hit=hit.ctypes.data_as(_c.POINTER(_c.c_char)), num_patches=0)
@@ -327,13 +327,13 @@ class BasicRayshooter(_c.Structure):
         if isinstance(magpat, list):
             for m in magpat:
                 if self.kernel == KERNEL_TRIANGULATED:
-                    m.dtype = _np.float32
+                    m.dtype = _c.c_float
                 else:
-                    m.dtype = _np.int
+                    m.dtype = _c.c_int
             for m in magpat[1:]:
                 magpat[0] += m
             for m in magpat:
-                m.dtype = _np.float32
+                m.dtype = _c.c_float
             magpat = magpat[0]
         _finalise_subpatches(self, magpat, patches)
 
@@ -352,7 +352,7 @@ _shoot_single_ray.argtypes = [_c.POINTER(MagPatternParams),
 _shoot_single_ray.restype = _c.c_int
 
 _rayshoot_rect.argtypes = [_c.POINTER(MagPatternParams),
-                           _ndpointer(_np.int, flags="C_CONTIGUOUS"),
+                           _ndpointer(_c.c_int, flags="C_CONTIGUOUS"),
                            _c.POINTER(Rect),
                            _c.c_int,
                            _c.c_int]
@@ -383,12 +383,12 @@ _rayshoot.argtypes = [_c.POINTER(BasicRayshooter),
 _rayshoot.restype = None
 
 _ray_hit_pattern.argtypes = [_c.POINTER(MagPatternParams),
-                             _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+                             _ndpointer(_c.c_uint8, flags="C_CONTIGUOUS"),
                              _c.POINTER(Rect)]
 _ray_hit_pattern.restype = None
 
 _source_images.argtypes = [_c.POINTER(MagPatternParams),
-                           _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+                           _ndpointer(_c.c_uint8, flags="C_CONTIGUOUS"),
                            _c.POINTER(Rect),
                            _c.c_int,
                            _c.c_int,
@@ -398,8 +398,8 @@ _source_images.argtypes = [_c.POINTER(MagPatternParams),
                            _c.c_double]
 _source_images.restype = None
 
-_render_magpattern_greyscale.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
-                                         _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+_render_magpattern_greyscale.argtypes = [_ndpointer(_c.c_float, flags="C_CONTIGUOUS"),
+                                         _ndpointer(_c.c_uint8, flags="C_CONTIGUOUS"),
                                          _c.c_uint,
                                          _c.c_uint,
                                          _c.c_float,
@@ -427,7 +427,7 @@ def render_magpattern_greyscale(magpat, min_mag=None, max_mag=None,
     provided this buffer, the return value can be ignored.
     """
     if buf is None:
-        buf = _np.empty(magpat.shape, _np.uint8)
+        buf = _np.empty(magpat.shape, _c.c_uint8)
     else:
         assert buf.size == magpat.size
     if min_mag is None:
@@ -438,14 +438,14 @@ def render_magpattern_greyscale(magpat, min_mag=None, max_mag=None,
                                  min_mag, max_mag)
     return buf
 
-_render_magpattern_gradient.argtypes = [_ndpointer(_np.float32, flags="C_CONTIGUOUS"),
-                                        _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
+_render_magpattern_gradient.argtypes = [_ndpointer(_c.c_float, flags="C_CONTIGUOUS"),
+                                        _ndpointer(_c.c_uint8, flags="C_CONTIGUOUS"),
                                         _c.c_uint,
                                         _c.c_uint,
                                         _c.c_float,
                                         _c.c_float,
-                                        _ndpointer(_np.uint8, flags="C_CONTIGUOUS"),
-                                        _ndpointer(_np.uint, flags="C_CONTIGUOUS")]
+                                        _ndpointer(_c.c_uint8, flags="C_CONTIGUOUS"),
+                                        _ndpointer(_c.c_uint, flags="C_CONTIGUOUS")]
 _render_magpattern_gradient.restype = None
 
 def render_magpattern_gradient(magpat, colors, steps, min_mag=None,
@@ -469,7 +469,7 @@ def render_magpattern_gradient(magpat, colors, steps, min_mag=None,
     provided this buffer, the return value can be ignored.
     """
     if buf is None:
-        buf = _np.empty(magpat.shape + (3,), _np.uint8)
+        buf = _np.empty(magpat.shape + (3,), _c.c_uint8)
     else:
         assert buf.size == 3 * magpat.size
     if min_mag is None:
@@ -478,15 +478,15 @@ def render_magpattern_gradient(magpat, colors, steps, min_mag=None,
         max_mag = -1.0
     assert len(colors) - 1 == len(steps)
     assert len(colors[0]) == 3
-    colors_arr = _np.array(colors, dtype=_np.uint8)
-    steps_arr = _np.array(list(steps) + [0], dtype=_np.uint)
+    colors_arr = _np.array(colors, dtype=_c.c_uint8)
+    steps_arr = _np.array(list(steps) + [0], dtype=_c.c_uint)
     _render_magpattern_gradient(magpat, buf, magpat.shape[1], magpat.shape[0],
                                 min_mag, max_mag, colors_arr, steps_arr)
     return buf
 
 _light_curve.argtypes = [_c.POINTER(MagPatternParams),
-                         _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
-                         _ndpointer(_np.float32, flags="C_CONTIGUOUS"),
+                         _ndpointer(_c.c_float, flags="C_CONTIGUOUS"),
+                         _ndpointer(_c.c_float, flags="C_CONTIGUOUS"),
                          _c.c_uint,
                          _c.c_double,
                          _c.c_double,
