@@ -2,6 +2,7 @@
 # Copyright 2010 Sven Marnach
 
 import gobject
+from luckylensing import pipeline
 
 class GllPlugin(gobject.GObject):
     __gsignals__ = {
@@ -14,9 +15,12 @@ class GllPlugin(gobject.GObject):
 
     name = "Gll plug-in"
 
-    def __init__(self, processor=None):
+    def __init__(self, action=None):
         super(GllPlugin, self).__init__()
-        self.processor = processor
+        if action is None:
+            self.processor = None
+        else:
+            self.processor = pipeline.Processor(action)
         self.main_widget = None
         self.config_widget = None
         self.history = {}

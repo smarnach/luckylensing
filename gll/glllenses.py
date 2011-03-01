@@ -4,6 +4,7 @@
 import gtk
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox
+import luckylensing as ll
 
 class GllLenses(GllPlugin):
     name = "Lens configuration"
@@ -24,6 +25,7 @@ class GllLenses(GllPlugin):
              ("region_x1", "Right coordinate", ( 1.0, -1e10, 1e10, 0.01), 4),
              ("region_y1", "Upper coordinate", ( 1.0, -1e10, 1e10, 0.01), 4)])
         self.config_widget.add(self.builder.get_object("lens_box"))
+        self.config_widget.declare_record("region", "export_region")
 
     def get_config(self):
         config = self.config_widget.get_config()

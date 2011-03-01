@@ -6,13 +6,13 @@ import gtk
 from gllplugin import GllPlugin
 from gllconfigbox import GllConfigBox, GllConfigCheckButton
 from gllimageview import GllImageView
-from luckylensing import SourceProfile
+import luckylensing as ll
 
 class GllSourceProfile(GllPlugin):
     name = "Source profile"
 
     def __init__(self):
-        super(GllSourceProfile, self).__init__(SourceProfile())
+        super(GllSourceProfile, self).__init__(ll.source_profile)
         self.main_widget = GllImageView(self.get_pixbuf)
         self.config_widget = GllConfigBox()
         self.config_widget.add_radio_buttons(

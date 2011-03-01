@@ -1,33 +1,23 @@
 # Lucky Lensing Library (http://github.com/smarnach/luckylensing)
 # Copyright 2010 Sven Marnach
 
-from subprocess import Popen, PIPE
-from luckylensing import Processor, logger, render_magpattern_gradient
+from luckylensing import logger
+from PIL import Image
 
-colors = [(0, 0, 0), (5, 5, 184), (29, 7, 186),
-          (195, 16, 16), (249, 249, 70), (255, 255, 255)]
-steps = [255, 32, 255, 255, 255]
+def save_img(magpat, imgfile, min_mag=None, max_mag=None):
+    """Save a rendering of the magnification pattern to a file.
 
-def save_img(buf, filename, convert_opts=""):
-    size = "%ix%i" % (buf.shape[1], buf.shape[0])
-    p = Popen(["convert", "-size", size, "-depth", "8", "rgb:-"]
-              + convert_opts.split() + [filename], stdin=PIPE)
-    buf.tofile(p.stdin)
-    p.stdin.close()
-    p.wait()
-    logger.info("Wrote magnification pattern to %s", filename)
+    The magnification pattern is rendered using the standard color
+    palette and saved to a file using the Python Imaging Library.  The
+    file format is derived from the file name extension.
 
-class ImageWriter(Processor):
-    def get_input_keys(self, data):
-        return ["magpat", "min_mag", "max_mag", "imgfile", "convert_opts"]
+    Parameters:
 
-    def run(self, data):
-        imgfile = data.get("imgfile")
-        if not imgfile:
-            return {}
-        min_mag = data.get("min_mag")
-        max_mag = data.get("max_mag")
-        buf = render_magpattern_gradient(data["magpat"], colors, steps,
-                                         min_mag, max_mag)
-        save_img(buf, imgfile, data.get("convert_opts", ""))
-        return {}
+        magpat           the magnification pattern
+        imgfile          file name (will be overwritten if existent)
+        min_mag, max_mag
+                         passed on to Magpat.render_gradient()
+    """
+    buf = magpat.render_gradient(min_mag=min_mag, max_mag=max_mag)
+    Image.fromarray(buf).save(imgfile)
+    logger.info("Wrote magnification pattern to %s", imgfile)

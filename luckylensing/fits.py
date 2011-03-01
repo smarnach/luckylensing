@@ -3,56 +3,57 @@
 
 import pyfits
 import numpy
-from processor import Processor, logger
+import lensconfig
+import magpat
+import utils
 
-def write_fits(fits_output_file, magpat, lenses,
-               region_x0, region_x1, region_y0, region_y1):
+def write_fits(magpat, fits_output_file):
+    """Save a magnification pattern to a FITS file.
+
+    The pattern itself is saved in the pimary HDU of the FITS file.
+    The coordinates of the source plane rectangle occupied by the
+    pattern are stored in the header fields
+
+        MAGPATX0, MAGPATY0, MAGPATX1, MAGPATY1
+
+    The lens list is stored in a binary table HDU named "LENSES".
+
+    Parameters:
+
+        magpat           magnification pattern to save
+        fits_output_file
+                         file name of the output file
+    """
     img_hdu = pyfits.PrimaryHDU(magpat)
     for s in ["x0", "y0", "x1", "y1"]:
-        img_hdu.header.update("magpat" + s, locals()["region_" + s])
-    lenses = numpy.asarray(lenses)
-    col_x = pyfits.Column(name="x", format="D", array=lenses[:,0])
-    col_y = pyfits.Column(name="y", format="D", array=lenses[:,1])
-    col_mass = pyfits.Column(name="mass", format="D", array=lenses[:,2])
-    lens_hdu = pyfits.new_table([col_x, col_y, col_mass])
+        img_hdu.header.update("magpat" + s, getattr(magpat.region, s))
+    lens_hdu = pyfits.new_table(magpat.lenses)
     lens_hdu.name = "lenses"
     pyfits.HDUList([img_hdu, lens_hdu]).writeto(open(fits_output_file, "w"))
-    logger.info("Wrote magnification pattern to %s", fits_output_file)
+    utils.logger.info("Wrote magnification pattern to %s", fits_output_file)
 
 def read_fits(fits_input_file):
-    output = {}
+    """Read a magnification pattern from a FITS file.
+
+    Parameters:
+
+        fits_input_file  filename of the FITS file to read
+    """
     hdus = pyfits.open(fits_input_file)
-    magpat =  numpy.ascontiguousarray(hdus[0].data, dtype=numpy.float32)
-    output["magpat"] = magpat
-    output["ypixels"], output["xpixels"] = magpat.shape
+    buf = numpy.ascontiguousarray(hdus[0].data, dtype=numpy.float32)
+    ypixels, xpixels = buf.shape
+    region_params = {}
     for s in ["x0", "y0", "x1", "y1"]:
-        if "magpat" + s in hdus[0].header:
-            output["region_" + s] = hdus[0].header["magpat" + s]
-    if len(hdus) > 1 and hdus[1].name.lower() == "lenses":
-        lenses = hdus[1].data
-        if lenses.dtype.names != ("x", "y", "mass"):
-            lenses = numpy.hstack((lenses["x"], lenses["y"], lenses["mass"]))
-        if not lenses.dtype.isnative:
-            lenses = lenses.byteswap(True).newbyteorder()
-        output["lenses"] = lenses
-    logger.info("Read magnification pattern from %s", fits_input_file)
-    return output
-
-class FITSWriter(Processor):
-    def get_input_keys(self, data):
-        return ["fits_output_file", "magpat", "lenses",
-                "region_x0", "region_x1", "region_y0", "region_y1"]
-
-    def run(self, data):
-        if "fits_output_file" not in data:
-            return {}
-        d = dict((key, data[key]) for key in self.get_input_keys(data))
-        write_fits(**d)
-        return {}
-
-class FITSReader(Processor):
-    def get_input_keys(self, data):
-        return ["fits_input_file"]
-
-    def run(self, data):
-        return read_fits(data["fits_input_file"])
+        region_params[s] = hdus[0].header.get("magpat" + s, float(s[1]))
+    region = utils.rectangle(**region_params)
+    if hdus[-1].name.lower() == "lenses":
+        data = hdus[-1].data
+        if data.dtype.names == ("x", "y", "mass") and data.dtype.isnative:
+            lenses = lensconfig.LensConfig(buf=data)
+        else:
+            lenses = lensconfig.LensConfig(len(data))
+            lenses.x, lenses.y, lenses.mass = data.x, data.y, data.mass
+    else:
+        lenses = None
+    utils.logger.info("Read magnification pattern from %s", fits_input_file)
+    return magpat.Magpat(xpixels, ypixels, lenses, region, buf)

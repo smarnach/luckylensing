@@ -5,13 +5,9 @@
 import sys
 sys.path.append("..")
 
-from argsparser import ArgsParser
-from luckylensing import GlobularCluster, Rayshooter, FITSWriter
-from imagewriter import ImageWriter
+from argsparser import parse_args
+from luckylensing import pipeline, globular_cluster, Rayshooter
+from imagewriter import save_img
 
-data = {"args": sys.argv[1:],
-        "num_threads": 2}
-pipe = [ArgsParser(), GlobularCluster(), Rayshooter(),
-        FITSWriter(), ImageWriter()]
-for processor in pipe:
-    processor.update(data)
+pipe = pipeline.Pipeline(parse_args, globular_cluster, Rayshooter, save_img)
+pipe.run(args=sys.argv[1:], num_threads=2)
