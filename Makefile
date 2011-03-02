@@ -3,5 +3,6 @@
 
 default:
 	$(MAKE) -C luckylensing/libll
+	mkdir -p examples/magpats
 
 .PHONY: default
