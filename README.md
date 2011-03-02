@@ -12,9 +12,9 @@ The web home of the library is
 Features:
 
   * High performance computations of magnification patterns by reverse
-    ray shooting for arbitrary lens distributions using the thin-lens
-    approximation.  It is particularly optimised for small (< 10,000)
-    number of lenses.  Multi-threading is supported.
+    ray shooting for arbitrary planar lens distributions using the
+    thin-lens approximation.  It is particularly optimised for small
+    (< 10,000) number of lenses.  Multi-threading is supported.
 
   * Convolution of magnification patterns with source profiles.
     Implementations for flat and Gaussian sources are provided.
@@ -28,8 +28,9 @@ or through a somewhat idiosyncratic GTK+ user interface.  The
 ray-shooting code is written in C99.
 
 The code is a work in progress and interfaces have not yet stabilised.
-There is no documentation yet, but the library might still be useful
-for experimentation with magnification patterns.
+There is little documentation yet, mainly in the docstrings of the
+Python interface.  The library might still be useful for
+experimentation with magnification patterns though.
 
   -- Sven Marnach (sven (a) marnach.net)
 
@@ -72,10 +73,9 @@ For the GUI, you need in addition
 
   * [PyGtkImageView][8], version 1.2 or higher
 
-For the examples, you need in addition to the Python library
-prerequisites
+The examples additionally make use of
 
-  * [ImageMagick][9] (probably any version will do)
+  * [Python Imaging Library][9], version 1.1.6 or above
 
 Most of these dependencies are included in many Linux distributions,
 PyGtkImageView being an exception.  I might get rid of the latter if I
@@ -100,21 +100,24 @@ bit.
 Getting started
 ---------------
 
-Have a look at examples/binary.py for an example how to use the Python
-library.  You can run this example by
+Have a look at examples/planet.py for a basic ray shooting example.
+You can run this example by typing
 
     cd examples/
-    ./binary.py
+    ./planet.py
 
-(i.e. you need to be in the examples directory to run it.)
+(i.e. you need to be in the examples directory to run it.)  The
+example will create a sequence of images in the examples/magpats
+directory visualizing the different caustic topologies for different
+distances between planet and star.
 
 Also check the GUI by
 
     cd gll/
     ./gll.py cluster.gll
 
-Unfortunately, there's no real documentation so far.  Don't hesitate
-to ask questions: (sven (a) marnach.net)
+Unfortunately, there's no documentation for the GUI so far.  Don't
+hesitate to ask questions: (sven (a) marnach.net)
 
   [1]: http://en.wikipedia.org/wiki/Microlensing
   [3]: http://github.com/smarnach/luckylensing/issues
@@ -123,7 +126,7 @@ to ask questions: (sven (a) marnach.net)
   [6]: http://www.stsci.edu/resources/software_hardware/pyfits
   [7]: http://www.pygtk.org/
   [8]: http://trac.bjourne.webfactional.com/
-  [9]: http://www.imagemagick.org/
+  [9]: http://www.pythonware.com/products/pil/
  [10]: http://github.com/smarnach/luckylensing/tarball/master
 
 Copyright 2010 Sven Marnach
