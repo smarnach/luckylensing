@@ -170,7 +170,7 @@ class Patches(_c.Structure):
                 ("level", _c.c_uint),
                 ("width_per_xrays", _c.c_double),
                 ("height_per_yrays", _c.c_double),
-                ("hit", _c.POINTER(_c.c_char)),
+                ("hit", _c.POINTER(_c.c_uint8)),
                 ("num_patches", _c.c_uint)]
 
     def __init__(self, rect, level, xrays=None, yrays=None, hit=None):
@@ -181,7 +181,7 @@ class Patches(_c.Structure):
             hit = _np.empty((yrays, xrays), _c.c_uint8)
         self.hit_array = hit
         _c.Structure.__init__(self, rect, xrays, yrays, level,
-            hit=hit.ctypes.data_as(_c.POINTER(_c.c_char)), num_patches=0)
+            hit=hit.ctypes.data_as(_c.POINTER(_c.c_uint8)), num_patches=0)
 
     # The following methods try to always keep the quotients
     # width_per_xrays and height_per_yrays consistent.  These ratios
@@ -370,7 +370,7 @@ _shoot_single_ray.argtypes = [_c.POINTER(MagpatParams),
 _shoot_single_ray.restype = _c.c_int
 
 _rayshoot_rect.argtypes = [_c.POINTER(MagpatParams),
-                           _ndpointer(_c.c_int, flags="C_CONTIGUOUS"),
+                           _ndpointer(_c.c_uint32, flags="C_CONTIGUOUS"),
                            _c.POINTER(Rect),
                            _c.c_int,
                            _c.c_int]
@@ -432,7 +432,7 @@ def render_magpat_greyscale(magpat, min_mag=None, max_mag=None, buf=None):
     max_mag -- The magnifications corresponding to black and white,
                respectively.  If either of these parameters is None, the
                minimum and maximum values in the pattern are used.
-    buf     -- a contiguous C array of char which the image will be
+    buf     -- a contiguous C array of uint8_t which the image will be
                rendered into; if None is given, the function will allocate
                a suitable buffer
 
@@ -479,7 +479,7 @@ def render_magpat_gradient(magpat, colors=None, steps=None, min_mag=None,
     max_mag -- The magnifications corresponding to the ends of the
                gradient.  If either of these parameters is None, the
                minimum and maximum values in the pattern are used.
-    buf     -- a contiguous C array of char which the image will be
+    buf     -- a contiguous C array of uint8_t which the image will be
                rendered into; if None is given, the function will allocate
                a suitable buffer
 

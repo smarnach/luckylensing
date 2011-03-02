@@ -5,6 +5,7 @@
 #define LL_LL_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 struct ll_lens
 {
@@ -63,7 +64,7 @@ ll_shoot_single_ray(const struct ll_magpat_params *params,
                     double x, double y, double *mag_x, double *mag_y);
 
 extern void
-ll_rayshoot_rect(const struct ll_magpat_params *params, int *magpat,
+ll_rayshoot_rect(const struct ll_magpat_params *params, uint32_t *magpat,
                  const struct ll_rect *rect, int xrays, int yrays);
 
 struct ll_patches
@@ -72,7 +73,7 @@ struct ll_patches
     int xrays, yrays;
     unsigned level;
     double width_per_xrays, height_per_yrays;
-    unsigned char* hit;
+    uint8_t* hit;
     unsigned num_patches;
 };
 
@@ -94,24 +95,24 @@ ll_rayshoot(const struct ll_rayshooter *rs, void *magpat,
             unsigned levels, double *progress);
 
 extern void
-ll_ray_hit_pattern(const struct ll_magpat_params *params, unsigned
-                   char *buf, const struct ll_rect *rect);
+ll_ray_hit_pattern(const struct ll_magpat_params *params,
+                   uint8_t *buf, const struct ll_rect *rect);
 
 extern void
-ll_source_images(const struct ll_magpat_params *params, unsigned char *buf,
+ll_source_images(const struct ll_magpat_params *params, uint8_t *buf,
                  const struct ll_rect *rect, int xrays, int yrays,
                  int refine, double source_x, double source_y, double source_r);
 
 extern void
-ll_render_magpat_greyscale(const float *magpat, unsigned char *buf,
+ll_render_magpat_greyscale(const float *magpat, uint8_t *buf,
                            unsigned xpixels, unsigned ypixels,
                            float min, float max);
 
 extern void
-ll_render_magpat_gradient(const float *magpat, unsigned char *buf,
+ll_render_magpat_gradient(const float *magpat, uint8_t *buf,
                           unsigned xpixels, unsigned ypixels,
                           float min, float max,
-                          const unsigned char colors[][3],
+                          const uint8_t colors[][3],
                           const unsigned *steps);
 
 extern void

@@ -57,7 +57,7 @@ ll_shoot_single_ray(const struct ll_magpat_params *params,
 }
 
 extern void
-ll_rayshoot_rect(const struct ll_magpat_params *params, int *magpat,
+ll_rayshoot_rect(const struct ll_magpat_params *params, uint32_t *magpat,
                  const struct ll_rect *rect, int xrays, int yrays)
 {
     double width_per_xrays = rect->width / xrays;
@@ -73,7 +73,7 @@ ll_rayshoot_rect(const struct ll_magpat_params *params, int *magpat,
 }
 
 static void __attribute__ ((hot))
-_ll_rayshoot_bilinear(const struct ll_magpat_params *params, int *magpat,
+_ll_rayshoot_bilinear(const struct ll_magpat_params *params, uint32_t *magpat,
                       double coords[4][2], bool hit_all, int refine)
 {
     double inv_refine = 1.0/refine;
@@ -495,7 +495,7 @@ _ll_rayshoot_recursively(const struct ll_rayshooter *rs, void *magpat,
     {
         struct ll_patches patches =
             { *rect, xrays, yrays, level, rect->width/xrays, rect->height/yrays,
-              .hit = malloc(xrays*yrays * sizeof(char)), .num_patches = 0};
+              .hit = malloc(xrays*yrays * sizeof(uint8_t)), .num_patches = 0};
         ll_get_subpatches(rs->params, &patches);
         ll_rayshoot_subpatches(rs, magpat, &patches, progress);
         free(patches.hit);
@@ -522,7 +522,7 @@ ll_get_subpatches(const struct ll_magpat_params *params,
                 &mag_x, &mag_y);
         }
     patches->num_patches = 0;
-    unsigned char* hit_patches = patches->hit;
+    uint8_t* hit_patches = patches->hit;
     for (int j = 0, m = xrays+4, n = 0; j < yrays; ++j, m += 3)
         for (int i = 0; i < xrays; ++i, ++m, ++n)
         {
@@ -576,7 +576,7 @@ _ll_scale_magpat(const struct ll_rayshooter *rs, void *magpat,
         density /= rect->width * rect->height * pixels;
         density = 1.0/density;
         float *fpat = magpat;
-        int *ipat = magpat;
+        uint32_t *ipat = magpat;
         for (unsigned i = 0; i < pixels; ++i)
             fpat[i] = ipat[i] * density;
         break;
@@ -608,7 +608,7 @@ ll_rayshoot(const struct ll_rayshooter *rs, void *magpat,
 
 extern void
 ll_ray_hit_pattern(const struct ll_magpat_params *params,
-                   unsigned char *buf, const struct ll_rect *rect)
+                   uint8_t *buf, const struct ll_rect *rect)
 {
     double width_per_xrays = rect->width / params->xpixels;
     double height_per_yrays = rect->height / params->ypixels;
@@ -622,7 +622,7 @@ ll_ray_hit_pattern(const struct ll_magpat_params *params,
 }
 
 extern void
-ll_source_images(const struct ll_magpat_params *params, unsigned char *buf,
+ll_source_images(const struct ll_magpat_params *params, uint8_t *buf,
                  const struct ll_rect *rect, int xrays, int yrays,
                  int refine, double source_x, double source_y, double source_r)
 {
@@ -676,7 +676,7 @@ _ll_get_magpat_minmax(const float *magpat, unsigned size, float min,
 }
 
 extern void
-ll_render_magpat_greyscale(const float *magpat, unsigned char *buf,
+ll_render_magpat_greyscale(const float *magpat, uint8_t *buf,
                            unsigned xpixels, unsigned ypixels,
                            float min, float max)
 {
@@ -701,10 +701,10 @@ ll_render_magpat_greyscale(const float *magpat, unsigned char *buf,
 }
 
 extern void
-ll_render_magpat_gradient(const float *magpat, unsigned char *buf,
+ll_render_magpat_gradient(const float *magpat, uint8_t *buf,
                           unsigned xpixels, unsigned ypixels,
                           float min, float max,
-                          const unsigned char colors[][3],
+                          const uint8_t colors[][3],
                           const unsigned *steps)
 {
     unsigned size = xpixels * ypixels;
@@ -716,7 +716,7 @@ ll_render_magpat_gradient(const float *magpat, unsigned char *buf,
     unsigned total_colors = 1;
     for (int segment = 0; steps[segment]; ++segment)
         total_colors += steps[segment];
-    unsigned char (*all_colors)[3] = malloc(3 * total_colors * sizeof(char));
+    uint8_t (*all_colors)[3] = malloc(3 * total_colors * sizeof(uint8_t));
     all_colors[0][0] = colors[0][0];
     all_colors[0][1] = colors[0][1];
     all_colors[0][2] = colors[0][2];
