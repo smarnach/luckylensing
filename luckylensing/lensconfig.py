@@ -10,25 +10,48 @@ class LensConfig(numpy.recarray):
     inherited from the libll.Lens structure.  You can access the
     columns an instance lenses as
 
-        lenses.x       x-values of the lenses
-        lenses.y       y-values of the lenses
-        lenses.mass    masses of the lenses
+        lenses.x         x-values of the lenses
+        lenses.y         y-values of the lenses
+        lenses.mass      masses of the lenses
 
     You can access a single lens as lenses[index] and its fields as
     lenses[index].x etc.
+
+    Constructor:
+
+        LensConfig(lenses=None, num_lenses=None)
+
+        lenses           the lenses to store in this object; must be a
+                         list of sequences of length 3 representing
+                         x, y and mass of the respective lenses or a
+                         NumPy array with a suitable memory layout; if
+                         a NumPy array is passed, the new LensConfig
+                         instance will use the same memory
+        num_lenses       the number of lenses in the configuration; if
+                         lenses is given, you don't need this parameter
+
+    Examples:
+
+        >>> lenses = LensConfig([(-0.5, 0, 0.5), (0.5, 0, 0.5)])
+        >>> lenses.x
+        array([-0.5,  0.5])
+        >>> lenses.mass.sum()
+        1.0
     """
 
     arg_name = "lenses"
 
-    def __new__(cls, num_lenses=None, buf=None, offset=0):
+    def __new__(cls, lenses=None, num_lenses=None):
         dtype = [(n, t._type_) for n, t in libll.Lens._fields_]
         if num_lenses is None:
-            if not isinstance(buf, numpy.ndarray):
-                raise TypeError("If num_lenses is not given, buf must be "
-                                "an numpy.ndarray instance")
-            num_lenses = len(buf)
-        return numpy.recarray.__new__(
-            cls, num_lenses, dtype=dtype, buf=buf, offset=offset)
+            num_lenses = len(lenses)
+        if lenses is None or isinstance(lenses, numpy.ndarray):
+            obj = numpy.recarray.__new__(
+                cls, num_lenses, dtype=dtype, buf=lenses)
+        else:
+            obj = numpy.recarray.__new__(cls, num_lenses, dtype=dtype)
+            obj[:] = lenses
+        return obj
 
 def binary_lenses(lens_distance, mass_ratio, total_mass=1.0):
     """Return a binary lens configuration.
@@ -42,11 +65,10 @@ def binary_lenses(lens_distance, mass_ratio, total_mass=1.0):
         mass_ratio       mass ratio of the two lenses
         total_mass       total mass of the two lenses
     """
-    lenses = LensConfig(2)
     m0 = total_mass / (mass_ratio + 1.0)
     x1 = lens_distance / (mass_ratio + 1.0)
-    lenses[:] = [(x1 - lens_distance, 0.0, m0), (x1, 0.0, total_mass - m0)]
-    return lenses
+    return LensConfig(
+        [(x1 - lens_distance, 0.0, m0), (x1, 0.0, total_mass - m0)])
 
 def globular_cluster(num_stars=1000, total_mass=1.0, log_mass_stddev=0.0,
                      angle=0.0, random_seed=42):
@@ -70,7 +92,7 @@ def globular_cluster(num_stars=1000, total_mass=1.0, log_mass_stddev=0.0,
                          the y-axis before projecting to the xy-plane
         random_seed      seed used for NumPy's Mersenne Twister
     """
-    lenses = LensConfig(num_stars)
+    lenses = LensConfig(num_lenses=num_stars)
     numpy.random.seed(random_seed)
     coords = numpy.random.multivariate_normal(
         [0., 0., 0.], numpy.identity(3), num_stars)
@@ -100,9 +122,9 @@ def polygonal_lenses(num_stars=5, total_mass=1.0, angle=0.0):
         angle            angle by which to rotate the polygon around
                          the origin
     """
-    lenses = LensConfig(num_stars)
+    lenses = LensConfig(num_lenses=num_stars)
     phis = numpy.linspace(angle, angle + 2.*numpy.pi, num_stars + 1)[:-1]
-    lenses.x = numpy.cos(phis)
-    lenses.y = numpy.sin(phis)
+    numpy.cos(phis, lenses.x)
+    numpy.sin(phis, lenses.y)
     lenses.mass.fill(total_mass / num_stars)
     return lenses

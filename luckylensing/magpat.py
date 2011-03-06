@@ -39,12 +39,7 @@ class Magpat(numpy.ndarray):
         obj = numpy.ndarray.__new__(
             cls, (ypixels, xpixels), numpy.float32, buffer, offset)
         if not isinstance(lenses, lensconfig.LensConfig):
-            if isinstance(lenses, numpy.ndarray):
-                lenses = lensconfig.LensConfig(len(lenses), buf=lenses)
-            else:
-                new_lenses = lensconfig.LensConfig(len(lenses))
-                new_lenses[:] = lenses
-                lenses = new_lenses
+            lenses = lensconfig.LensConfig(lenses)
         if not isinstance(region, libll.Rect):
             try:
                 region = utils.rectangle(**region)

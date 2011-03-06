@@ -52,9 +52,9 @@ def read_fits(fits_input_file):
     if hdus[-1].name.lower() == "lenses":
         data = hdus[-1].data
         if data.dtype.names == ("x", "y", "mass") and data.dtype.isnative:
-            lenses = lensconfig.LensConfig(buf=data)
+            lenses = lensconfig.LensConfig(data)
         else:
-            lenses = lensconfig.LensConfig(len(data))
+            lenses = lensconfig.LensConfig(num_lenses=len(data))
             lenses.x, lenses.y, lenses.mass = data.x, data.y, data.mass
     else:
         lenses = None
