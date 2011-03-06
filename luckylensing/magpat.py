@@ -16,10 +16,13 @@ class Magpat(numpy.ndarray):
     """A magnification pattern.
 
     This class is basically a two-dimensional NumPy array of shape
-    (ypixels, xpixels) -- note the order!  The __new__() method
-    supports the follwoing additional parameters:
+    (ypixels, xpixels) -- note the order!
 
-        buffer, offset   passed on to numpy.ndarray.__new__()
+    Constructor:
+
+        Magpat(xpixels, ypixels, lenses, region, buffer=None, offset=0)
+
+        buffer and offset are passed on to numpy.ndarray.__new__().
 
     Instances have the following additional attributes:
 
@@ -83,9 +86,9 @@ class Magpat(numpy.ndarray):
                  profile_type="flat"):
         """Convolve the magnification pattern in place.
 
-        If source_fft is given, it is passed on to lightcurve.convolve,
-        otherwise it is created using lightcurve.sourceprofile with the
-        given parameters.
+        If source_fft is given, it is passed on to convolve(),
+        otherwise it is created using the source_profile() function
+        with the given parameters.
         """
         if source_fft is None:
             source_fft = lightcurve.source_profile(
@@ -95,7 +98,7 @@ class Magpat(numpy.ndarray):
     def write_fits(self, fits_output_file):
         """Save the magnification pattern to a FITS file.
 
-        The parameter fits_output_fileis the file name of the FITS
+        The parameter fits_output_file is the file name of the FITS
         file, which will be overwritten.  If PyFITS is not available,
         an ImportError will be raised.
         """
@@ -109,7 +112,11 @@ class Rayshooter(object):
 
     """Control a multi-threaded ray shooter.
 
-    Parameters:
+    Constructor:
+
+        Rayshooter(lenses, region, xpixels=1024, ypixels=1024,
+                   density=100, num_threads=1, kernel="triangulated",
+                   refine=15, refine_kernel=25)
 
         lenses           a LensConfig instance or a list of triples
         region           a Rect instance or a tuple of coordinates

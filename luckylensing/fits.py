@@ -35,6 +35,9 @@ def write_fits(magpat, fits_output_file):
 def read_fits(fits_input_file):
     """Read a magnification pattern from a FITS file.
 
+    The function returns a Magpat instance including the list of
+    lenses read from the file.
+
     Parameters:
 
         fits_input_file  filename of the FITS file to read

@@ -34,7 +34,7 @@ def binary_lenses(lens_distance, mass_ratio, total_mass=1.0):
     """Return a binary lens configuration.
 
     The returned LensConfig instance contains two lenses with
-    barycenter in the origin.
+    barycentre in the origin.
 
     Parameters:
 

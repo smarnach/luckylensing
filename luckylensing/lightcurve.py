@@ -31,7 +31,7 @@ def _gaussian(r2, source_radius2, width, height):
 all_profile_types = {"flat": _flat, "gaussian": _gaussian}
 
 def source_profile(magpat, source_radius, profile_type="flat"):
-    """Create a source profile suitable to convolve the magpat with.
+    """Create a source profile suitable to convolve the given magpat with.
 
     This function returns a pair of two-dimensional NumPy arrays.  The
     first is the source profile itself, the second is its Fourier
@@ -96,6 +96,8 @@ def convolve(magpat, source_fft, convolved_pattern=None):
 
 class LightCurve(numpy.ndarray):
     """One-dimensional NumPy array representing a light curve.
+
+    The array items are dimensionless magnification values.
     """
 
     arg_name = "light_curve"
