@@ -31,15 +31,6 @@ class Magpat(numpy.ndarray):
                          occupied by this pattern
         params           a libll.MagpatParams instance encapsulating
                          xpixels, ypixels, lenses and region
-
-    The following attributes will have meaningful values if the
-    instance resulted from ray shooting:
-
-        shooting_rect    lens plane coordinates of the rectangular area
-                         which rays were shot in
-        xrays, yrays     number of rays shot on the highest hierarchy
-                         level
-        levels           number of hierarchy levels
     """
 
     arg_name = "magpat"
@@ -62,17 +53,12 @@ class Magpat(numpy.ndarray):
         obj.lenses = lenses
         obj.region = region
         obj.params = libll.MagpatParams(lenses, region, xpixels, ypixels)
-        obj.shooting_rect = None
-        obj.xrays = None
-        obj.yrays = None
-        obj.levels = None
         return obj
 
     def __array_finalize__(self, obj):
         if obj is None:
             return
-        for attr in ["lenses", "region", "params", "shooting_rect",
-                     "xrays", "yrays", "levels"]:
+        for attr in ["lenses", "region", "params"]:
             setattr(self, attr, getattr(obj, attr, None))
 
     @classmethod
@@ -170,9 +156,6 @@ class Rayshooter(object):
         """
         self.progress = [libll.Progress(0.0) for j in range(self.num_threads)]
         rect, xrays, yrays, levels = self.get_shooting_params()
-        self.magpat.shooting_rect = rect
-        self.magpat.xrays, self.magpat.yrays = xrays, yrays
-        self.magpat.levels = levels
         utils.logger.debug("Ray shooting rectangle: %s", rect)
         utils.logger.debug("Rays on the coarsest level: %i x %i", xrays, yrays)
         utils.logger.debug("Ray shooting levels: %i", levels)
