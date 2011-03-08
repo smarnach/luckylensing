@@ -24,11 +24,10 @@ class LensConfig(numpy.recarray):
         lenses           the lenses to store in this object; must be a
                          list of sequences of length 3 representing
                          x, y and mass of the respective lenses or a
-                         NumPy array with a suitable memory layout; if
-                         a NumPy array is passed, the new LensConfig
-                         instance will use the same memory
+                         NumPy array of records with 3 fields
         num_lenses       the number of lenses in the configuration; if
                          lenses is given, you don't need this parameter
+        buf              passed on to ndarray.__new__()
 
     Examples:
 
@@ -41,17 +40,46 @@ class LensConfig(numpy.recarray):
 
     arg_name = "lenses"
 
-    def __new__(cls, lenses=None, num_lenses=None):
-        dtype = [(n, t._type_) for n, t in libll.Lens._fields_]
+    def __new__(cls, lenses=None, num_lenses=None, buf=None):
+        dtype = numpy.dtype([(n, t._type_) for n, t in libll.Lens._fields_])
         if num_lenses is None:
             num_lenses = len(lenses)
-        if lenses is None or isinstance(lenses, numpy.ndarray):
-            obj = numpy.recarray.__new__(
-                cls, num_lenses, dtype=dtype, buf=lenses)
-        else:
-            obj = numpy.recarray.__new__(cls, num_lenses, dtype=dtype)
+        obj = numpy.recarray.__new__(cls, num_lenses, dtype=dtype, buf=buf)
+        if lenses is not None:
             obj[:] = lenses
         return obj
+
+    @classmethod
+    def fromarray(cls, lenses):
+        """Create class instance from the given NumPy array.
+
+        The array must either be a two-dimensional array with three
+        columns or a one-dimensional array of records with at least
+        three fields.  In the latter case, there must be columns with
+        the names 'x', 'y' and 'mass'.
+
+        If the memory layout of the array is already as needed, the
+        new instance will share the same memory.
+        """
+        dtype = numpy.dtype([(n, t._type_) for n, t in libll.Lens._fields_])
+        if lenses.ndim == 2:
+            if lenses.shape[1] != 3:
+                raise ValueError("If a two-dimensional array is given, "
+                                 "it must be of shape (num_lenses, 3)")
+            lenses = lenses.view(dict(
+                names=dtype.names, formats=[lenses.dtype]*3)).ravel()
+        else:
+            if lenses.ndim != 1:
+                raise ValueError("Lens array must be 1d or 2d")
+            if lenses.dtype.names != dtype.names:
+                obj = cls(num_lenses=len(lenses))
+                obj.x = lenses["x"]
+                obj.y = lenses["y"]
+                obj.mass = lenses["mass"]
+                return obj
+        if lenses.dtype == dtype:
+            return cls(num_lenses=len(lenses), buf=lenses)
+        return cls(lenses)
 
 def binary_lenses(lens_distance, mass_ratio, total_mass=1.0):
     """Return a binary lens configuration.

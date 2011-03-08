@@ -50,12 +50,7 @@ def read_fits(fits_input_file):
         region_params[s] = hdus[0].header.get("magpat" + s, float(s[1]))
     region = utils.rectangle(**region_params)
     if hdus[-1].name.lower() == "lenses":
-        data = hdus[-1].data
-        if data.dtype.names == ("x", "y", "mass") and data.dtype.isnative:
-            lenses = lensconfig.LensConfig(data)
-        else:
-            lenses = lensconfig.LensConfig(num_lenses=len(data))
-            lenses.x, lenses.y, lenses.mass = data.x, data.y, data.mass
+        lenses = lensconfig.LensConfig.fromarray(hdus[-1].data)
     else:
         lenses = None
     utils.logger.info("Read magnification pattern from %s", fits_input_file)
