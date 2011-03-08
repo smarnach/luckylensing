@@ -9,5 +9,7 @@ from lightcurve import (
     all_profile_types, source_profile, convolve, LightCurve, light_curve)
 try:
     from fits import write_fits, read_fits
+    del fits
 except ImportError:
-    fits = None
+    pass
+del utils, lensconfig, magpat, lightcurve
