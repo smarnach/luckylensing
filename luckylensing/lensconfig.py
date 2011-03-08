@@ -114,7 +114,7 @@ def globular_cluster(num_stars=1000, total_mass=1.0, log_mass_stddev=0.0,
         num_stars        number of stars in the cluster
         total_mass       sum of all star masses (will be met up to
                          double precision even for random masses)
-        log_mass_stddev  standard deviation of log(mass);  defaults
+        log_mass_stddev  standard deviation of log_10(mass);  defaults
                          to 0.0 for a completely uniform cluster
         angle            angle by which the cluster is rotated about
                          the y-axis before projecting to the xy-plane

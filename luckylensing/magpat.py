@@ -26,7 +26,9 @@ class Magpat(numpy.ndarray):
 
     Instances have the following additional attributes:
 
-        lenses           the associated LensConfig instance
+        lenses           the lens configuration; either a LensConfig
+                         instance or something suitable to be passed as
+                         lenses parameter to the LensConfig constructor
         region           the coordinates of the source plane rectangle
                          occupied by this pattern
         params           a libll.MagpatParams instance encapsulating
