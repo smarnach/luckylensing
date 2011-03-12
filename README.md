@@ -65,7 +65,7 @@ To use the Python library, you need
 
 For FITS I/O, you need in addition
 
-  * [PyFITS][6], version 2.0 or higher
+  * [PyFITS][6], version 2.0 or higher (2.3 or higher recommended)
 
 For the GUI, you need in addition
 
