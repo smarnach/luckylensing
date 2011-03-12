@@ -200,7 +200,7 @@ class Rayshooter(object):
             y1 = max(y1, region.y1 + tmp.sum())
             rect = utils.rectangle(x0, y0, x1, y1)
         else:
-            rect = utils.rectangle(region.x0, region.y0, region.x1, region.y1)
+            rect = ll.Rect(*region)
 
         rays = sqrt(self.density) / self.rs.refine_kernel
         ypixels, xpixels = self.magpat.shape

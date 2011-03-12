@@ -143,6 +143,14 @@ class Rect(_c.Structure):
         if getattr(self, "callback", None) and name in ("width", "height"):
             self.callback()
 
+    def __iter__(self):
+        """Iterator for easy conversion to a tuple.
+        """
+        yield self.x
+        yield self.y
+        yield self.width
+        yield self.height
+
     @property
     def x0(self):
         return self.x
