@@ -14,9 +14,7 @@ import gtk
 from glllogdialog import logger, GllLogDialog, ERROR
 from gllutils import open_dialog, save_dialog
 from gllplugin import GllPlugin
-from gllglobularcluster import GllGlobularCluster
-from gllpolygonallenses import GllPolygonalLenses
-from glllenses import GllLenses
+from glllenses import GllLenses, GllGlobularCluster, GllPolygonalLenses
 from gllrayshooter import GllRayshooter
 from gllsourceprofile import GllSourceProfile
 from gllsourcepath import GllSourcePath
