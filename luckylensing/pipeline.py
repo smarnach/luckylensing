@@ -7,6 +7,13 @@ import time
 import itertools
 import inspect
 
+try:
+    import resource
+    def clock():
+        return sum(resource.getrusage(resource.RUSAGE_SELF)[:2])
+except ImportError:
+    clock = time.clock
+
 class Processor(object):
 
     def __init__(self, action):
@@ -39,11 +46,11 @@ class Processor(object):
     def run_and_log(self, data):
         utils.logger.debug("Starting %s", self.name)
         wall_time = time.time()
-        cpu_time = time.clock()
+        cpu_time = clock()
         kwargs = dict((k, v) for k, v in data.iteritems() if k in self.inputs)
         output = self.action(**kwargs)
         wall_time = time.time() - wall_time
-        cpu_time = time.clock() - cpu_time
+        cpu_time = clock() - cpu_time
         if wall_time >= 0.1:
             level = logging.INFO
         else:
