@@ -2,6 +2,7 @@ from __future__ import division
 import libll
 import logging
 import sys
+import time
 
 logger = logging.getLogger("luckylensing")
 logger.setLevel(logging.DEBUG)
@@ -69,3 +70,40 @@ def rectangle(x0=None, y0=None, x1=None, y1=None,
             raise TypeError("Only two out of 'y0', 'y1' and 'height' "
                             "may be provided.")
     return libll.Rect(x0, y0, width, height)
+
+def format_time_delta(seconds, fmt="%d:%02d:%02.2f"):
+    """Format the given time in seoncds for output.
+
+    The default format is [H]H:MM:SS.SS.
+    """
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    return fmt % (hours, minutes, seconds)
+
+def run_with_progress_bar(thread, message="", get_progress=None, width=45):
+    """Run a thread while showing a progress bar in the console.
+
+    Parameters:
+
+        thread           a threading.Thread instance that has not yet
+                         been started
+        message          a string written in front of the progress bar
+        get_progress     a function reporting the progress of the
+                         thread; defaults to thread.get_progress if not
+                         given
+         width           width of the progress bar in characters
+    """
+    if get_progress is None:
+        get_progress = thread.get_progress
+    start_time = time.time()
+    thread.start()
+    while thread.isAlive():
+        thread.join(0.2)
+        progress = get_progress()
+        percentage = int(progress * 100)
+        length = int(progress * width)
+        wall_time = format_time_delta(time.time() - start_time)
+        s = "%3i%% [" +  "=" * length + " " * (width - length) + "] %s"
+        sys.stdout.write("\r" + message + s % (percentage, wall_time))
+        sys.stdout.flush()
+    print

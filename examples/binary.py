@@ -27,12 +27,12 @@ for j, mass in enumerate(mass_values):
         sys.stdout.write("\033[F") # Cursor up one line
         lenses = [(0.0, 0.0, 1.0), (x, 0.0, mass)]
         magpat = rayshoot(lenses, region, xpixels, ypixels,
-                          density=1000, num_threads=2)
+                          density=1000, num_threads=2, verbose=0)
         j0 = j * (ypixels + 2 * margin)
         i0 = i * (xpixels + 2 * margin)
         buf[j0:j0+ypixels, i0:i0+xpixels] = magpat.render_gradient(
             min_mag=1.0, max_mag=120.0)
 sys.stdout.write("\033[K") # Clear to the end of line
-print "Writing magnification pattern to", imgfile
+print "Writing magnification patterns to", imgfile
 Image.fromarray(buf).save(imgfile)
 print "Done."

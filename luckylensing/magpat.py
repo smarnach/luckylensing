@@ -3,11 +3,8 @@
 
 from __future__ import division
 from math import sqrt, log, ceil
-import sys
 import threading
 import Queue
-import time
-import datetime
 import numpy
 import libll
 import utils
@@ -284,24 +281,14 @@ def rayshoot(*args, **kwargs):
 
     Additional parameters:
 
-        progress_bar     whether to show a progress bar during the
-                         computation; defaults to True
+        verbose          verbosity level (default = 1):
+                             0 = no output
+                             1 = progress bar
     """
-    progress_bar = kwargs.pop("progress_bar", True)
+    verbose = kwargs.pop("verbose", 2)
     rs = Rayshooter(*args, **kwargs)
-    if not progress_bar:
+    if not verbose:
         return rs.run()
-    t = threading.Thread(target=rs.run)
-    start_time = time.time()
-    t.start()
-    while t.is_alive():
-        t.join(0.2)
-        percentage = int(rs.get_progress() * 100.0)
-        length = percentage // 2
-        wall_time = datetime.timedelta(seconds=int(time.time() - start_time))
-        s = "\r%2i%% [" +  "=" * length + " " * (50 - length) + "] %s"
-        sys.stdout.write(s % (percentage, wall_time))
-        sys.stdout.flush()
-    wall_time = datetime.timedelta(seconds=time.time() - start_time)
-    print "\r\033[KRayshooter finished in %s (wall time)." % wall_time
+    utils.run_with_progress_bar(
+        threading.Thread(target=rs.run), "Rayshooting...", rs.get_progress)
     return rs.magpat
