@@ -3,8 +3,11 @@
 
 from __future__ import division
 from math import sqrt, log, ceil
+import sys
 import threading
 import Queue
+import time
+import datetime
 import numpy
 import libll
 import utils
@@ -275,7 +278,30 @@ class Rayshooter(object):
 def rayshoot(*args, **kwargs):
     """Compute a magnification pattern by ray shooting.
 
-    The parameters are documented in the Rayshooter class.
+    This is a convenience function that creates a Rayshooter instance
+    using the given parameters and runs it.  The parameters are
+    documented in the Rayshooter class.
+
+    Additional parameters:
+
+        progress_bar     whether to show a progress bar during the
+                         computation; defaults to True
     """
+    progress_bar = kwargs.pop("progress_bar", True)
     rs = Rayshooter(*args, **kwargs)
-    return rs.run()
+    if not progress_bar:
+        return rs.run()
+    t = threading.Thread(target=rs.run)
+    start_time = time.time()
+    t.start()
+    while t.is_alive():
+        t.join(0.2)
+        percentage = int(rs.get_progress() * 100.0)
+        length = percentage // 2
+        wall_time = datetime.timedelta(seconds=int(time.time() - start_time))
+        s = "\r%2i%% [" +  "=" * length + " " * (50 - length) + "] %s"
+        sys.stdout.write(s % (percentage, wall_time))
+        sys.stdout.flush()
+    wall_time = datetime.timedelta(seconds=time.time() - start_time)
+    print "\r\033[KRayshooter finished in %s (wall time)." % wall_time
+    return rs.magpat
