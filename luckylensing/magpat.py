@@ -92,8 +92,10 @@ class Magpat(numpy.ndarray):
         ypixels = self.shape[0] // factor
         xpixels = self.shape[1] // factor
         buf = self.reshape(ypixels, factor, xpixels, factor)
-        buf = buf.mean(axis=3, dtype=self.dtype).mean(axis=1, dtype=self.dtype)
-        return Magpat(xpixels, ypixels, self.lenses, self.region, buf)
+        buf = buf.mean(axis=3, dtype=self.dtype)
+        magpat = Magpat(xpixels, ypixels, self.lenses, self.region)
+        buf.mean(axis=1, out=magpat)
+        return magpat
 
     def write_fits(self, fits_output_file):
         """Save the magnification pattern to a FITS file.
