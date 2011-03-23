@@ -78,6 +78,26 @@ class Magpat(numpy.ndarray):
                 self, source_radius, profile_type)[1]
         lightcurve.convolve(self, source_fft, self)
 
+    def downsample(self, factor=2):
+        """Downsample the magpat in-place by the given factor.
+
+        Parameters:
+
+            factor           factor to downsample by; must be a factor of
+                             the image dimensions along both axes
+        """
+        if any(dim % factor for dim in self.shape):
+            raise ValueError("Can only downsample by factors "
+                             "of the image domensions.")
+        ypixels = self.shape[0] // factor
+        xpixels = self.shape[1] // factor
+        tmp = self.reshape(ypixels, factor, xpixels, factor)
+        tmp = tmp.mean(axis=3, dtype=self.dtype)
+        self.resize((ypixels, xpixels), refcheck=False)
+        tmp.mean(axis=1, out=self)
+        self.params.ypixels = ypixels
+        self.params.xpixels = xpixels
+
     def write_fits(self, fits_output_file):
         """Save the magnification pattern to a FITS file.
 
