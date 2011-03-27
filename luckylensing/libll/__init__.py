@@ -1,12 +1,14 @@
 # Lucky Lensing Library (http://github.com/smarnach/luckylensing)
 # Copyright 2010 Sven Marnach
 
-"""Wrap the C functions in the ll library with an Pythonic interface.
+"""Wrap the C functions in the libll.so with a Python interface.
 
-The functions in the Lucky Lensing Library (libll.so) allow for high
-performance computations in the context of gravitational lensing.
 This module provides Python bindings for the functions and data types
-in this C library.
+in the C library libll.so, which is the C part of the Lucky Lensing
+Library.  If you are using the higher level interface of the
+luckylensing package, you usually do not need to use anything from
+this module directly, and the only class you will encounter instances
+of will be Rect, returned by luckylensing.rectangle().
 
 Classes:
 
@@ -144,8 +146,7 @@ class Rect(_c.Structure):
             self.callback()
 
     def __iter__(self):
-        """Iterator for easy conversion to a tuple.
-        """
+        """Iterator for easy conversion to a tuple."""
         yield self.x
         yield self.y
         yield self.width
@@ -169,8 +170,7 @@ class Rect(_c.Structure):
 
 class Patches(_c.Structure):
 
-    """Stores the pattern of subpatches for hierarchic ray shooting.
-    """
+    """Stores the pattern of subpatches for hierarchic ray shooting."""
 
     _fields_ = [("rect", Rect),
                 ("xrays", _c.c_int),
@@ -322,8 +322,7 @@ all_kernels = {"simple": 0, "bilinear": 1, "triangulated": 2}
 
 class BasicRayshooter(_c.Structure):
 
-    """A class controlling the ray shooting process.
-    """
+    """A class controlling the ray shooting process."""
 
     _fields_ = [("params", _c.POINTER(MagpatParams)),
                 ("kernel", _c.c_int),
@@ -364,8 +363,7 @@ class BasicRayshooter(_c.Structure):
         _finalise_subpatches(self, magpat, patches)
 
     def run(self, magpat, rect, xrays, yrays, levels, progress=Progress()):
-        """Start the actual ray shooting.
-        """
+        """Start the actual ray shooting."""
         self.cancel_flag = False
         _rayshoot(self, magpat, rect, xrays, yrays, levels, progress)
 

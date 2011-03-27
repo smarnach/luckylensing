@@ -60,8 +60,7 @@ class Magpat(numpy.ndarray):
 
     @classmethod
     def empty_like(cls, obj):
-        """Create a new empty Magpat instance similar to obj.
-        """
+        """Create a new empty Magpat instance similar to obj."""
         ypixels, xpixels = obj.shape
         return Magpat.__new__(cls, xpixels, ypixels, obj.lenses, obj.region)
 
@@ -154,15 +153,13 @@ class Rayshooter(object):
         self.progress = []
 
     def get_progress(self):
-        """Return the progress of the currently running ray shooting.
-        """
+        """Return the progress of the currently running ray shooting."""
         if not self.progress:
             return 1.0
         return sum(p.value for p in self.progress)
 
     def cancel(self):
-        """Cancel the currently running ray shooting function.
-        """
+        """Cancel the currently running ray shooting function."""
         self.rs.cancel()
 
     def run(self):
