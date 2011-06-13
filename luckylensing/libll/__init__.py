@@ -237,7 +237,7 @@ class MagpatParams(_c.Structure):
     ypixels           -- y resolution of the pattern
     pixels_per_width  -- xpixels/region.width; needed internally and kept
                          up to date autommatically
-    pixels_per_hieght -- ypixels/region.height; needed internally and kept
+    pixels_per_height -- ypixels/region.height; needed internally and kept
                          up to date autommatically
     """
 
