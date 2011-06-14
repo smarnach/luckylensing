@@ -1,11 +1,12 @@
 # Lucky Lensing Library (http://github.com/smarnach/luckylensing)
 # Copyright 2010 Sven Marnach
 
+from __future__ import division, absolute_import
 import pyfits
 import numpy
-import lensconfig
-import magpat
-import utils
+from . import lensconfig
+from . import magpat
+from . import utils
 
 def write_fits(magpat, fits_output_file):
     """Save a magnification pattern to a FITS file.

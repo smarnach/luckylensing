@@ -1,7 +1,8 @@
 # Lucky Lensing Library (http://github.com/smarnach/luckylensing)
 # Copyright 2010 Sven Marnach
 
-import utils
+from __future__ import division, absolute_import
+from . import utils
 import logging
 import time
 import itertools

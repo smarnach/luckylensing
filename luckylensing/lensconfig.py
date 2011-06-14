@@ -1,7 +1,10 @@
-from __future__ import division
+# Lucky Lensing Library (http://github.com/smarnach/luckylensing)
+# Copyright 2010 Sven Marnach
+
+from __future__ import division, absolute_import
 from math import sin, cos, log, sqrt, ceil
 import numpy
-import libll
+from . import libll
 
 class LensConfig(numpy.recarray):
     """A array of lens records describing a lens configuration.

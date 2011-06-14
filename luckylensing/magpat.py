@@ -1,15 +1,14 @@
 # Lucky Lensing Library (http://github.com/smarnach/luckylensing)
 # Copyright 2010 Sven Marnach
 
-from __future__ import division
+from __future__ import division, absolute_import
 from math import sqrt, log, ceil
 import threading
 import Queue
 import numpy
-import libll
-import utils
-import lensconfig
-import lightcurve
+from . import libll
+from . import utils
+from . import lensconfig
 
 class Magpat(numpy.ndarray):
 
@@ -72,6 +71,8 @@ class Magpat(numpy.ndarray):
         otherwise it is created using the source_profile() function
         with the given parameters.
         """
+        # function level import to avoid circular dependency
+        from . import lightcurve
         if source_fft is None:
             source_fft = lightcurve.source_profile(
                 self, source_radius, profile_type)[1]

@@ -51,14 +51,14 @@ file 'lightcurve.txt' with samples of a light curve extracted from
 this pattern.
 """
 
-from utils import logger, stdout_handler, rectangle
-from lensconfig import (
+from .utils import logger, stdout_handler, rectangle
+from .lensconfig import (
     LensConfig, binary_lenses, globular_cluster, polygonal_lenses)
-from magpat import Magpat, Rayshooter, rayshoot
-from lightcurve import (
+from .magpat import Magpat, Rayshooter, rayshoot
+from .lightcurve import (
     all_profile_types, source_profile, convolve, LightCurve, light_curve)
 try:
-    from fits import write_fits, read_fits
+    from .fits import write_fits, read_fits
     del fits
 except ImportError:
     pass
