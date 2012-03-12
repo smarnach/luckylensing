@@ -102,8 +102,9 @@ class Lenses(_c.Structure):
             _c.Structure.__init__(self, len(lens_list),
                                   lens_list.ctypes.data_as(_c.POINTER(Lens)))
         else:
-            l = len(lens_list)
-            _c.Structure.__init__(self, l, (Lens*l)(*map(tuple, lens_list)))
+            lens_list = map(tuple, lens_list)
+            n = len(lens_list)
+            _c.Structure.__init__(self, n, (Lens*n)(*lens_list))
 
 class Rect(_c.Structure):
 
