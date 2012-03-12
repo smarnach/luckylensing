@@ -62,4 +62,3 @@ try:
     del fits
 except ImportError:
     pass
-del utils, lensconfig, magpat, lightcurve
