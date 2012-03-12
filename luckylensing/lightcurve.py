@@ -73,7 +73,7 @@ def convolve(magpat, source_fft, convolved_pattern=None):
         source_fft       the Fourier transform of the source profile as
                          returned by the source_profile() function
         convolved_pattern
-                         output array; may conincide with magpat to
+                         output array; may coincide with magpat to
                          convolve in place
     """
     shape = magpat.shape
