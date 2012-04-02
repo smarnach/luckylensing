@@ -238,7 +238,7 @@ _ll_rayshoot_triangulated(const struct ll_magpat_params *params,
             continue;
         }
         double vertices[11][2];
-        for (int k = 0, lastk = 2; k < 3; lastk = k, ++k)
+        for (int k = 0; k < 3; ++k)
         {
             vertices[k][0] = tri_vertices[k][0];
             vertices[k][1] = tri_vertices[k][1];
