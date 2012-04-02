@@ -4,7 +4,7 @@
 from __future__ import division, absolute_import
 from math import sqrt, log, ceil
 import threading
-import Queue
+from Queue import Queue, Empty
 import numpy
 from . import libll
 from . import utils
@@ -259,7 +259,7 @@ class Rayshooter(object):
         x_values =  [rect.x + i*(rect.width/xrays) for i in x_indices]
         y_indices = [j*yrays//subdomains for j in range(subdomains + 1)]
         y_values =  [rect.y + j*(rect.height/yrays) for j in y_indices]
-        queue = Queue.Queue()
+        queue = Queue()
         for j in range(subdomains):
             for i in range(subdomains):
                 subrect = libll.Rect(x_values[i], y_values[j],
@@ -286,7 +286,7 @@ class Rayshooter(object):
                 subpatches = libll.Patches(rect, patches.level, hit=subhit)
                 subpatches.num_patches = patches.num_patches
                 self.rs.run_subpatches(magpat, subpatches, self.progress[index])
-        except Queue.Empty:
+        except Empty:
             pass
 
 def rayshoot(*args, **kwargs):
