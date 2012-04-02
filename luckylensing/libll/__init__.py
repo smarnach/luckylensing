@@ -143,7 +143,7 @@ class Rect(_c.Structure):
         # This method is needed for the consistency magic in the
         # MagpatParams and Patches classes
         super(Rect, self).__setattr__(name, value)
-        if getattr(self, "callback", None) and name in ("width", "height"):
+        if name in ("width", "height") and hasattr(self, "callback"):
             self.callback()
 
     def __iter__(self):
