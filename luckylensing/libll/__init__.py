@@ -102,7 +102,7 @@ class Lenses(_c.Structure):
             _c.Structure.__init__(self, len(lens_list),
                                   lens_list.ctypes.data_as(_c.POINTER(Lens)))
         else:
-            lens_list = map(tuple, lens_list)
+            lens_list = [tuple(x) for x in lens_list]
             n = len(lens_list)
             _c.Structure.__init__(self, n, (Lens*n)(*lens_list))
 
@@ -199,7 +199,7 @@ class Patches(_c.Structure):
     def __setattr__(self, name, value):
         # Update ratios if needed; disallow direct write access
         if name in ("width_per_xrays", "height_per_yrays"):
-            raise AttributeError, "Attribute %s is not writable" % name
+            raise AttributeError("Attribute %s is not writable" % name)
         super(Patches, self).__setattr__(name, value)
         if name in ("rect", "xrays", "yrays"):
             self._update_ratios()
@@ -258,7 +258,7 @@ class MagpatParams(_c.Structure):
 
     def __setattr__(self, name, value):
         if name in ("pixels_per_width", "pixels_per_height"):
-            raise AttributeError, "Attribute %s is not writable" % name
+            raise AttributeError("Attribute %s is not writable" % name)
         super(MagpatParams, self).__setattr__(name, value)
         if name in ("region", "xpixels", "ypixels"):
             self._update_ratios()
@@ -332,7 +332,7 @@ class BasicRayshooter(_c.Structure):
                 ("cancel_flag", _c.c_int)]
 
     def __init__(self, params, kernel, refine, refine_kernel):
-        if kernel not in all_kernels.values():
+        if kernel not in all_kernels.itervalues():
             try:
                 kernel = all_kernels[kernel.strip().lower()]
             except KeyError:
