@@ -109,4 +109,4 @@ def run_with_progress_bar(thread, message="", get_progress=None, width=45):
         s = "%3i%% [" +  "=" * length + " " * (width - length) + "] %s"
         sys.stdout.write("\r" + message + s % (percentage, wall_time))
         sys.stdout.flush()
-    print
+    sys.stdout.write("\n")
