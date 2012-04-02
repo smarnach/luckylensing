@@ -2,6 +2,8 @@
 # Lucky Lensing Library (http://github.com/smarnach/luckylensing)
 # Copyright 2010 Sven Marnach
 
+from __future__ import print_function
+
 import sys
 sys.path.append("..")
 
@@ -23,7 +25,7 @@ shape = (len(mass_values) * (ypixels + 2 * margin),
 buf = numpy.zeros(shape, numpy.uint8)
 for j, mass in enumerate(mass_values):
     for i, x in enumerate(x_values):
-        print "Ray shooting for mass ratio %.2e and distance %.2f" % (mass, x)
+        print("Ray shooting for mass ratio %.2e and distance %.2f" % (mass, x))
         sys.stdout.write("\033[F") # Cursor up one line
         lenses = [(0.0, 0.0, 1.0), (x, 0.0, mass)]
         magpat = rayshoot(lenses, region, xpixels, ypixels,
@@ -33,6 +35,6 @@ for j, mass in enumerate(mass_values):
         buf[j0:j0+ypixels, i0:i0+xpixels] = magpat.render_gradient(
             min_mag=1.0, max_mag=120.0)
 sys.stdout.write("\033[K") # Clear to the end of line
-print "Writing magnification patterns to", imgfile
+print("Writing magnification patterns to", imgfile)
 Image.fromarray(buf).save(imgfile)
-print "Done."
+print("Done.")
