@@ -3,6 +3,8 @@
 # Lucky Lensing Library (http://github.com/smarnach/luckylensing)
 # Copyright 2010 Sven Marnach
 
+from __future__ import absolute_import, with_statement
+
 import sys
 sys.path.append("..")
 
@@ -267,17 +269,15 @@ class GllApp(object):
             selected = 0
         else:
             selected = self.plugins.get_path(it)[0]
-        f = open(filename, "w")
-        pickle.dump(plugins, f)
-        pickle.dump(selected, f)
-        f.close()
+        with open(filename, "wb") as f:
+            pickle.dump(plugins, f)
+            pickle.dump(selected, f)
         self.filename = filename
 
     def read_pipeline(self, filename):
-        f = open(filename)
-        plugins = pickle.load(f)
-        selected = pickle.load(f)
-        f.close()
+        with open(filename, "rb") as f:
+            plugins = pickle.load(f)
+            selected = pickle.load(f)
         for active, name, class_name, config in plugins:
             plugin = self.add_plugin(globals()[class_name], active, name)
             plugin.set_config(config)
