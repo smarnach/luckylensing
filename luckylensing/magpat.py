@@ -104,7 +104,7 @@ class Magpat(numpy.ndarray):
         file, which will be overwritten.  If PyFITS is not available,
         an ImportError will be raised.
         """
-        import fits
+        from . import fits
         fits.write_fits(self, fits_output_file)
 
     render_greyscale = libll.render_magpat_greyscale
