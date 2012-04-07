@@ -4,7 +4,10 @@
 from __future__ import division, absolute_import
 from math import sqrt, log, ceil
 import threading
-from Queue import Queue, Empty
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty
 import numpy
 from . import libll
 from . import utils

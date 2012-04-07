@@ -28,6 +28,11 @@ render_magpat_palette
                   -- render a magnification pattern using a color palette
 """
 
+from __future__ import division, absolute_import
+try:
+    from itertools import imap as map
+except ImportError:
+    pass
 import os.path as _path
 import ctypes as _c
 import numpy as _np
@@ -102,7 +107,7 @@ class Lenses(_c.Structure):
             _c.Structure.__init__(self, len(lens_list),
                                   lens_list.ctypes.data_as(_c.POINTER(Lens)))
         else:
-            lens_list = [tuple(x) for x in lens_list]
+            lens_list = list(map(tuple, lens_list))
             n = len(lens_list)
             _c.Structure.__init__(self, n, (Lens*n)(*lens_list))
 
@@ -332,7 +337,7 @@ class BasicRayshooter(_c.Structure):
                 ("cancel_flag", _c.c_int)]
 
     def __init__(self, params, kernel, refine, refine_kernel):
-        if kernel not in all_kernels.itervalues():
+        if kernel not in all_kernels.values():
             try:
                 kernel = all_kernels[kernel.strip().lower()]
             except KeyError:

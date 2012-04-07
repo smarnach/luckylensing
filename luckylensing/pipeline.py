@@ -2,6 +2,10 @@
 # Copyright 2010 Sven Marnach
 
 from __future__ import division, absolute_import
+try:
+    from itertools import imap as map
+except ImportError:
+    pass
 from . import utils
 import logging
 import time
@@ -48,7 +52,11 @@ class Processor(object):
         utils.logger.debug("Starting %s", self.name)
         wall_time = time.time()
         cpu_time = clock()
-        kwargs = dict((k, v) for k, v in data.iteritems() if k in self.inputs)
+        try:
+            data_items = data.iteritems()
+        except AttributeError:
+            data_items = data.items()
+        kwargs = dict((k, v) for k, v in data_items if k in self.inputs)
         output = self.action(**kwargs)
         wall_time = time.time() - wall_time
         cpu_time = clock() - cpu_time
@@ -101,7 +109,7 @@ class Processor(object):
 
 class Pipeline(object):
     def __init__(self, *actions):
-        self.processors = map(Processor, actions)
+        self.processors = list(map(Processor, actions))
     def run(self, data=None, **kwargs):
         if data is None:
             data = kwargs
