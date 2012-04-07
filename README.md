@@ -59,7 +59,7 @@ To use the Python library, you need
 
   * GNU make
 
-  * Python 2.5 or higher, but not 3.x
+  * Python 2.5 or higher, includig 3.x (without the GUI)
 
   * [NumPy][5] (probably any version will do)
 
@@ -72,6 +72,8 @@ For the GUI, you need in addition
   * [PyGtk][7]
 
   * [PyGtkImageView][8], version 1.2 or higher
+
+  * The GUI does not work on Python 3.x
 
 The examples additionally make use of
 
