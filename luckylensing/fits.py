@@ -2,11 +2,15 @@
 # Copyright 2010 Sven Marnach
 
 from __future__ import division, absolute_import
+import warnings
 import pyfits
 import numpy
 from . import lensconfig
 from . import magpat
 from . import utils
+
+warnings.filterwarnings("ignore", "Overwriting existing file",
+                        UserWarning, "pyfits")
 
 def write_fits(magpat, fits_output_file):
     """Save a magnification pattern to a FITS file.
@@ -30,7 +34,7 @@ def write_fits(magpat, fits_output_file):
         img_hdu.header.update("magpat" + s, getattr(magpat.region, s))
     lens_hdu = pyfits.new_table(magpat.lenses)
     lens_hdu.name = "lenses"
-    pyfits.HDUList([img_hdu, lens_hdu]).writeto(open(fits_output_file, "w"))
+    pyfits.HDUList([img_hdu, lens_hdu]).writeto(fits_output_file, clobber=True)
     utils.logger.info("Wrote magnification pattern to %s", fits_output_file)
 
 def read_fits(fits_input_file):
