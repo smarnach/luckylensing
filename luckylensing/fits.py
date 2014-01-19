@@ -30,8 +30,17 @@ def write_fits(magpat, fits_output_file):
                          file name of the output file
     """
     img_hdu = pyfits.PrimaryHDU(magpat)
+    region = magpat.region
+    img_hdu.header.update("ctype1", " ")
+    img_hdu.header.update("crpix1", 0.5)
+    img_hdu.header.update("crval1", region.x)
+    img_hdu.header.update("cdelt1", region.width / magpat.params.xpixels)
+    img_hdu.header.update("ctype2", " ")
+    img_hdu.header.update("crpix2", 0.5)
+    img_hdu.header.update("crval2", region.y)
+    img_hdu.header.update("cdelt2", region.height / magpat.params.ypixels)
     for s in ["x0", "y0", "x1", "y1"]:
-        img_hdu.header.update("magpat" + s, getattr(magpat.region, s))
+        img_hdu.header.update("magpat" + s, getattr(region, s))
     lens_hdu = pyfits.new_table(magpat.lenses)
     lens_hdu.name = "lenses"
     pyfits.HDUList([img_hdu, lens_hdu]).writeto(fits_output_file, clobber=True)
