@@ -1,14 +1,16 @@
 # Lucky Lensing Library (http://github.com/smarnach/luckylensing)
 # Copyright 2010 Sven Marnach
 
-CFLAGS_ALWAYS = -std=c99 -pedantic -Wall -Wextra -Winline -Wno-uninitialized
+CFLAGS_ALWAYS = -std=c99 -pedantic -Wall -Wextra -Winline -Wno-uninitialized -fPIC
 
 CFLAGS_OPTIMISE = -O3 -ffinite-math-only -fno-tree-vectorize
 
-# Uncomment the following line if your processor supports the sse3
-# instruction set.  Floating point to integer conversions are considerably
-# faster with sse3
-#CFLAGS_ARCH = -msse3
+# Optimise for the current architecture.  This might make the binary
+# unsuitable for use on an inhomogeneous set of machines.  Note that
+# floating point to integer conversions are considerably faster with
+# sse3, so parts of the lib will perform rather poorly on architectures
+# that don't support this extension.
+CFLAGS_ARCH = -march=native
 
 CFLAGS = $(CFLAGS_ALWAYS) $(CFLAGS_OPTIMISE) $(CFLAGS_ARCH)
 
