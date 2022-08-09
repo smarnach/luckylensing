@@ -88,31 +88,21 @@ _ll_rayshoot_bilinear(const struct ll_magpat_params *params, uint32_t *magpat,
     double sx = coords[0][0];
     double sy = coords[0][1];
     if (hit_all)
-    {
-        int iright_x = lrint(right_x * 65536.0);
-        int iright_y = lrint(right_y * 65536.0);
-        int isx = lrint(sx * 65536.0);
-        int isy = lrint(sy * 65536.0);
-        int ildown_x = lrint(ldown_x * 65536.0);
-        int ildown_y = lrint(ldown_y * 65536.0);
-        int iupdate_x = lrint(update_x * 65536.0);
-        int iupdate_y = lrint(update_y * 65536.0);
         for (int j = 0; j < refine; ++j)
         {
-            int x = isx;
-            int y = isy;
+            double x = sx;
+            double y = sy;
             for (int i = 0; i < refine; ++i)
             {
-                ++magpat[(y>>16)*params->xpixels + (x>>16)];
-                x += iright_x;
-                y += iright_y;
+                ++magpat[(int)y*params->xpixels + (int)x];
+                x += right_x;
+                y += right_y;
             }
-            isx += ildown_x;
-            isy += ildown_y;
-            iright_x += iupdate_x;
-            iright_y += iupdate_y;
+            sx += ldown_x;
+            sy += ldown_y;
+            right_x += update_x;
+            right_y += update_y;
         }
-    }
     else
         for (int j = 0; j < refine; ++j)
         {
