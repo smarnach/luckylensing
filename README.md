@@ -65,7 +65,7 @@ To use the Python library, you need
 
 For FITS I/O, you need in addition
 
-  * [PyFITS][6], version 2.0 or higher (2.3 or higher recommended)
+  * [Astropy][6], version 5.0 or higher
 
 For the GUI, you need in addition
 
@@ -77,7 +77,7 @@ For the GUI, you need in addition
 
 The examples additionally make use of
 
-  * [Python Imaging Library][9], version 1.1.6 or above
+  * [Pillow][9], probably any recent version
 
 Most of these dependencies are included in many Linux distributions,
 PyGtkImageView being an exception.  I might get rid of the latter if I
@@ -121,14 +121,14 @@ Also check the GUI by
 Unfortunately, there's no documentation for the GUI so far.  Don't
 hesitate to ask questions: (sven (a) marnach.net)
 
-  [1]: http://en.wikipedia.org/wiki/Microlensing
-  [3]: http://github.com/smarnach/luckylensing/issues
-  [4]: http://help.github.com/pull-requests/
-  [5]: http://numpy.scipy.org/
-  [6]: http://www.stsci.edu/resources/software_hardware/pyfits
-  [7]: http://www.pygtk.org/
-  [8]: http://trac.bjourne.webfactional.com/
-  [9]: http://www.pythonware.com/products/pil/
- [10]: http://github.com/smarnach/luckylensing/tarball/master
+  [1]: https://en.wikipedia.org/wiki/Microlensing
+  [3]: https://github.com/smarnach/luckylensing/issues
+  [4]: https://help.github.com/pull-requests/
+  [5]: https://numpy.scipy.org/
+  [6]: https://www.astropy.org/
+  [7]: https://www.pygtk.org/
+  [8]: https://trac.bjourne.webfactional.com/
+  [9]: https://python-pillow.org/
+ [10]: https://github.com/smarnach/luckylensing/tarball/master
 
 Copyright 2010 Sven Marnach
