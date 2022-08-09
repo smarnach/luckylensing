@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: latin-1 -*-
+# -*- coding: utf-8 -*-
 # Lucky Lensing Library (http://github.com/smarnach/luckylensing)
 # Copyright 2010 Sven Marnach
 
@@ -439,7 +439,7 @@ class GllApp(object):
         about.set_name("Gll")
         about.set_comments("A graphical user interface for microlensing "
                            "computations based on the Lucky Lensing Library")
-        about.set_copyright(u"© Sven Marnach, 2010")
+        about.set_copyright(u"Â© Sven Marnach, 2010")
         about.run()
         about.destroy()
 
